@@ -297,3 +297,65 @@ def test_user_job_cancellation_rejects_invalid_uuid_before_store_access(monkeypa
         user_api.cancel_user_job("not-a-uuid", user={"id": "11111111-1111-4111-8111-111111111111", "email": ""})
     assert error.value.status_code == 422
     repo.cancel_user_job.assert_not_called()
+
+
+
+def test_user_can_cancel_only_their_own_job(monkeypatch):
+    user_id = "11111111-1111-4111-8111-111111111111"
+    job_id = "22222222-2222-4222-8222-222222222222"
+    repo = Mock()
+    repo.cancel_user_job.return_value = "cancelled"
+    repo.close = Mock()
+    monkeypatch.setattr(user_api, "SupabaseJobRepository", lambda: repo)
+
+    result = user_api.cancel_user_job(job_id, user={"id": user_id, "email": "user@example.com"})
+
+    assert result == {"job_id": job_id, "status": "cancelled"}
+    repo.cancel_user_job.assert_called_once_with(job_id=job_id, tenant_id=user_id)
+    repo.close.assert_called_once()
+
+
+@pytest.mark.parametrize(("outcome", "status_code"), [("not_found", 404), ("not_cancellable", 409)])
+def test_user_job_cancel_maps_safe_database_outcomes(monkeypatch, outcome, status_code):
+    repo = Mock()
+    repo.cancel_user_job.return_value = outcome
+    repo.close = Mock()
+    monkeypatch.setattr(user_api, "SupabaseJobRepository", lambda: repo)
+
+    with pytest.raises(HTTPException) as error:
+        user_api.cancel_user_job(
+            "22222222-2222-4222-8222-222222222222",
+            user={"id": "11111111-1111-4111-8111-111111111111", "email": ""},
+        )
+
+    assert error.value.status_code == status_code
+    if status_code == 404:
+        assert error.value.detail == "Job not found."
+    repo.close.assert_called_once()
+
+
+def test_user_job_cancel_rejects_invalid_uuid_before_store_access(monkeypatch):
+    repo_factory = Mock()
+    monkeypatch.setattr(user_api, "SupabaseJobRepository", repo_factory)
+
+    with pytest.raises(HTTPException) as error:
+        user_api.cancel_user_job("not-a-uuid", user={"id": "11111111-1111-4111-8111-111111111111", "email": ""})
+
+    assert error.value.status_code == 422
+    repo_factory.assert_not_called()
+
+
+def test_user_job_cancel_fails_closed_when_database_unavailable(monkeypatch):
+    repo = Mock()
+    repo.cancel_user_job.side_effect = user_api.JobStoreUnavailable("unavailable")
+    repo.close = Mock()
+    monkeypatch.setattr(user_api, "SupabaseJobRepository", lambda: repo)
+
+    with pytest.raises(HTTPException) as error:
+        user_api.cancel_user_job(
+            "22222222-2222-4222-8222-222222222222",
+            user={"id": "11111111-1111-4111-8111-111111111111", "email": ""},
+        )
+
+    assert error.value.status_code == 503
+    repo.close.assert_called_once()
