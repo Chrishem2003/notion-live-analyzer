@@ -1,8 +1,8 @@
 """Streamlit-facing adapter for the staged Supabase Auth migration.
 
-This module is opt-in and is not imported by app.py yet. It deliberately has
-no fallback to local SQLite authentication: once the main app is wired to use
-this adapter, a Supabase outage must not silently downgrade authentication.
+This module is opt-in and is used only when SUPABASE_AUTH_ENABLED is true.
+It deliberately has no fallback to local SQLite authentication: a Supabase
+outage must never silently downgrade authentication.
 """
 from __future__ import annotations
 
@@ -28,8 +28,28 @@ def _enabled() -> bool:
     }
 
 
+def configured_supabase_admin_ids(value: str | None = None) -> set[str]:
+    """Parse a server-controlled comma-separated list of Supabase user UUIDs.
+
+    Only immutable UUIDs belong here; never put emails or user-editable metadata
+    in this allowlist. Empty configuration grants no administrator privileges.
+    """
+    raw = os.getenv("SUPABASE_ADMIN_USER_IDS", "") if value is None else value
+    return {item.strip().lower() for item in raw.split(",") if item.strip()}
+
+
+def supabase_role_for_user(user_id: str, enabled: bool, admin_ids: set[str] | None = None) -> str:
+    """Resolve a Supabase role using only a verified UUID and server allowlist."""
+    if not enabled or not isinstance(user_id, str) or not user_id.strip():
+        return "user"
+    allowed = configured_supabase_admin_ids() if admin_ids is None else {
+        item.strip().lower() for item in admin_ids if isinstance(item, str)
+    }
+    return "admin" if user_id.strip().lower() in allowed else "user"
+
+
 def may_use_legacy_admin_email_lookup(identity: dict[str, Any], enabled: bool) -> bool:
-    """Return false for Supabase identities until UUID-based roles are mapped."""
+    """Never use legacy email-based roles for a Supabase-authenticated session."""
     return not (enabled and identity.get("auth_provider") == "supabase")
 
 
@@ -41,7 +61,8 @@ def current_supabase_user() -> dict[str, str] | None:
         return None
     try:
         user = verify_access_token(token)
-    except SupabaseAuthError:
+    except Exception:
+        # Fail closed on network/client surprises too; never retain stale identity.
         st.session_state.pop(SESSION_TOKEN_KEY, None)
         st.session_state.pop(SESSION_USER_KEY, None)
         return None
