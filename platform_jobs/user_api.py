@@ -77,6 +77,17 @@ def create_user_job(
     repo = None
     try:
         repo = SupabaseJobRepository()
+        allowed = repo.reserve_user_quota(
+            tenant_id=user["id"], idempotency_key=idempotency_key,
+            limit=int(os.environ.get("USER_JOB_QUOTA_PER_HOUR", "20")),
+            window_seconds=3600,
+        )
+        if not allowed:
+            raise HTTPException(
+                status_code=429,
+                detail="User job quota reached. Try again after the rolling quota window resets.",
+                headers={"Retry-After": "3600"},
+            )
         row = repo.enqueue(
             idempotency_key=idempotency_key,
             job_type=payload.job_type,
@@ -86,6 +97,8 @@ def create_user_job(
             requested_by=user["id"],
         )
         return {"job_id": row.get("job_id"), "status": row.get("status", "queued"), "created_at": row.get("created_at"), "mode": "user_scoped"}
+    except HTTPException:
+        raise
     except JobConflict as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     except (JobStoreUnavailable, ValueError) as exc:
