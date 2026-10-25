@@ -910,6 +910,16 @@ def get_status(email: str) -> dict:
 
 
 def is_admin_email(email: str) -> bool:
+    # During the Supabase-auth rollout, a matching email in the legacy SQLite
+    # table is not proof that the verified Supabase UUID is the old admin.
+    # Fail closed until a reviewed UUID-to-role mapping is implemented.
+    supabase_auth_enabled = os.getenv("SUPABASE_AUTH_ENABLED", "false").strip().lower() in {
+        "1", "true", "yes", "on"
+    }
+    identity = st.session_state.get("user_identity", {})
+    if supabase_auth_enabled and identity.get("auth_provider") == "supabase":
+        return False
+
     conn = get_conn()
     cur = conn.cursor()
     cur.execute("SELECT role FROM auth_users WHERE email = ?", (email.strip().lower(),))
