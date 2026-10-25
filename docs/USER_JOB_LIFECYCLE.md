@@ -44,3 +44,10 @@ Cancellation does not forcibly interrupt an in-flight provider network call. It 
 - [ ] Get explicit approval before production migrations, environment changes, enabling either feature flag, or deploying a worker.
 
 Until these gates pass, keep the pull request in draft and production feature flags disabled.
+
+
+## Shared AI UI
+
+The feature-gated Shared AI workspace includes a durable-job mode for submitting an intelligence job, checking its owner-scoped status/result, and requesting cancellation. The browser never receives the Supabase service-role key; Streamlit keeps the bearer token and pending idempotency key in server-side session state. If a request fails ambiguously, retrying the same prompt reuses the same idempotency key; changing the prompt creates a new key. The UI validates job IDs as UUIDs before making status/cancellation requests.
+
+The UI does not start a worker or enable the API. If the per-user API is disabled, it reports a safe service-unavailable message. The API flag and the worker deployment must be enabled only in staging after the database integration workflow and two-account tests pass.
