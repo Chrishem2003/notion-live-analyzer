@@ -198,3 +198,65 @@ def test_user_job_request_rejects_client_supplied_identity_fields(field):
 def test_user_job_request_rejects_blank_routing_values(field):
     with pytest.raises(ValidationError):
         user_api.UserJobCreateRequest(prompt="build a workflow", **{field: "   "})
+
+
+def test_two_user_job_isolation_does_not_disclose_other_users_jobs(monkeypatch):
+    user_a = "11111111-1111-4111-8111-111111111111"
+    user_b = "22222222-2222-4222-8222-222222222222"
+    job_id = "33333333-3333-4333-8333-333333333333"
+    rows_by_owner = {
+        (user_b, job_id): {
+            "job_id": job_id,
+            "tenant_id": user_b,
+            "status": "completed",
+            "result_json": {"answer": "private result for B"},
+        }
+    }
+    repo = Mock()
+    repo.get_job.side_effect = lambda requested_job, *, tenant_id: rows_by_owner.get((tenant_id, requested_job))
+    repo.close = Mock()
+    monkeypatch.setattr(user_api, "SupabaseJobRepository", lambda: repo)
+
+    # User A requests User B's job: the same not-found response used for unknown jobs.
+    with pytest.raises(HTTPException) as error:
+        user_api.get_user_job(job_id, user={"id": user_a, "email": "a@example.com"})
+    assert error.value.status_code == 404
+    assert error.value.detail == "Job not found."
+
+    # The actual owner can retrieve that job.
+    result = user_api.get_user_job(job_id, user={"id": user_b, "email": "b@example.com"})
+    assert result["result_json"]["answer"] == "private result for B"
+    assert repo.get_job.call_args_list[0].kwargs["tenant_id"] == user_a
+    assert repo.get_job.call_args_list[1].kwargs["tenant_id"] == user_b
+    assert repo.close.call_count == 2
+
+
+def test_quota_retry_is_scoped_to_same_user_and_idempotency_key(monkeypatch):
+    user_a = "11111111-1111-4111-8111-111111111111"
+    user_b = "22222222-2222-4222-8222-222222222222"
+    repo = Mock()
+    repo.reserve_user_quota.return_value = True
+    repo.enqueue.side_effect = [
+        {"job_id": "33333333-3333-4333-8333-333333333333", "status": "queued"},
+        {"job_id": "44444444-4444-4444-8444-444444444444", "status": "queued"},
+    ]
+    repo.close = Mock()
+    monkeypatch.setattr(user_api, "SupabaseJobRepository", lambda: repo)
+
+    for user_id in (user_a, user_a, user_b):
+        user_api.create_user_job(
+            user_api.UserJobCreateRequest(prompt="generate a safe workflow"),
+            idempotency_key="same-client-key",
+            user={"id": user_id, "email": ""},
+        )
+
+    # The same key can be retried for the same account, but never shares quota identity across accounts.
+    calls = repo.reserve_user_quota.call_args_list
+    assert calls[0].kwargs["tenant_id"] == user_a
+    assert calls[1].kwargs["tenant_id"] == user_a
+    assert calls[2].kwargs["tenant_id"] == user_b
+    assert all(call.kwargs["idempotency_key"] == "same-client-key" for call in calls)
+    assert repo.enqueue.call_args_list[0].kwargs["tenant_id"] == user_a
+    assert repo.enqueue.call_args_list[1].kwargs["tenant_id"] == user_a
+    assert repo.enqueue.call_args_list[2].kwargs["tenant_id"] == user_b
+    assert repo.close.call_count == 3
