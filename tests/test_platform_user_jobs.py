@@ -261,3 +261,39 @@ def test_quota_retry_is_scoped_to_same_user_and_idempotency_key(monkeypatch):
     assert repo.enqueue.call_args_list[1].kwargs["tenant_id"] == user_a
     assert repo.enqueue.call_args_list[2].kwargs["tenant_id"] == user_b
     assert repo.close.call_count == 3
+
+
+@pytest.mark.parametrize(
+    ("outcome", "expected_status"),
+    [("cancelled", 200), ("not_found", 404), ("not_cancellable", 409)],
+)
+def test_user_job_cancellation_maps_atomic_store_outcome(monkeypatch, outcome, expected_status):
+    user_id = "11111111-1111-4111-8111-111111111111"
+    job_id = "33333333-3333-4333-8333-333333333333"
+    repo = Mock()
+    repo.cancel_user_job.return_value = outcome
+    repo.close = Mock()
+    monkeypatch.setattr(user_api, "SupabaseJobRepository", lambda: repo)
+
+    if expected_status == 200:
+        result = user_api.cancel_user_job(job_id, user={"id": user_id, "email": ""})
+        assert result == {"job_id": job_id, "status": "cancelled"}
+    else:
+        with pytest.raises(HTTPException) as error:
+            user_api.cancel_user_job(job_id, user={"id": user_id, "email": ""})
+        assert error.value.status_code == expected_status
+        if expected_status == 404:
+            assert error.value.detail == "Job not found."
+
+    repo.cancel_user_job.assert_called_once_with(job_id=job_id, tenant_id=user_id)
+    repo.close.assert_called_once()
+
+
+def test_user_job_cancellation_rejects_invalid_uuid_before_store_access(monkeypatch):
+    repo = Mock()
+    repo.close = Mock()
+    monkeypatch.setattr(user_api, "SupabaseJobRepository", lambda: repo)
+    with pytest.raises(HTTPException) as error:
+        user_api.cancel_user_job("not-a-uuid", user={"id": "11111111-1111-4111-8111-111111111111", "email": ""})
+    assert error.value.status_code == 422
+    repo.cancel_user_job.assert_not_called()
