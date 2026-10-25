@@ -73,3 +73,42 @@ def test_legacy_identity_keeps_existing_admin_lookup_path():
     assert adapter.may_use_legacy_admin_email_lookup(
         {"email": "admin@example.com", "role": "admin"}, enabled=True
     ) is True
+
+
+def test_admin_allowlist_is_empty_by_default(monkeypatch):
+    monkeypatch.delenv("SUPABASE_ADMIN_USER_IDS", raising=False)
+    assert adapter.configured_supabase_admin_ids() == set()
+    assert adapter.supabase_role_for_user("11111111-1111-4111-8111-111111111111", True) == "user"
+
+
+def test_only_exact_verified_uuid_in_server_allowlist_gets_admin():
+    admin_id = "11111111-1111-4111-8111-111111111111"
+    other_id = "22222222-2222-4222-8222-222222222222"
+    assert adapter.supabase_role_for_user(admin_id, True, {admin_id}) == "admin"
+    assert adapter.supabase_role_for_user(other_id, True, {admin_id}) == "user"
+
+
+def test_uuid_allowlist_matching_is_case_and_whitespace_normalized():
+    admin_id = "11111111-1111-4111-8111-111111111111"
+    assert adapter.supabase_role_for_user(f" {admin_id.upper()} ", True, {admin_id}) == "admin"
+
+
+def test_disabled_supabase_mode_never_assigns_admin_from_allowlist():
+    admin_id = "11111111-1111-4111-8111-111111111111"
+    assert adapter.supabase_role_for_user(admin_id, False, {admin_id}) == "user"
+
+
+def test_current_user_clears_session_on_unexpected_client_error(monkeypatch):
+    state = FakeState({
+        adapter.SESSION_TOKEN_KEY: "token",
+        adapter.SESSION_USER_KEY: {"id": "stale-user", "email": "stale@example.com"},
+    })
+    monkeypatch.setattr(adapter.st, "session_state", state)
+
+    def broken(_token):
+        raise RuntimeError("unexpected network/client error")
+
+    monkeypatch.setattr(adapter, "verify_access_token", broken)
+    assert adapter.current_supabase_user() is None
+    assert adapter.SESSION_TOKEN_KEY not in state
+    assert adapter.SESSION_USER_KEY not in state
