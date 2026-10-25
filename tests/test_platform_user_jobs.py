@@ -372,3 +372,15 @@ def test_invalid_idempotency_key_is_rejected_before_quota_reservation(monkeypatc
         )
     assert error.value.status_code == 422
     repo_factory.assert_not_called()
+
+
+def test_user_job_history_is_scoped_to_verified_user(monkeypatch):
+    user_id = "11111111-1111-4111-8111-111111111111"
+    repo = Mock()
+    repo.list_user_jobs.return_value = [{"job_id": "33333333-3333-4333-8333-333333333333", "status": "queued"}]
+    repo.close = Mock()
+    monkeypatch.setattr(user_api, "SupabaseJobRepository", lambda: repo)
+    result = user_api.list_user_jobs(limit=10, user={"id": user_id, "email": ""})
+    assert result[0]["status"] == "queued"
+    repo.list_user_jobs.assert_called_once_with(tenant_id=user_id, limit=10)
+    repo.close.assert_called_once()
