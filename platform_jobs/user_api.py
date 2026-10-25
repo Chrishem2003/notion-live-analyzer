@@ -76,10 +76,20 @@ class UserJobCreateRequest(BaseModel):
     strategy: str = Field(default="direct", min_length=1, max_length=80)
     max_attempts: int = Field(default=3, ge=1, le=5)
 
+    class Config:
+        # Reject attempted ownership/role injection rather than silently ignoring it.
+        extra = "forbid"
+
     @validator("prompt")
     def prompt_must_not_be_blank(cls, value: str) -> str:
         if not value.strip():
             raise ValueError("Prompt cannot be blank.")
+        return value
+
+    @validator("provider", "model", "strategy")
+    def optional_routing_values_must_not_be_blank(cls, value):
+        if value is not None and not value.strip():
+            raise ValueError("Provider, model, and strategy values cannot be blank.")
         return value
 
 
