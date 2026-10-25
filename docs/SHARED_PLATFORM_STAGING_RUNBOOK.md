@@ -6,7 +6,7 @@ Status: pre-release checklist. This document does not enable the gateway or auth
 - Existing Streamlit/product interfaces remain the user experience.
 - Render API service hosts the shared FastAPI gateway.
 - Supabase Auth validates Supabase user JWTs; identity must come from a verified token, never request JSON.
-- Render Key Value supplies distributed quotas. The gateway must fail closed if Redis is absent or unavailable.
+- Distributed quotas use Render Key Value when configured, or an atomic Supabase Postgres RPC as the zero-extra-infrastructure fallback. The gateway fails closed if the selected backend is absent or unavailable.
 - AI provider/model are selected server-side. Never point hosted Render at a developer computer's loopback address.
 - NEMA spatial APIs stay disabled until a trusted server-side identity and role verifier is implemented and reviewed.
 
@@ -14,7 +14,7 @@ Status: pre-release checklist. This document does not enable the gateway or auth
 Configure values only in the relevant Render service's environment settings. Never commit or paste secrets into chat.
 
 - `SHARED_AI_GATEWAY_ENABLED=false` until every gate below passes.
-- `AI_GATEWAY_REDIS_URL`: copy the actual connection URL from the Render Key Value dashboard only after confirming the networking path is supported. Never guess it.
+- `AI_GATEWAY_REDIS_URL` (preferred): use only a verified connection URL. Zero-cost fallback: review and apply `supabase/migrations/20261025000000_shared_ai_rate_limit.sql`, then set `AI_GATEWAY_SUPABASE_SERVICE_ROLE_KEY` on the API service only. Never expose the service-role key to Streamlit/browser clients, commit it, or paste it into chat. If both backends are set, Redis is selected.
 - `AI_GATEWAY_RATE_LIMIT_PER_MINUTE=10` initially; supported range 1–120.
 - `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` (or supported anon key) for Supabase JWT validation. Do not use a service-role key here.
 - `PLATFORM_API_KEY` and `CHAT_TOKEN_SECRET` for the existing service-token flow; keep both private.
@@ -25,7 +25,7 @@ Configure values only in the relevant Render service's environment settings. Nev
 1. **CI and source:** latest-head CI must pass on both the gateway and Auto-Studio PRs. Keep PRs draft pending exact-head tests and security review.
 2. **Service config:** verify API health and deployment events, configure the real Redis URL, and prove the configured provider is reachable from the API instance.
 3. **Authentication:** unauthenticated, malformed, expired, or forged tokens must be rejected. Two independent users must resolve to distinct server-derived actors. Editing request JSON must not change the actor.
-4. **Quota and privacy:** quota is shared across API instances; exceeding it returns 429; Redis failure blocks requests; logs exclude prompts, outputs, tokens, keys, and raw emails.
+4. **Quota and privacy:** quota is shared across API instances; exceeding it returns 429; the selected backend failing blocks requests; logs exclude prompts, outputs, tokens, keys, and raw emails. For the Supabase option, verify the RPC is executable only by `service_role`, the table is not directly exposed, and concurrent increments are atomic.
 5. **Product flows:** test Sovereign Intelligence responses; Auto-Studio draft validation and catalog allow-list; Bio-Research with synthetic data first; NEMA advisory-only summaries. Repeat with two separate accounts.
 6. **Release decision:** record tested commit, service, provider/model, quota behavior, and account-isolation results. If any gate fails, keep the gateway disabled.
 
@@ -37,7 +37,7 @@ Configure values only in the relevant Render service's environment settings. Nev
 - **Ollama:** `http://127.0.0.1:11434` is for a process on the same computer only. Do not expose its port publicly or configure hosted Render to use a developer PC's loopback address.
 
 ## Known blockers at this snapshot
-- Render Key Value exists, but its actual connection path has not been proven reachable from the Oregon API service; the existing datastore is in Frankfurt.
+- Render Key Value exists in Frankfurt while the API runs in Oregon; its private connection is not a valid same-region assumption. A reviewed Supabase RPC fallback is now included in this candidate but still requires migration review/application and staging tests.
 - Gateway remains disabled pending configuration and staging identity tests.
 - NEMA integration PR #52 is divergent and should not be merged blindly.
 - Local Windows Ollama smoke testing still needs to be performed on the actual development computer.
