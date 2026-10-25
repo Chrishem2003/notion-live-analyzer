@@ -33,11 +33,13 @@ while no worker is running, but they will remain queued.
 
 ## Privacy and reliability notes
 
-Prompts are stored in the job payload until retention/cleanup is implemented. Do not
-submit secrets or highly sensitive personal data. Add a retention policy and a
-per-user identity boundary before exposing the job API to customers. Postgres
-persists job state, but backups, restore drills, worker availability, and provider
-availability still need separate verification.
+A 30-day retention migration is being added to redact stored job prompts and results,
+including stale queued/running jobs. It preserves job metadata and writes a
+`content_redacted` audit event. Do not submit secrets or highly sensitive personal
+data. This retention rule does not replace per-user authorization or a separate
+retention policy for the Sovereign Intelligence memory store. Postgres persists job
+state, but backups, restore drills, worker availability, and provider availability
+still need separate verification.
 
 ## Configuration
 
