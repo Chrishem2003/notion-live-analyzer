@@ -238,6 +238,7 @@ def test_quota_retry_is_scoped_to_same_user_and_idempotency_key(monkeypatch):
     repo.reserve_user_quota.return_value = True
     repo.enqueue.side_effect = [
         {"job_id": "33333333-3333-4333-8333-333333333333", "status": "queued"},
+        {"job_id": "33333333-3333-4333-8333-333333333333", "status": "queued"},
         {"job_id": "44444444-4444-4444-8444-444444444444", "status": "queued"},
     ]
     repo.close = Mock()
