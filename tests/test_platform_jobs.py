@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-import hashlib
-import json
-
 import pytest
 
 from platform_jobs.api import JobCreateRequest
@@ -17,7 +14,7 @@ def test_job_payload_fingerprint_is_stable_and_content_sensitive():
 
 
 def test_job_create_request_bounds_payload_and_rejects_blank_prompt():
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         JobCreateRequest(prompt="   ")
     with pytest.raises(Exception):
         JobCreateRequest(prompt="x" * 12001)
