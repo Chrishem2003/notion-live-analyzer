@@ -153,7 +153,7 @@ def _user_jobs_request(method: str, path: str, *, access_token: str, json_body=N
         payload = response.json()
     except ValueError:
         raise SharedAIError("User job service returned an invalid response.") from None
-    if not isinstance(payload, dict):
+    if not isinstance(payload, (dict, list)):
         raise SharedAIError("User job service returned an invalid response.")
     return payload
 
