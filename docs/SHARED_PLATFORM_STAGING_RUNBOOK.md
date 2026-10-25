@@ -58,3 +58,12 @@ The shared Streamlit client requests a five-minute HMAC token for each AI call. 
 The current API web service is in **Oregon**, while the existing free Key Value instance `notion-live-analyzer-ai-rate-limit` is in **Frankfurt**. Render internal datastore URLs are for services in the same region, so do not configure the API with the internal URL as-is. See the official [Render Key Value connection guide](https://render.com/docs/key-value) and [private networking guide](https://render.com/docs/private-network).
 
 Zero-cost-safe next steps are to verify the API service's published outbound IP ranges and evaluate a TLS external Key Value connection with a narrowly scoped allowlist, or plan a same-region datastore migration. Do not use an unrestricted external allowlist, do not guess the URL, and do not delete/recreate the existing Key Value instance without an explicit backup and migration plan. The gateway must stay disabled until the API can successfully reach the rate-limit store and the shared-quota tests pass.
+
+
+## Identity issuer guard (2026-10-25)
+
+- `SHARED_AI_GATEWAY_ENABLED=false` remains the production default.
+- `SHARED_AI_LEGACY_EMAIL_TOKEN_ISSUER_ENABLED` defaults to `false`. The legacy `/api/v1/chat/token` endpoint accepts an email supplied by a trusted server and cannot independently establish the human user's identity. Do not enable this flag in production.
+- New clients should send the user's actual Supabase access token to the shared gateway; the gateway validates it against Supabase Auth and derives the actor from the verified user ID.
+- The legacy issuer flag exists only for isolated migration tests. Before rollout, migrate Streamlit sign-in to durable Supabase Auth (or another verified identity provider), then remove the legacy email-token issuer and its compatibility client path.
+- Do not enable the shared gateway until the user identity, quota backend, provider, and two-account isolation checks have passed.
