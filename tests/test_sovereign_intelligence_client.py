@@ -9,6 +9,8 @@ from sovereign_intelligence.api.client import IntelligenceServiceClient, Intelli
 def test_client_requires_safe_absolute_url_and_key():
     with pytest.raises(ValueError, match="absolute HTTP"):
         IntelligenceServiceClient("not-a-url", "secret")
+    with pytest.raises(ValueError, match="HTTPS"):
+        IntelligenceServiceClient("http://remote.example.com", "secret")
     with pytest.raises(ValueError, match="required"):
         IntelligenceServiceClient("https://example.com", " ")
 
