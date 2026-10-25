@@ -139,3 +139,15 @@ def test_user_job_quota_store_failure_fails_closed(monkeypatch):
     assert error.value.status_code == 503
     repo.enqueue.assert_not_called()
     repo.close.assert_called_once()
+
+
+def test_invalid_quota_configuration_fails_closed(monkeypatch):
+    monkeypatch.setenv("USER_JOB_QUOTA_PER_HOUR", "not-a-number")
+    with pytest.raises(user_api.JobStoreUnavailable):
+        user_api._quota_limit()
+
+
+def test_quota_configuration_is_bounded(monkeypatch):
+    monkeypatch.setenv("USER_JOB_QUOTA_PER_HOUR", "1001")
+    with pytest.raises(user_api.JobStoreUnavailable):
+        user_api._quota_limit()
