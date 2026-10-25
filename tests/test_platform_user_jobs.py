@@ -80,6 +80,7 @@ def test_user_job_read_is_scoped_to_verified_user_uuid(monkeypatch):
 def test_user_job_creation_sets_owner_from_verified_identity(monkeypatch):
     user_id = "11111111-1111-4111-8111-111111111111"
     repo = Mock()
+    repo.reserve_user_quota.return_value = True
     repo.enqueue.return_value = {
         "job_id": "33333333-3333-4333-8333-333333333333",
         "status": "queued",
@@ -99,3 +100,42 @@ def test_user_job_creation_sets_owner_from_verified_identity(monkeypatch):
     assert repo.enqueue.call_args.kwargs["requested_by"] == user_id
     repo.close.assert_called_once()
 
+
+
+def test_user_job_quota_exhaustion_rejects_before_enqueue(monkeypatch):
+    user_id = "11111111-1111-4111-8111-111111111111"
+    repo = Mock()
+    repo.reserve_user_quota.return_value = False
+    repo.close = Mock()
+    monkeypatch.setattr(user_api, "SupabaseJobRepository", lambda: repo)
+
+    with pytest.raises(HTTPException) as error:
+        user_api.create_user_job(
+            user_api.UserJobCreateRequest(prompt="build a workflow"),
+            idempotency_key="quota-test",
+            user={"id": user_id, "email": "user@example.com"},
+        )
+
+    assert error.value.status_code == 429
+    assert error.value.headers["Retry-After"] == "3600"
+    repo.enqueue.assert_not_called()
+    repo.close.assert_called_once()
+
+
+def test_user_job_quota_store_failure_fails_closed(monkeypatch):
+    user_id = "11111111-1111-4111-8111-111111111111"
+    repo = Mock()
+    repo.reserve_user_quota.side_effect = user_api.JobStoreUnavailable("not available")
+    repo.close = Mock()
+    monkeypatch.setattr(user_api, "SupabaseJobRepository", lambda: repo)
+
+    with pytest.raises(HTTPException) as error:
+        user_api.create_user_job(
+            user_api.UserJobCreateRequest(prompt="build a workflow"),
+            idempotency_key="quota-store-down",
+            user={"id": user_id, "email": "user@example.com"},
+        )
+
+    assert error.value.status_code == 503
+    repo.enqueue.assert_not_called()
+    repo.close.assert_called_once()
