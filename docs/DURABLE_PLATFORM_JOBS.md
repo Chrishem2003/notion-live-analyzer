@@ -1,7 +1,7 @@
 # Durable platform jobs (service-to-service foundation)
 
 This adds a Postgres-backed queue for the allow-listed `intelligence.solve` task.
-The job and event tables live in Supabase; the claim function uses row locking and
+The job and event tables live in Supabase; enqueue, retry, failure, and completion are audited. The claim function uses row locking and
 `SKIP LOCKED`, jobs have bounded attempts and expiring leases, and retries use a
 bounded delay. Idempotency is enforced per service tenant and key. RLS is enabled
 with no end-user policies; only the server-side service-role credential can access
