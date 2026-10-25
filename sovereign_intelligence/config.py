@@ -108,7 +108,8 @@ class BrainConfig:
         provider = value.strip().lower()
         if provider not in SUPPORTED_PROVIDERS:
             raise ValueError(
-                f"{field_name} must be one of: {', '.join(sorted(SUPPORTED_PROVIDERS))}."
+                f"{field_name} must be a supported provider; choose one of: "
+                f"{', '.join(sorted(SUPPORTED_PROVIDERS))}."
             )
         return provider
 
