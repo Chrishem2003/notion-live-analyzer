@@ -112,3 +112,20 @@ def test_current_user_clears_session_on_unexpected_client_error(monkeypatch):
     assert adapter.current_supabase_user() is None
     assert adapter.SESSION_TOKEN_KEY not in state
     assert adapter.SESSION_USER_KEY not in state
+
+def test_admin_allowlist_discards_malformed_ids(monkeypatch):
+    valid_id = "11111111-1111-4111-8111-111111111111"
+    monkeypatch.setenv("SUPABASE_ADMIN_USER_IDS", f"{valid_id},admin@example.com,not-a-uuid")
+    assert adapter.configured_supabase_admin_ids() == {valid_id}
+
+
+def test_malformed_user_id_never_receives_admin_role():
+    admin_id = "11111111-1111-4111-8111-111111111111"
+    assert adapter.supabase_role_for_user("admin@example.com", True, {admin_id}) == "user"
+    assert adapter.supabase_role_for_user("not-a-uuid", True, {admin_id}) == "user"
+
+
+def test_malformed_allowlist_entry_never_grants_admin():
+    admin_id = "admin@example.com"
+    assert adapter.supabase_role_for_user(admin_id, True, {admin_id}) == "user"
+
