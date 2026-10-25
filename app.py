@@ -3750,11 +3750,8 @@ def fetch_oauth_profile(provider_key, cfg, access_token):
     data = resp.json()
 
     if provider_key == "google":
-        return {
-            "email": data.get("email"),
-            "name": data.get("name") or data.get("email", "").split("@")[0],
-            "provider_id": data.get("sub"),
-        }
+        from modules.oauth_security import verified_google_profile
+        return verified_google_profile(data)
 
     if provider_key == "github":
         email = data.get("email")
@@ -3802,9 +3799,11 @@ def handle_oauth_callback():
         profile = fetch_oauth_profile(provider_key, cfg, access_token)
         if not profile.get("email"):
             raise ValueError("The provider didn't return a usable email address.")
-    except Exception as e:
+    except Exception:
+        # OAuth provider errors can contain URLs, tokens, or provider payloads.
+        # Keep details in server-side diagnostics only; never show them to users.
         st.query_params.clear()
-        st.error(f"{provider_key.title()} sign-in failed: {e}")
+        st.error(f"{provider_key.title()} sign-in failed. Please try again or use email and password.")
         return False
 
     user = auth_store.get_or_create_oauth_user(
