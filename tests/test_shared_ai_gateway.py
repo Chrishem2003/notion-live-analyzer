@@ -402,3 +402,34 @@ def test_shared_ai_client_rejects_remote_http_endpoint(monkeypatch):
                 access_token="user-token",
             )
     post.assert_not_called()
+
+
+def test_provider_failure_logs_only_safe_diagnostic_metadata(monkeypatch, caplog):
+    class FakeProvider:
+        default_model = "safe-test-model"
+        def generate(self, request):
+            raise gateway.ProviderError("contains-secret-and-user-prompt")
+
+    class FakeRegistry:
+        def get(self, name):
+            return FakeProvider()
+
+    monkeypatch.setattr(gateway.ProviderRegistry, "default", lambda: FakeRegistry())
+    monkeypatch.setenv("SOVEREIGN_AI_PROVIDER", "openai")
+    monkeypatch.setenv("OPENAI_API_KEY", "must-never-be-logged")
+    import pytest
+    from fastapi import HTTPException
+
+    with pytest.raises(HTTPException) as error:
+        gateway._generate(
+            "platform_general", "test_task", "private-user-prompt",
+            "supabase:test-user",
+        )
+
+    assert error.value.status_code == 502
+    assert "shared_ai_provider_failure" in caplog.text
+    assert "provider=openai" in caplog.text
+    assert "error_type=ProviderError" in caplog.text
+    assert "private-user-prompt" not in caplog.text
+    assert "contains-secret-and-user-prompt" not in caplog.text
+    assert "must-never-be-logged" not in caplog.text
