@@ -12,7 +12,7 @@ from typing import Optional
 from uuid import UUID
 
 import requests
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 from pydantic import BaseModel, Field, validator
 
 from platform_jobs.repository import JobConflict, JobStoreUnavailable, SupabaseJobRepository
@@ -156,6 +156,23 @@ def cancel_user_job(job_id: str, user: dict[str, str] = Depends(_verified_user))
         return {"job_id": parsed_id, "status": "cancelled"}
     except HTTPException:
         raise
+    except JobStoreUnavailable as exc:
+        raise HTTPException(status_code=503, detail="Durable job storage is temporarily unavailable.") from exc
+    finally:
+        if repo:
+            repo.close()
+
+
+@router.get("")
+def list_user_jobs(
+    limit: int = Query(default=20, ge=1, le=50),
+    user: dict[str, str] = Depends(_verified_user),
+):
+    """List recent job status for the authenticated user only."""
+    repo = None
+    try:
+        repo = SupabaseJobRepository()
+        return repo.list_user_jobs(tenant_id=user["id"], limit=limit)
     except JobStoreUnavailable as exc:
         raise HTTPException(status_code=503, detail="Durable job storage is temporarily unavailable.") from exc
     finally:
