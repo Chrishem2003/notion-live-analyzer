@@ -185,3 +185,15 @@ def test_supabase_auth_server_outage_returns_retryable_service_error(monkeypatch
         user_api._verified_user("Bearer valid-token")
 
     assert error.value.status_code == 503
+
+
+@pytest.mark.parametrize("field", ["tenant_id", "requested_by", "role", "is_admin"])
+def test_user_job_request_rejects_client_supplied_identity_fields(field):
+    with pytest.raises(Exception):
+        user_api.UserJobCreateRequest(prompt="build a workflow", **{field: "attacker-controlled"})
+
+
+@pytest.mark.parametrize("field", ["provider", "model", "strategy"])
+def test_user_job_request_rejects_blank_routing_values(field):
+    with pytest.raises(Exception):
+        user_api.UserJobCreateRequest(prompt="build a workflow", **{field: "   "})
