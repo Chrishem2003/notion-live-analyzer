@@ -6,6 +6,7 @@ This feature is opt-in and must remain disabled until an isolated staging enviro
 
 - `SUPABASE_AUTH_ENABLED=false` keeps the Streamlit Supabase login adapter off.
 - `USER_JOB_API_ENABLED=false` keeps the per-user job router unmounted.
+- `PLATFORM_JOB_WORKER_ENABLED=false` prevents the worker from claiming or processing any durable job.
 - The Supabase service-role key is server-only. Never expose it to Streamlit browser code, clients, logs, or API responses.
 - Do not apply the migrations to the connected production Supabase project as a staging shortcut.
 
@@ -50,4 +51,4 @@ Until these gates pass, keep the pull request in draft and production feature fl
 
 The feature-gated Shared AI workspace includes a durable-job mode for submitting an intelligence job, loading the authenticated user's recent job history, checking an owner-scoped status/result, and requesting cancellation. The history endpoint returns a bounded status-only projection and deliberately omits prompts and results. The browser never receives the Supabase service-role key; Streamlit keeps the bearer token and pending idempotency key in server-side session state. If a request fails ambiguously, retrying the same prompt reuses the same idempotency key; changing the prompt creates a new key. The UI validates job IDs as UUIDs before making status/cancellation requests.
 
-The UI does not start a worker or enable the API. If the per-user API is disabled, it reports a safe service-unavailable message. The API flag and the worker deployment must be enabled only in staging after the database integration workflow and two-account tests pass.
+The UI does not start a worker or enable the API. If the per-user API is disabled, it reports a safe service-unavailable message. The worker also fails closed unless `PLATFORM_JOB_WORKER_ENABLED=true`. Enable the API and worker only in staging after the database integration workflow and two-account tests pass.
