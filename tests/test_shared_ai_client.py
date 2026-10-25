@@ -160,3 +160,27 @@ def test_user_job_history_rejects_invalid_ids(monkeypatch):
     monkeypatch.setattr(client.requests, "request", lambda *a, **kw: response)
     with pytest.raises(client.SharedAIError, match="valid UUID"):
         client.list_user_jobs(access_token="token")
+
+
+def test_shared_ai_client_surfaces_safe_provider_failure_detail(monkeypatch):
+    monkeypatch.setenv("SHARED_AI_API_URL", "https://api.example.test")
+    response = _response(502, {"detail": "The configured AI provider failed to complete the request."})
+    monkeypatch.setattr(client.requests, "post", lambda *a, **kw: response)
+    with pytest.raises(client.SharedAIError, match="configured AI provider failed"):
+        client.request_shared_ai(
+            product="platform_general", task="help", input_text="hello",
+            access_token="signed-in-token",
+        )
+
+
+def test_shared_ai_client_does_not_echo_untrusted_502_detail(monkeypatch):
+    monkeypatch.setenv("SHARED_AI_API_URL", "https://api.example.test")
+    response = _response(502, {"detail": "secret-provider-response-must-not-be-shown"})
+    monkeypatch.setattr(client.requests, "post", lambda *a, **kw: response)
+    with pytest.raises(client.SharedAIError) as error:
+        client.request_shared_ai(
+            product="platform_general", task="help", input_text="hello",
+            access_token="signed-in-token",
+        )
+    assert "secret-provider-response-must-not-be-shown" not in str(error.value)
+    assert "HTTP 502" in str(error.value)

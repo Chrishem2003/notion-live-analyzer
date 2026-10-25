@@ -286,10 +286,25 @@ def _generate(product: str, task: str, input_text: str, actor: str, *, system_ov
             max_tokens=2048,
             metadata={"product": product, "task": task},
         ))
-    except ProviderError:
+    except ProviderError as exc:
+        # Log only bounded metadata: never log exception text, prompts, outputs,
+        # tokens, or provider request/response bodies. This lets operators
+        # distinguish provider failures without leaking user content or secrets.
+        _logger.warning(
+            "shared_ai_provider_failure provider=%s model=%s error_type=%s",
+            provider_name[:40],
+            model[:100],
+            type(exc).__name__[:80],
+        )
         raise HTTPException(status_code=502, detail="The configured AI provider failed to complete the request.")
-    except Exception:
-        # Do not return provider internals, request content, or credentials.
+    except Exception as exc:
+        # Keep client-facing errors generic; emit only safe diagnostic metadata.
+        _logger.warning(
+            "shared_ai_unexpected_failure provider=%s model=%s error_type=%s",
+            provider_name[:40],
+            model[:100],
+            type(exc).__name__[:80],
+        )
         raise HTTPException(status_code=502, detail="AI request failed; no workflow or external action was executed.")
     return {
         "provider": response.provider,
