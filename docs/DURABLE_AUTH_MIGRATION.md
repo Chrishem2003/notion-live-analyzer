@@ -28,12 +28,13 @@ This change adds an isolated Supabase Auth client and unit tests. It is **not ye
 - Fail closed on missing configuration, invalid HTTPS URL, network errors, invalid responses and authorization errors.
 - Test request construction and failure behavior without making network calls.
 
-### Stage B — Streamlit adapter (separate change)
-- Inspect and reconcile the actual active login/signup/bootstrap call path and schemas first.
-- Add a login UI that calls this client and stores the access token only in server-side Streamlit session state.
-- Revalidate the token on protected operations and clear session state on logout/expiry.
-- Do not expose the token in URLs, query parameters, browser-rendered HTML, logs or persistent SQLite.
-- Keep the existing login path available only for a deliberate, time-limited migration plan; do not silently fall back to simulated authentication.
+### Stage B — Streamlit adapter and portal wiring (implemented behind a feature flag)
+- `modules/supabase_auth_streamlit.py` renders sign-in/signup, stores the access token only in server-side Streamlit session state, and revalidates it with Supabase Auth.
+- `app.py` now checks `SUPABASE_AUTH_ENABLED` on every run. The default is `false`, preserving the existing login path until an explicit rollout.
+- When enabled, the portal requires a verified Supabase session and does not display or fall back to the legacy login. Invalid/expired sessions clear the portal identity.
+- Supabase identities are mapped to the stable UUID plus email for the session; all newly authenticated users receive the ordinary `user` role in this integration.
+- Sign-out clears the server-side token and portal identity. Tokens are not written to URLs, cookies, logs, or SQLite.
+- The old bootstrap-admin and local account records have not been migrated. Do not enable the flag in production until the existing administrator is mapped through a reviewed server-side authorization design and staging tests pass.
 
 ### Stage C — authorization and user-data ownership
 - Map existing records to stable user UUIDs using an explicit reviewed migration; do not guess by email or auto-promote roles.
