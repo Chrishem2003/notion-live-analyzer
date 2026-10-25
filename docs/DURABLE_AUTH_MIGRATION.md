@@ -35,6 +35,7 @@ This change adds an isolated Supabase Auth client and unit tests. It is **not ye
 - Supabase identities are mapped to the stable UUID plus email for the session; all newly authenticated users receive the ordinary `user` role in this integration.
 - Sign-out clears the server-side token and portal identity. Tokens are not written to URLs, cookies, logs, or SQLite.
 - The old bootstrap-admin and local account records have not been migrated. Do not enable the flag in production until the existing administrator is mapped through a reviewed server-side authorization design and staging tests pass.
+- While Supabase mode is enabled, a Supabase-authenticated session is explicitly prevented from inheriting admin status from a matching email in the legacy SQLite table. UUID-based admin mapping remains intentionally unimplemented; all Supabase sessions stay non-admin until that separate mapping is reviewed.
 
 ### Stage C — authorization and user-data ownership
 - Map existing records to stable user UUIDs using an explicit reviewed migration; do not guess by email or auto-promote roles.
