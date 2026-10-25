@@ -74,10 +74,14 @@ jobs:
           set -euo pipefail
           tenant="33333333-3333-4333-8333-333333333333"
           psql -v ON_ERROR_STOP=1 -c "delete from public.user_job_quota_reservations where tenant_id = '$tenant'::uuid" >/dev/null
+          pids=()
           for i in $(seq 1 12); do
             psql -v ON_ERROR_STOP=1 -Atqc "select public.reserve_user_job_quota('$tenant'::uuid, 'parallel-$i', 3, 3600)" > "$RUNNER_TEMP/quota-$i.out" &
+            pids+=("$!")
           done
-          wait
+          for pid in "${pids[@]}"; do
+            wait "$pid"
+          done
           accepted=$(grep -hxc 't' "$RUNNER_TEMP"/quota-*.out | awk '{total += $1} END {print total+0}')
           if [ "$accepted" -ne 3 ]; then
             echo "Expected exactly 3 concurrent quota reservations, got $accepted"
