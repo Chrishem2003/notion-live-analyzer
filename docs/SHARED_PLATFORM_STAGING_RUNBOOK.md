@@ -69,3 +69,12 @@ Zero-cost-safe next steps are to verify the API service's published outbound IP 
 - New clients should send the user's actual Supabase access token to the shared gateway; the gateway validates it against Supabase Auth and derives the actor from the verified user ID.
 - The legacy issuer flag exists only for isolated migration tests. Before rollout, migrate Streamlit sign-in to durable Supabase Auth (or another verified identity provider), then remove the legacy email-token issuer and its compatibility client path.
 - Do not enable the shared gateway until the user identity, quota backend, provider, and two-account isolation checks have passed.
+
+
+## Automation Studio proposal contract (2026-10-25)
+
+The optional shared AI Streamlit surface now has a dedicated `Design an automation` mode. It calls `POST /api/v1/automations/draft`, not the general-answer endpoint. The client validates the response contract before displaying it: `status=draft_only`, `executed=false`, `approval_required=true`, a known risk level, and `requires_approval=true` for every step. If the contract is incomplete or unsafe, the UI fails closed and shows no draft. The UI presents trigger, steps, required permissions, error handling, tests, assumptions, and risk for human review.
+
+This is still a proposal-only capability. It does not save workflows, invoke connectors, schedule jobs, or execute external actions. Tests cover bearer-token forwarding, missing-token failure, HTTPS enforcement, and rejection of a step without an approval gate.
+
+The helper is not yet connected to the main application's verified login flow. Do not set `SUPABASE_AUTH_ENABLED=true` or `SHARED_AI_GATEWAY_ENABLED=true` in production. Complete main-app auth wiring, session expiry/logout checks, two-account isolation, provider connectivity, and quota-backend verification in staging first.
