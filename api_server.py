@@ -539,6 +539,14 @@ def issue_chat_token_endpoint(
     Issue a short-lived HMAC token for a trusted, already-authenticated
     server-side caller. The platform API key must never reach the browser.
     """
+    # This legacy issuer accepts an email supplied by a trusted server, but
+    # cannot independently prove which human is signed in. Keep it disabled
+    # unless a controlled migration/staging environment explicitly opts in.
+    if os.environ.get("SHARED_AI_LEGACY_EMAIL_TOKEN_ISSUER_ENABLED", "false").strip().lower() != "true":
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Legacy email token issuance is disabled; use a verified user identity token.",
+        )
     from chat_auth import issue_chat_token
     normalized_email = email.strip().lower()
     if not normalized_email or len(normalized_email) > 320 or "@" not in normalized_email:
