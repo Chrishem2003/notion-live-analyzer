@@ -112,6 +112,25 @@ class SupabaseJobRepository:
         })
         return rows[0] if isinstance(rows, list) and rows else None
 
+    def reserve_user_quota(
+        self, *, tenant_id: str, idempotency_key: str,
+        limit: int = 20, window_seconds: int = 3600,
+    ) -> bool:
+        """Atomically reserve one per-user quota slot in a rolling window."""
+        try:
+            value = self._request("POST", "rpc/reserve_user_job_quota", json={
+                "p_tenant_id": tenant_id,
+                "p_idempotency_key": idempotency_key,
+                "p_limit": limit,
+                "p_window_seconds": window_seconds,
+            })
+        except JobStoreUnavailable:
+            # Quota checks fail closed: do not accept work if enforcement is unavailable.
+            raise
+        if not isinstance(value, bool):
+            raise JobStoreUnavailable("User job quota service returned an invalid response.")
+        return value
+
     def claim(self, lease_seconds: int = 120) -> dict[str, Any] | None:
         rows = self._request("POST", "rpc/claim_platform_job", json={"p_lease_seconds": lease_seconds})
         return rows[0] if isinstance(rows, list) and rows else None
