@@ -917,7 +917,9 @@ def is_admin_email(email: str) -> bool:
         "1", "true", "yes", "on"
     }
     identity = st.session_state.get("user_identity", {})
-    if supabase_auth_enabled and identity.get("auth_provider") == "supabase":
+    from modules.supabase_auth_streamlit import may_use_legacy_admin_email_lookup
+
+    if not may_use_legacy_admin_email_lookup(identity, supabase_auth_enabled):
         return False
 
     conn = get_conn()
