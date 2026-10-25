@@ -8,6 +8,7 @@ the token with Supabase Auth and derives the actor from the verified user ID.
 from __future__ import annotations
 
 import os
+import uuid
 from urllib.parse import urlparse
 
 import requests
@@ -111,4 +112,81 @@ def request_automation_draft(*, description: str, access_token: str) -> dict:
     for step in draft["steps"]:
         if not isinstance(step, dict) or step.get("requires_approval") is not True:
             raise SharedAIError("Automation draft contains a step without an approval gate.")
+    return result
+
+
+def _user_jobs_request(method: str, path: str, *, access_token: str, json_body=None, idempotency_key=None):
+    """Call the opt-in user-scoped job API with a verified Supabase bearer token."""
+    base_url = os.getenv("SHARED_AI_API_URL", "").strip().rstrip("/")
+    token = access_token.strip() if isinstance(access_token, str) else ""
+    if not base_url or not token:
+        raise SharedAIError("User jobs are not configured for this signed-in session.")
+    parsed = urlparse(base_url)
+    local_http = parsed.scheme == "http" and parsed.hostname in {"localhost", "127.0.0.1", "::1"}
+    if parsed.scheme != "https" and not local_http:
+        raise SharedAIError("User job endpoint must use HTTPS.")
+    headers = {"Authorization": f"Bearer {token}"}
+    if idempotency_key:
+        headers["Idempotency-Key"] = idempotency_key
+    try:
+        response = requests.request(
+            method, f"{base_url}/api/v1/user-jobs{path}",
+            headers=headers, json=json_body, timeout=30,
+        )
+    except requests.RequestException:
+        raise SharedAIError("User job service is unreachable.") from None
+    if response.status_code not in ({202, 200} if method == "POST" else {200}):
+        if response.status_code == 401:
+            raise SharedAIError("User job service rejected this session. Please sign in again.")
+        if response.status_code == 404:
+            raise SharedAIError("Job not found for this account.")
+        if response.status_code == 409:
+            raise SharedAIError("This job cannot be changed now or the idempotency key conflicts.")
+        if response.status_code == 422:
+            raise SharedAIError("The job request was not accepted. Check the input and try again.")
+        if response.status_code == 429:
+            raise SharedAIError("Your job quota has been reached. Please retry later.")
+        if response.status_code == 503:
+            raise SharedAIError("Per-user jobs are disabled or the authentication/storage service is unavailable.")
+        raise SharedAIError(f"User job request failed (HTTP {response.status_code}).")
+    try:
+        payload = response.json()
+    except ValueError:
+        raise SharedAIError("User job service returned an invalid response.") from None
+    if not isinstance(payload, dict):
+        raise SharedAIError("User job service returned an invalid response.")
+    return payload
+
+
+def request_user_job(*, prompt: str, access_token: str, provider: str | None = None,
+                     model: str | None = None, strategy: str = "direct",
+                     idempotency_key: str | None = None) -> dict:
+    text = prompt.strip() if isinstance(prompt, str) else ""
+    if not text or len(text) > 12000:
+        raise SharedAIError("Describe the job in 1–12,000 characters.")
+    key = idempotency_key or str(uuid.uuid4())
+    result = _user_jobs_request(
+        "POST", "", access_token=access_token,
+        json_body={"job_type": "intelligence.solve", "prompt": text,
+                   "provider": provider, "model": model, "strategy": strategy},
+        idempotency_key=key,
+    )
+    if not isinstance(result.get("job_id"), str) or result.get("status") != "queued":
+        raise SharedAIError("User job service did not confirm a queued job.")
+    result["client_idempotency_key"] = key
+    return result
+
+
+def get_user_job(*, job_id: str, access_token: str) -> dict:
+    if not isinstance(job_id, str) or not job_id.strip():
+        raise SharedAIError("Enter a job ID first.")
+    return _user_jobs_request("GET", f"/{job_id.strip()}", access_token=access_token)
+
+
+def cancel_user_job(*, job_id: str, access_token: str) -> dict:
+    if not isinstance(job_id, str) or not job_id.strip():
+        raise SharedAIError("Enter a job ID first.")
+    result = _user_jobs_request("DELETE", f"/{job_id.strip()}", access_token=access_token)
+    if result.get("status") != "cancelled":
+        raise SharedAIError("The service did not confirm job cancellation.")
     return result
