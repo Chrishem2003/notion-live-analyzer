@@ -93,3 +93,12 @@ Staging procedure:
 4. Set `SUPABASE_AUTH_ENABLED=true` only on that staging service, then verify sign-in, confirmation-required signup, expiry/rejected token, explicit Shared AI sign-out, portal sign-out, and session isolation.
 5. Test two unrelated Supabase users and verify each actor/quota identity differs; attempt cross-account job/data access and confirm denial.
 6. Do not merge or enable production until all CI and staging gates pass. This separate-login stage is not the final single-login experience.
+
+
+## Per-user durable job isolation (draft)
+
+The per-user job router is separate from the legacy service-key queue and is mounted only when `USER_JOB_API_ENABLED=true`. It verifies the Supabase bearer token on each request, derives `tenant_id` and `requested_by` from the verified UUID, rejects client-supplied identity/role fields, uses atomic per-user quota reservations, and scopes reads/cancellation to the same tenant. The default remains disabled.
+
+The candidate includes a disposable PostgreSQL integration workflow that applies the durable queue, quota, and cancellation migrations to an ephemeral test database. It checks quota idempotency and tenant separation, cross-tenant cancellation denial, terminal-state protection, worker lease recovery, RPC execute privileges, and concurrent quota reservations. API/repository tests separately cover auth failure behavior, client ownership injection, tenant-scoped reads, and user-owned enqueue/cancel operations.
+
+**Do not apply either user-job migration to the connected production database.** Wait for exact-head CI and PostgreSQL integration to pass, then use an isolated staging database with no production records. Verify two independent Supabase users end-to-end before enabling the API flag in staging. The shared service-role key remains API/worker-only; do not configure it in Streamlit or browser code.
