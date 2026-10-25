@@ -134,6 +134,23 @@ class SupabaseJobRepository:
             raise JobStoreUnavailable("User job quota service returned an invalid response.")
         return value
 
+    def cancel_user_job(self, *, job_id: str, tenant_id: str) -> str:
+        """Cancel a user's queued/running job without allowing cross-tenant mutation.
+
+        Returns one of: cancelled, not_found, not_cancellable. The database RPC
+        performs the ownership predicate and status transition atomically.
+        """
+        try:
+            value = self._request("POST", "rpc/cancel_user_platform_job", json={
+                "p_job_id": job_id,
+                "p_tenant_id": tenant_id,
+            })
+        except JobStoreUnavailable:
+            raise
+        if value not in {"cancelled", "not_found", "not_cancellable"}:
+            raise JobStoreUnavailable("User job cancellation service returned an invalid response.")
+        return value
+
     def claim(self, lease_seconds: int = 120) -> dict[str, Any] | None:
         rows = self._request("POST", "rpc/claim_platform_job", json={"p_lease_seconds": lease_seconds})
         return rows[0] if isinstance(rows, list) and rows else None
