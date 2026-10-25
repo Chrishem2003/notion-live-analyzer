@@ -1,0 +1,20 @@
+{
+  "name": "chrishem-mcp-server",
+  "version": "1.0.0",
+  "description": "TypeScript Model Context Protocol (MCP) Server for Vercel & AI Tool Bridging",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node-dev --respawn src/index.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.6.0",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.24",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.3.3"
+  }
+}
