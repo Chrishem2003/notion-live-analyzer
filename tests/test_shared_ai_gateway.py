@@ -342,3 +342,63 @@ def test_distributed_rate_limit_returns_429_after_limit(monkeypatch):
         assert False, "Expected rate-limit rejection"
     except HTTPException as exc:
         assert exc.status_code == 429
+
+
+def test_shared_ai_client_uses_supabase_bearer_token(monkeypatch):
+    from unittest.mock import Mock, patch
+
+    from modules.shared_ai_client import request_shared_ai
+
+    monkeypatch.setenv("SHARED_AI_API_URL", "https://api.example.test")
+    response = Mock(status_code=200)
+    response.json.return_value = {"output": "draft answer", "provider": "ollama"}
+    with patch("modules.shared_ai_client.requests.post", return_value=response) as post:
+        result = request_shared_ai(
+            product="platform_general",
+            task="help",
+            input_text="hello",
+            access_token="supabase-user-access-token",
+        )
+
+    assert result["output"] == "draft answer"
+    args, kwargs = post.call_args
+    assert args[0] == "https://api.example.test/api/v1/ai/respond"
+    assert kwargs["headers"] == {"Authorization": "Bearer supabase-user-access-token"}
+    assert kwargs["json"] == {"product": "platform_general", "task": "help", "input": "hello"}
+    assert "X-API-Key" not in kwargs["headers"]
+
+
+def test_shared_ai_client_fails_closed_without_user_token(monkeypatch):
+    from unittest.mock import patch
+
+    import pytest
+    from modules.shared_ai_client import SharedAIError, request_shared_ai
+
+    monkeypatch.setenv("SHARED_AI_API_URL", "https://api.example.test")
+    with patch("modules.shared_ai_client.requests.post") as post:
+        with pytest.raises(SharedAIError, match="not configured"):
+            request_shared_ai(
+                product="platform_general",
+                task="help",
+                input_text="hello",
+                access_token="",
+            )
+    post.assert_not_called()
+
+
+def test_shared_ai_client_rejects_remote_http_endpoint(monkeypatch):
+    from unittest.mock import patch
+
+    import pytest
+    from modules.shared_ai_client import SharedAIError, request_shared_ai
+
+    monkeypatch.setenv("SHARED_AI_API_URL", "http://api.example.test")
+    with patch("modules.shared_ai_client.requests.post") as post:
+        with pytest.raises(SharedAIError, match="HTTPS"):
+            request_shared_ai(
+                product="platform_general",
+                task="help",
+                input_text="hello",
+                access_token="user-token",
+            )
+    post.assert_not_called()
