@@ -107,7 +107,16 @@ def test_user_job_client_hides_other_account_as_not_found(monkeypatch):
 
 def test_user_job_client_requires_cancel_confirmation(monkeypatch):
     monkeypatch.setenv("SHARED_AI_API_URL", "https://api.example.test")
-    response = _response(200, {"job_id": "job-1", "status": "running"})
+    response = _response(200, {"job_id": "33333333-3333-4333-8333-333333333333", "status": "running"})
     monkeypatch.setattr(client.requests, "request", lambda *a, **kw: response)
     with pytest.raises(client.SharedAIError, match="did not confirm"):
-        client.cancel_user_job(job_id="job-1", access_token="token")
+        client.cancel_user_job(job_id="33333333-3333-4333-8333-333333333333", access_token="token")
+
+
+def test_user_job_client_rejects_malformed_job_id_before_request(monkeypatch):
+    monkeypatch.setenv("SHARED_AI_API_URL", "https://api.example.test")
+    request = Mock()
+    monkeypatch.setattr(client.requests, "request", request)
+    with pytest.raises(client.SharedAIError, match="valid UUID"):
+        client.get_user_job(job_id="../../admin", access_token="token")
+    request.assert_not_called()
