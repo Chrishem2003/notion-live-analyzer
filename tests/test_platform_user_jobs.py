@@ -151,3 +151,37 @@ def test_quota_configuration_is_bounded(monkeypatch):
     monkeypatch.setenv("USER_JOB_QUOTA_PER_HOUR", "1001")
     with pytest.raises(user_api.JobStoreUnavailable):
         user_api._quota_limit()
+
+
+def test_supabase_auth_network_outage_returns_retryable_service_error(monkeypatch):
+    monkeypatch.setenv("USER_JOB_API_ENABLED", "true")
+    monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co")
+    monkeypatch.setenv("SUPABASE_PUBLISHABLE_KEY", "public-test-key")
+    monkeypatch.setattr(
+        user_api.requests,
+        "get",
+        Mock(side_effect=user_api.requests.RequestException("connection reset")),
+    )
+
+    with pytest.raises(HTTPException) as error:
+        user_api._verified_user("Bearer valid-token")
+
+    assert error.value.status_code == 503
+    assert "temporarily unavailable" in error.value.detail
+
+
+@pytest.mark.parametrize("status_code", [429, 500, 502, 503])
+def test_supabase_auth_server_outage_returns_retryable_service_error(monkeypatch, status_code):
+    monkeypatch.setenv("USER_JOB_API_ENABLED", "true")
+    monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co")
+    monkeypatch.setenv("SUPABASE_PUBLISHABLE_KEY", "public-test-key")
+    monkeypatch.setattr(
+        user_api.requests,
+        "get",
+        Mock(return_value=Mock(status_code=status_code)),
+    )
+
+    with pytest.raises(HTTPException) as error:
+        user_api._verified_user("Bearer valid-token")
+
+    assert error.value.status_code == 503
