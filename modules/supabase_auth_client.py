@@ -1,6 +1,6 @@
 """Supabase Auth client for staged migration away from ephemeral SQLite accounts.
 
-This module is deliberately not wired into the Streamlit UI yet. It uses only
+The opt-in Shared AI workspace uses this adapter behind a feature flag. It uses only
 the public/publishable Supabase key, never a service-role key. Access tokens
 must be kept in the user's server-side Streamlit session and must not be logged.
 """
