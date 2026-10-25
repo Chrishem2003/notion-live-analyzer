@@ -1,5 +1,7 @@
 ﻿from __future__ import annotations
 
+import hashlib
+
 from .config import BrainConfig
 from .models import Problem, BrainResult
 from .providers.registry import ProviderRegistry
@@ -210,7 +212,10 @@ class SovereignBrain:
         self.audit.record(
             "governed_problem_started",
             {
-                "prompt": prompt,
+                # Audit metadata must identify the request without retaining its
+                # potentially sensitive contents in a local append-only log.
+                "prompt_sha256": hashlib.sha256(prompt.encode("utf-8")).hexdigest(),
+                "prompt_length": len(prompt),
                 "provider": selected_provider,
                 "model": selected_model,
                 "strategy": strategy,
@@ -314,7 +319,9 @@ class SovereignBrain:
             self.audit.record(
                 "governed_problem_failed",
                 {
-                    "error": str(exc),
+                    # Exception strings can contain prompts, provider payloads,
+                    # URLs, or credentials. Keep the failure class, not its text.
+                    "error_type": type(exc).__name__,
                 },
             )
 

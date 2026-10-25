@@ -508,3 +508,35 @@ def test_stage51_long_lived_brain_passes_shared_breaker(monkeypatch):
         raise AssertionError("Expected test executor to stop the call")
 
     assert captured["circuit_breaker"] is brain.provider_circuit_breaker
+
+
+
+def test_stage51_governed_audit_does_not_store_prompt_or_exception_text():
+    from sovereign_intelligence.orchestrator import SovereignBrain
+
+    brain = SovereignBrain()
+    brain.memory.context = lambda: ""
+    brain.planner.build = lambda problem: make_plan()
+    events = []
+    brain.audit.record = lambda event, data: events.append((event, data))
+    brain.knowledge.context = lambda **kwargs: (None, "")
+    brain.research.process = lambda **kwargs: (_ for _ in ()).throw(
+        RuntimeError("private-provider-response-must-not-be-logged")
+    )
+
+    private_prompt = "confidential project detail must not be logged"
+    try:
+        brain.solve_governed(private_prompt)
+    except RuntimeError:
+        pass
+    else:
+        raise AssertionError("Expected the research adapter to fail")
+
+    serialized_events = repr(events)
+    assert private_prompt not in serialized_events
+    assert "private-provider-response-must-not-be-logged" not in serialized_events
+    started = next(data for event, data in events if event == "governed_problem_started")
+    assert started["prompt_length"] == len(private_prompt)
+    assert len(started["prompt_sha256"]) == 64
+    failed = next(data for event, data in events if event == "governed_problem_failed")
+    assert failed == {"error_type": "RuntimeError"}
