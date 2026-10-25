@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import streamlit as st
 
+from nema_agora.access import has_authenticated_portal_session
 from sovereign_intelligence import SovereignBrain
 from sovereign_intelligence.providers.registry import ProviderRegistry
 from sovereign_intelligence.api.client import IntelligenceServiceClient, IntelligenceServiceError
@@ -13,6 +14,10 @@ st.set_page_config(
     page_icon="🧠",
     layout="wide",
 )
+
+if not has_authenticated_portal_session(st.session_state):
+    st.warning("Sign in through the main CHRISHEM portal to access Sovereign Intelligence.")
+    st.stop()
 
 
 @st.cache_resource
