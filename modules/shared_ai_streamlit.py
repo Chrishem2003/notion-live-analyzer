@@ -9,8 +9,11 @@ import streamlit as st
 
 from modules.shared_ai_client import (
     SharedAIError,
+    cancel_user_job,
+    get_user_job,
     request_automation_draft,
     request_shared_ai,
+    request_user_job,
 )
 
 PRODUCT_OPTIONS = {
@@ -61,10 +64,69 @@ def render_shared_ai_assistant(access_token: str) -> None:
     st.caption("AI guidance and automation proposals across the platform. Actions remain approval-gated.")
     mode = st.radio(
         "What do you want to build?",
-        ["Ask the platform assistant", "Design an automation"],
+        ["Ask the platform assistant", "Design an automation", "Run a durable intelligence job"],
         horizontal=True,
         key="shared_ai_mode",
     )
+
+    if mode == "Run a durable intelligence job":
+        st.caption("Authenticated, user-owned background jobs. This endpoint remains disabled until the API, database migrations, and worker are approved in staging.")
+        prompt = st.text_area(
+            "Describe the intelligence job",
+            key="shared_ai_durable_job_prompt",
+            max_chars=12000,
+            placeholder="Describe the analysis or reasoning task to run in the background…",
+        )
+        if st.button("Queue my job", key="shared_ai_durable_job_submit"):
+            if not prompt.strip():
+                st.warning("Describe the job first.")
+            else:
+                try:
+                    result = request_user_job(prompt=prompt.strip(), access_token=access_token)
+                except SharedAIError as exc:
+                    st.error(str(exc))
+                else:
+                    st.session_state["shared_ai_last_job_id"] = result["job_id"]
+                    st.success(f"Job queued: {result['job_id']}")
+                    st.caption("The server confirmed queue acceptance. Processing requires the separately managed worker.")
+        last_job_id = st.session_state.get("shared_ai_last_job_id", "")
+        if last_job_id:
+            st.markdown("**Most recent job from this session**")
+            st.code(last_job_id)
+        lookup_id = st.text_input(
+            "Job ID to inspect or cancel",
+            key="shared_ai_job_lookup",
+            placeholder="Paste a job ID",
+        ).strip() or last_job_id
+        col_status, col_cancel = st.columns(2)
+        with col_status:
+            if st.button("Check status", key="shared_ai_job_check"):
+                if not lookup_id:
+                    st.warning("Queue a job or enter a job ID first.")
+                else:
+                    try:
+                        result = get_user_job(job_id=lookup_id, access_token=access_token)
+                    except SharedAIError as exc:
+                        st.error(str(exc))
+                    else:
+                        for key in ("job_id", "status", "job_type", "attempt_count", "max_attempts", "error_code", "created_at", "updated_at", "completed_at"):
+                            if key in result:
+                                st.write(f"**{key.replace('_', ' ').title()}:** {result[key]}")
+                        if result.get("result_json"):
+                            st.markdown("**Result**")
+                            st.json(result["result_json"])
+        with col_cancel:
+            if st.button("Cancel my job", key="shared_ai_job_cancel"):
+                if not lookup_id:
+                    st.warning("Queue a job or enter a job ID first.")
+                else:
+                    try:
+                        result = cancel_user_job(job_id=lookup_id, access_token=access_token)
+                    except SharedAIError as exc:
+                        st.error(str(exc))
+                    else:
+                        st.success(f"Job {result['job_id']} cancelled.")
+        return
 
     if mode == "Design an automation":
         description = st.text_area(
