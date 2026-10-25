@@ -177,16 +177,23 @@ def request_user_job(*, prompt: str, access_token: str, provider: str | None = N
     return result
 
 
-def get_user_job(*, job_id: str, access_token: str) -> dict:
+def _validated_job_id(job_id: str) -> str:
     if not isinstance(job_id, str) or not job_id.strip():
         raise SharedAIError("Enter a job ID first.")
-    return _user_jobs_request("GET", f"/{job_id.strip()}", access_token=access_token)
+    try:
+        return str(uuid.UUID(job_id.strip()))
+    except (ValueError, TypeError, AttributeError):
+        raise SharedAIError("Job ID must be a valid UUID.") from None
+
+
+def get_user_job(*, job_id: str, access_token: str) -> dict:
+    safe_job_id = _validated_job_id(job_id)
+    return _user_jobs_request("GET", f"/{safe_job_id}", access_token=access_token)
 
 
 def cancel_user_job(*, job_id: str, access_token: str) -> dict:
-    if not isinstance(job_id, str) or not job_id.strip():
-        raise SharedAIError("Enter a job ID first.")
-    result = _user_jobs_request("DELETE", f"/{job_id.strip()}", access_token=access_token)
+    safe_job_id = _validated_job_id(job_id)
+    result = _user_jobs_request("DELETE", f"/{safe_job_id}", access_token=access_token)
     if result.get("status") != "cancelled":
         raise SharedAIError("The service did not confirm job cancellation.")
     return result
