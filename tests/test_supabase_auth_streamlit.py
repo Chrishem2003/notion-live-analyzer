@@ -129,3 +129,33 @@ def test_malformed_allowlist_entry_never_grants_admin():
     admin_id = "admin@example.com"
     assert adapter.supabase_role_for_user(admin_id, True, {admin_id}) == "user"
 
+
+
+def test_logout_clears_user_specific_job_history_and_pending_retry_state(monkeypatch):
+    state = FakeState({
+        adapter.SESSION_TOKEN_KEY: "secret-token",
+        adapter.SESSION_USER_KEY: {"id": "user-1", "email": "one@example.com"},
+        "shared_ai_job_history": [{"job_id": "11111111-1111-4111-8111-111111111111"}],
+        "shared_ai_last_job_id": "11111111-1111-4111-8111-111111111111",
+        "shared_ai_pending_idempotency_key": "pending-key",
+        "supabase_signin_password": "not-to-retain",
+        "unrelated_setting": "keep",
+    })
+    monkeypatch.setattr(adapter.st, "session_state", state)
+    adapter.logout_supabase_user()
+    assert not any(key.startswith("shared_ai_") for key in state)
+    assert "supabase_signin_password" not in state
+    assert state["unrelated_setting"] == "keep"
+
+
+def test_expired_session_clears_previous_users_job_history(monkeypatch):
+    state = FakeState({
+        adapter.SESSION_TOKEN_KEY: "expired-token",
+        adapter.SESSION_USER_KEY: {"id": "user-1"},
+        "shared_ai_job_history": [{"job_id": "11111111-1111-4111-8111-111111111111"}],
+        "shared_ai_pending_idempotency_key": "pending-key",
+    })
+    monkeypatch.setattr(adapter.st, "session_state", state)
+    monkeypatch.setattr(adapter, "verify_access_token", lambda _token: (_ for _ in ()).throw(adapter.SupabaseAuthError("expired")))
+    assert adapter.current_supabase_user() is None
+    assert not any(key.startswith("shared_ai_") for key in state)
