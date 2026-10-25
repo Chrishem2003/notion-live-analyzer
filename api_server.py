@@ -52,6 +52,10 @@ app.include_router(nema_case_router)
 from sovereign_intelligence.api.service_router import router as intelligence_router
 app.include_router(intelligence_router)
 
+# Durable service-owned job queue; not exposed as per-user auth.
+from platform_jobs.api import router as platform_jobs_router
+app.include_router(platform_jobs_router)
+
 
 def require_api_key(x_api_key: Optional[str] = Header(None)):
     if not API_KEY:
