@@ -443,3 +443,34 @@ def test_stage51_governed_solve_remains_separate():
     assert callable(
         SovereignBrain.solve_governed,
     )
+
+
+
+def test_stage51_provider_circuit_breaker_is_reused_across_requests(monkeypatch):
+    import sovereign_intelligence.execution.governance.brain as brain_module
+    from sovereign_intelligence.providers.circuit import ProviderCircuitBreaker
+
+    real_failover = brain_module.ProviderFailover
+    observed_breakers = []
+
+    def capture_failover(*args, **kwargs):
+        observed_breakers.append(kwargs.get("circuit_breaker"))
+        return real_failover(*args, **kwargs)
+
+    monkeypatch.setattr(brain_module, "ProviderFailover", capture_failover)
+    breaker = ProviderCircuitBreaker()
+    executor = GovernedBrainExecutor(
+        providers=FakeProviders(),
+        circuit_breaker=breaker,
+    )
+
+    for _ in range(2):
+        executor.execute(
+            problem=make_problem(),
+            plan=make_plan(),
+            provider_name="fake",
+            model="fake-model",
+        )
+
+    assert executor.circuit_breaker is breaker
+    assert observed_breakers == [breaker, breaker]
