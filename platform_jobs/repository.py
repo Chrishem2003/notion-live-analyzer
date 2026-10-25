@@ -147,7 +147,7 @@ class SupabaseJobRepository:
             })
         except JobStoreUnavailable:
             raise
-        if value not in {"cancelled", "not_found", "not_cancellable"}:
+        if not isinstance(value, str) or value not in {"cancelled", "not_found", "not_cancellable"}:
             raise JobStoreUnavailable("User job cancellation service returned an invalid response.")
         return value
 
