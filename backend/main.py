@@ -1,22 +1,24 @@
 """
-Production FastAPI Gateway for Notion Live Analyzer & NEMA Agora Intelligence
+Production FastAPI Gateway with Enterprise JWT Authentication & NEMA Agora Intelligence
 Author: Chrishem (Kula Chris)
 """
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import sqlite3
 import time
 import logging
 
+from backend.auth import create_access_token, verify_access_token
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("NemaAgoraAPI")
 
 app = FastAPI(
     title="NEMA Agora & Notion Live Analyzer Enterprise API",
-    version="2.0.0",
-    description="High-performance backend for environmental intelligence and bioinformatics analytics."
+    version="2.1.0",
+    description="High-performance secured backend for environmental intelligence and bioinformatics analytics."
 )
 
 app.add_middleware(
@@ -61,6 +63,10 @@ def init_db():
 
 init_db()
 
+class TokenRequest(BaseModel):
+    username: str
+    password: str
+
 class SensorReading(BaseModel):
     station_id: str
     parameter: str
@@ -76,8 +82,17 @@ class BioSequencePayload(BaseModel):
 def health_check():
     return {"status": "HEALTHY", "system": "Chrishem Sovereign Apex Hub", "timestamp": time.time()}
 
+@app.post("/api/v1/auth/token")
+def login_for_access_token(form_data: TokenRequest):
+    # In production, validate credentials against user database
+    if form_data.username != "chrishem" or form_data.password != "sovereign2026":
+        raise HTTPException(status_code=400, detail="Incorrect username or password")
+    
+    access_token = create_access_token(data={"sub": form_data.username, "roles": ["admin", "researcher"]})
+    return {"access_token": access_token, "token_type": "bearer"}
+
 @app.post("/api/v1/telemetry/ingest")
-def ingest_telemetry(reading: SensorReading):
+def ingest_telemetry(reading: SensorReading, current_user: dict = Depends(verify_access_token)):
     thresholds = {
         "turbidity_ntu": 50.0,
         "dissolved_oxygen_mg_l": 4.0,
@@ -102,10 +117,10 @@ def ingest_telemetry(reading: SensorReading):
         )
         conn.commit()
 
-    return {"success": True, "station_id": reading.station_id, "status": status}
+    return {"success": True, "station_id": reading.station_id, "status": status, "ingested_by": current_user["username"]}
 
 @app.post("/api/v1/bio/analyze")
-def analyze_sequence(payload: BioSequencePayload):
+def analyze_sequence(payload: BioSequencePayload, current_user: dict = Depends(verify_access_token)):
     seq = payload.sequence.upper().strip()
     if not seq:
         raise HTTPException(status_code=400, detail="Sequence cannot be empty.")
@@ -124,5 +139,6 @@ def analyze_sequence(payload: BioSequencePayload):
         "sample_code": payload.sample_code,
         "gc_content_pct": gc,
         "resistance_marker_detected": resistance,
-        "alert": "HIGH RISK - RESISTANCE DETECTED" if resistance else "SAFE"
+        "alert": "HIGH RISK - RESISTANCE DETECTED" if resistance else "SAFE",
+        "analyzed_by": current_user["username"]
     }
