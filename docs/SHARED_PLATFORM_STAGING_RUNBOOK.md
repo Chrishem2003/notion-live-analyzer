@@ -49,9 +49,11 @@ Production enablement, database migrations, broad RLS policy changes, and live w
 
 The gateway test suite verifies that audit actor identifiers are HMAC-keyed with the server-side `CHAT_TOKEN_SECRET`, remain stable for the same identity and key, change when the key rotates, and become `unavailable` when the key is missing. The raw identity must not appear in the audit log. These tests are regression checks, not a substitute for verifying secret provisioning and rotation in the hosted environment.
 
-## Shared AI token lifetime
+## Shared AI client identity migration
 
-The shared Streamlit client requests a five-minute HMAC token for each AI call. The token endpoint now accepts lifetimes from **60 to 900 seconds**, defaults to **300 seconds**, and returns the configured expiry. The platform API key remains server-to-server only. Staging must still verify that the email passed to token issuance is taken only from the server-side authenticated session, never from an untrusted form or request payload. This trusted-server assertion is not equivalent to independently validating the app user's identity; multi-user release still requires verified identity binding and two-account isolation tests.
+The gateway client helper now accepts the signed-in user's Supabase access token and sends it directly as a bearer token to `/api/v1/ai/respond`. The API validates the token against Supabase Auth and derives the actor from the verified user ID. The helper does not request an HMAC token from an email supplied by the caller and does not need the server-to-server `PLATFORM_API_KEY`.
+
+This is a client-helper change only: do not assume the main Streamlit UI is fully migrated or that the auth adapter is enabled. Before rollout, wire the helper only to the server-side Supabase session token, confirm the token is never rendered or logged, and test sign-in, expiry, logout, and two-account isolation. Keep the gateway disabled until these end-to-end checks pass. The legacy email-token issuer remains disabled and must not be enabled in production.
 
 ## Verified Render region constraint (2026-10-25)
 
