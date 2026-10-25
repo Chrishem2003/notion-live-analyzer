@@ -171,8 +171,8 @@ def request_user_job(*, prompt: str, access_token: str, provider: str | None = N
                    "provider": provider, "model": model, "strategy": strategy},
         idempotency_key=key,
     )
-    if not isinstance(result.get("job_id"), str) or result.get("status") != "queued":
-        raise SharedAIError("User job service did not confirm a queued job.")
+    if not isinstance(result.get("job_id"), str) or result.get("status") not in {"queued", "running", "succeeded", "failed", "cancelled"}:
+        raise SharedAIError("User job service did not confirm a valid job state.")
     result["client_idempotency_key"] = key
     return result
 
