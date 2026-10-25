@@ -33,8 +33,8 @@ while no worker is running, but they will remain queued.
 
 ## Privacy and reliability notes
 
-A 30-day retention migration is being added to redact stored job prompts and results,
-including stale queued/running jobs. It preserves job metadata and writes a
+The 30-day retention migration is applied and scheduled to redact stored job prompts
+and results, including stale queued/running jobs. It preserves job metadata and writes a
 `content_redacted` audit event. Do not submit secrets or highly sensitive personal
 data. This retention rule does not replace per-user authorization or a separate
 retention policy for the Sovereign Intelligence memory store. Postgres persists job

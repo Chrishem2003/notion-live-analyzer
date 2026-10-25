@@ -56,7 +56,6 @@ $function$;
 revoke all on function public.redact_expired_platform_job_content() from public, anon, authenticated;
 grant execute on function public.redact_expired_platform_job_content() to service_role;
 
--- Run daily at 03:17 UTC. The function only redacts content older than 30 days.
 select cron.schedule(
     'redact-expired-platform-job-content',
     '17 3 * * *',
