@@ -910,9 +910,8 @@ def get_status(email: str) -> dict:
 
 
 def is_admin_email(email: str) -> bool:
-    # During the Supabase-auth rollout, a matching email in the legacy SQLite
-    # table is not proof that the verified Supabase UUID is the old admin.
-    # Fail closed until a reviewed UUID-to-role mapping is implemented.
+    # In Supabase mode, trust only the role resolved from the server-side UUID
+    # allowlist. Never fall through to email-based legacy SQLite role lookup.
     supabase_auth_enabled = os.getenv("SUPABASE_AUTH_ENABLED", "false").strip().lower() in {
         "1", "true", "yes", "on"
     }
@@ -920,7 +919,7 @@ def is_admin_email(email: str) -> bool:
     from modules.supabase_auth_streamlit import may_use_legacy_admin_email_lookup
 
     if not may_use_legacy_admin_email_lookup(identity, supabase_auth_enabled):
-        return False
+        return identity.get("role") == "admin"
 
     conn = get_conn()
     cur = conn.cursor()
@@ -3936,18 +3935,19 @@ SUPABASE_AUTH_ENABLED = os.getenv("SUPABASE_AUTH_ENABLED", "false").strip().lowe
     "1", "true", "yes", "on"
 }
 if SUPABASE_AUTH_ENABLED:
-    from modules.supabase_auth_streamlit import current_supabase_user
+    from modules.supabase_auth_streamlit import current_supabase_user, supabase_role_for_user
 
     verified_supabase_user = current_supabase_user()
     if verified_supabase_user:
         verified_email = verified_supabase_user["email"]
+        verified_role = supabase_role_for_user(verified_supabase_user["id"], enabled=True)
         st.session_state.portal_unlocked = True
         st.session_state.user_identity = {
             "id": verified_supabase_user["id"],
             "email": verified_email,
             "name": verified_email.split("@", 1)[0],
-            "role": "user",
-            "is_admin": False,
+            "role": verified_role,
+            "is_admin": verified_role == "admin",
             "auth_provider": "supabase",
         }
     else:
