@@ -101,3 +101,23 @@ def test_cancellation_fails_closed_on_unknown_rpc_result():
     repo._request.return_value = {"status": "cancelled"}
     with pytest.raises(JobStoreUnavailable):
         repo.cancel_user_job(job_id=USER_A, tenant_id=USER_B)
+
+
+def test_job_history_query_is_tenant_scoped_and_bounded():
+    repo = _repo()
+    repo._request.return_value = []
+    assert repo.list_user_jobs(tenant_id=USER_A, limit=10) == []
+    params = repo._request.call_args.kwargs["params"]
+    assert params["tenant_id"] == f"eq.{USER_A}"
+    assert params["limit"] == "10"
+    assert "payload" not in params["select"]
+    assert "result_json" not in params["select"]
+
+
+def test_job_history_rejects_invalid_tenant_and_limit_before_query():
+    repo = _repo()
+    with pytest.raises(ValueError):
+        repo.list_user_jobs(tenant_id="platform-service", limit=20)
+    with pytest.raises(ValueError):
+        repo.list_user_jobs(tenant_id=USER_A, limit=51)
+    repo._request.assert_not_called()
