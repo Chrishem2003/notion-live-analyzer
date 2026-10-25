@@ -23,7 +23,8 @@ import hashlib
 import hmac
 import json
 import os
-from typing import Optional
+from typing import Literal, Optional
+from uuid import UUID
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, WebSocket, WebSocketDisconnect, status
 from pydantic import BaseModel, Field, validator
@@ -289,6 +290,134 @@ def write_research_run(
         "record_classification": "Synthetic/Test",
         "manifest_hash": expected_manifest_hash,
     }
+
+
+# ══════════════════════════════════════════════════════════════════
+# Durable governed platform jobs — disabled unless explicitly enabled.
+# Actor scope is trusted server configuration, never request-body input.
+# The only enabled job type is a side-effect-free synthetic validation job.
+# ══════════════════════════════════════════════════════════════════
+class PlatformJobRequest(BaseModel):
+    job_type: Literal["platform.synthetic.validate"]
+    payload: dict = Field(default_factory=dict)
+    max_attempts: int = Field(3, ge=1, le=10)
+
+    @validator("payload")
+    def payload_must_be_bounded_json_object(cls, value: dict) -> dict:
+        try:
+            encoded = json.dumps(value, sort_keys=True, separators=(",", ":"),
+                                 ensure_ascii=False, allow_nan=False).encode("utf-8")
+        except (TypeError, ValueError) as exc:
+            raise ValueError("payload must contain valid JSON values.") from exc
+        if len(encoded) > 256 * 1024:
+            raise ValueError("payload exceeds the 256 KiB safety limit.")
+        return value
+
+
+def _platform_job_actor_scope() -> str:
+    scope = os.environ.get("PLATFORM_JOB_ACTOR_SCOPE", "").strip()
+    if not scope or len(scope) > 200:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Durable job actor scope is not configured on the server.",
+        )
+    return scope
+
+
+def _require_platform_job_ledger_enabled() -> None:
+    if os.environ.get("PLATFORM_JOB_LEDGER_ENABLED", "false").strip().lower() != "true":
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Durable platform jobs are disabled until the database migration and worker are validated.",
+        )
+
+
+@app.post("/api/v1/platform-jobs", status_code=202)
+def enqueue_platform_job(
+    payload: PlatformJobRequest,
+    idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key"),
+    _auth: bool = Depends(require_api_key),
+):
+    """Queue only the synthetic validation handler until real handlers pass review."""
+    _require_platform_job_ledger_enabled()
+    if not idempotency_key or not idempotency_key.strip() or len(idempotency_key.strip()) > 200:
+        raise HTTPException(status_code=400, detail="A 1–200 character Idempotency-Key header is required.")
+
+    from modules.platform_job_ledger import PlatformJobLedger, PlatformLedgerConflict, PlatformLedgerUnavailable
+    ledger = None
+    try:
+        # Fail fast on missing server identity before opening a database client.
+        actor_scope = _platform_job_actor_scope()
+        ledger = PlatformJobLedger()
+        job = ledger.enqueue(
+            job_type=payload.job_type,
+            actor_scope=actor_scope,
+            idempotency_key=idempotency_key.strip(),
+            payload=payload.payload,
+            max_attempts=payload.max_attempts,
+        )
+        if job["status"] in ("queued", "running"):
+            try:
+                celery_app.send_task("tasks.process_platform_ledger_job")
+            except Exception as exc:
+                # The durable row remains queued; clients can safely retry with
+                # the same idempotency key after broker connectivity is restored.
+                raise HTTPException(
+                    status_code=503,
+                    detail="Job was durably accepted but worker dispatch is unavailable; retry with the same Idempotency-Key.",
+                ) from exc
+        return {
+            "job_id": job["job_id"],
+            "status": job["status"],
+            "created": job["created"],
+            "status_url": f"/api/v1/platform-jobs/{job['job_id']}",
+            "job_type": payload.job_type,
+        }
+    except PlatformLedgerConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except PlatformLedgerUnavailable as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    finally:
+        if ledger is not None:
+            ledger.close()
+
+
+@app.get("/api/v1/platform-jobs/metrics")
+def get_platform_job_metrics(_auth: bool = Depends(require_api_key)):
+    """Expose aggregate operational counts only; no job payloads or identifiers."""
+    _require_platform_job_ledger_enabled()
+    from modules.platform_job_ledger import PlatformJobLedger, PlatformLedgerUnavailable
+    ledger = None
+    try:
+        ledger = PlatformJobLedger()
+        return ledger.get_metrics()
+    except PlatformLedgerUnavailable as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    finally:
+        if ledger is not None:
+            ledger.close()
+
+
+@app.get("/api/v1/platform-jobs/{job_id}")
+def get_platform_job_status(job_id: UUID, _auth: bool = Depends(require_api_key)):
+    """Read status within the server-configured actor scope; payload is never returned."""
+    _require_platform_job_ledger_enabled()
+    from modules.platform_job_ledger import PlatformJobLedger, PlatformLedgerUnavailable
+    ledger = None
+    try:
+        # Resolve trusted identity before opening a database client.
+        actor_scope = _platform_job_actor_scope()
+        ledger = PlatformJobLedger()
+        return ledger.get_status(job_id=str(job_id), actor_scope=actor_scope)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail="Invalid job status request.") from exc
+    except PlatformLedgerUnavailable as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    finally:
+        if ledger is not None:
+            ledger.close()
 
 
 # ══════════════════════════════════════════════════════════════════

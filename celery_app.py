@@ -28,7 +28,7 @@ celery_app = Celery(
     "chrishem_platform",
     broker=REDIS_URL,
     backend=RESULT_BACKEND_URL,
-    include=["tasks"],
+    include=["tasks", "modules.platform_ledger_tasks"],
 )
 
 celery_app.conf.update(
@@ -58,6 +58,7 @@ celery_app.conf.update(
         Queue("literature"),
         Queue("data_audit"),
         Queue("agents"),
+        Queue("platform_ledger"),
         Queue("default"),
     ),
     task_routes={
@@ -67,8 +68,20 @@ celery_app.conf.update(
         # call — kept off the literature queue so a burst of quick searches
         # can't starve a slower swarm run, or vice versa.
         "tasks.run_swarm_task": {"queue": "agents"},
+        "tasks.process_platform_ledger_job": {"queue": "platform_ledger"},
+        "tasks.reconcile_platform_ledger_dispatches": {"queue": "platform_ledger"},
     },
     task_default_queue="default",
+
+    # Periodic repair loop for durable ledger jobs. This only dispatches jobs
+    # when the explicit feature flag is enabled; the database reservation RPC
+    # bounds duplicate dispatch if the broker or workers are temporarily down.
+    beat_schedule={
+        "reconcile-platform-ledger-dispatches": {
+            "task": "tasks.reconcile_platform_ledger_dispatches",
+            "schedule": 30.0,
+        },
+    },
 )
 
 if __name__ == "__main__":
