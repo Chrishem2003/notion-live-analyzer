@@ -22,7 +22,7 @@ def test_staging_smoke_accepts_named_staging_render_host(monkeypatch):
     assert smoke.require_https_base() == "https://notion-live-analyzer-staging.onrender.com"
 
 
-def test_staging_smoke_request_adds_bearer_without_logging_token(monkeypatch):
+def test_staging_smoke_request_adds_bearer_header(monkeypatch):
     calls = []
     class FakeResponse:
         status_code = 200
