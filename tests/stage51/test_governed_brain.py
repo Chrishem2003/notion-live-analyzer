@@ -474,3 +474,37 @@ def test_stage51_provider_circuit_breaker_is_reused_across_requests(monkeypatch)
 
     assert executor.circuit_breaker is breaker
     assert observed_breakers == [breaker, breaker]
+
+
+def test_stage51_long_lived_brain_passes_shared_breaker(monkeypatch):
+    from types import SimpleNamespace
+    import sovereign_intelligence.execution.governance.brain as brain_module
+    from sovereign_intelligence.orchestrator import SovereignBrain
+
+    brain = SovereignBrain()
+    brain.memory.context = lambda: ""
+    brain.planner.build = lambda problem: make_plan()
+    brain.audit.record = lambda *args, **kwargs: None
+    brain.knowledge.context = lambda **kwargs: (None, "")
+    brain.research.process = lambda **kwargs: SimpleNamespace(evidence=[])
+    brain.research.source_records = lambda result: []
+
+    captured = {}
+
+    class CaptureExecutor:
+        def __init__(self, **kwargs):
+            captured.update(kwargs)
+
+        def execute(self, **kwargs):
+            raise RuntimeError("test stops after verifying injection")
+
+    monkeypatch.setattr(brain_module, "GovernedBrainExecutor", CaptureExecutor)
+
+    try:
+        brain.solve_governed("test shared circuit breaker")
+    except RuntimeError as exc:
+        assert "test stops" in str(exc)
+    else:
+        raise AssertionError("Expected test executor to stop the call")
+
+    assert captured["circuit_breaker"] is brain.provider_circuit_breaker
