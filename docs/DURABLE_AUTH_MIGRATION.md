@@ -2,7 +2,7 @@
 
 ## Current scope
 
-This change adds an isolated Supabase Auth client and unit tests. It is **not yet connected to the Streamlit login** and does not change production services, environment variables, user records, roles, or AI gateway settings.
+This branch adds a Supabase Auth client, Streamlit login wiring behind an opt-in feature flag, and a server-side UUID-only admin allowlist. The feature remains disabled by default. No production environment, user records, roles, or AI gateway settings have been changed.
 
 ## Why migration is required
 
@@ -32,7 +32,9 @@ This change adds an isolated Supabase Auth client and unit tests. It is **not ye
 - `modules/supabase_auth_streamlit.py` renders sign-in/signup, stores the access token only in server-side Streamlit session state, and revalidates it with Supabase Auth.
 - `app.py` now checks `SUPABASE_AUTH_ENABLED` on every run. The default is `false`, preserving the existing login path until an explicit rollout.
 - When enabled, the portal requires a verified Supabase session and does not display or fall back to the legacy login. Invalid/expired sessions clear the portal identity.
-- Supabase identities are mapped to the stable UUID plus email for the session; all newly authenticated users receive the ordinary `user` role in this integration.
+- Supabase identities are mapped to the stable UUID plus email for the session. By default, every user receives the ordinary `user` role.
+- An administrator role can be granted only when the verified Supabase UUID exactly matches the server-side `SUPABASE_ADMIN_USER_IDS` allowlist. The allowlist is empty by default; email addresses and signup metadata are never used for elevation.
+- The legacy email-based admin lookup is bypassed for Supabase sessions, so a matching email in SQLite cannot grant or override a Supabase role.
 - Sign-out clears the server-side token and portal identity. Tokens are not written to URLs, cookies, logs, or SQLite.
 - The old bootstrap-admin and local account records have not been migrated. Do not enable the flag in production until the existing administrator is mapped through a reviewed server-side authorization design and staging tests pass.
 - While Supabase mode is enabled, a Supabase-authenticated session is explicitly prevented from inheriting admin status from a matching email in the legacy SQLite table. UUID-based admin mapping remains intentionally unimplemented; all Supabase sessions stay non-admin until that separate mapping is reviewed.
@@ -51,4 +53,4 @@ This change adds an isolated Supabase Auth client and unit tests. It is **not ye
 
 ## Configuration
 
-Set `SUPABASE_URL` and either `SUPABASE_PUBLISHABLE_KEY` or `SUPABASE_ANON_KEY` through the deployment's secret/environment manager. This change intentionally does not configure deployment values or read any secret.
+Set `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` through the deployment's server-side environment manager. Set `SUPABASE_AUTH_ENABLED=false` until all staging release gates pass. `SUPABASE_ADMIN_USER_IDS` is an optional comma-separated list of verified Auth UUIDs; leave it empty to grant no Supabase administrator roles. Never add email addresses to this list. This change intentionally does not configure deployment values or read any secret.
