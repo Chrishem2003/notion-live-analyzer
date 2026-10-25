@@ -3754,14 +3754,10 @@ def fetch_oauth_profile(provider_key, cfg, access_token):
         return verified_google_profile(data)
 
     if provider_key == "github":
-        email = data.get("email")
-        if not email:
-            email_resp = requests.get("https://api.github.com/user/emails", headers=headers, timeout=10)
-            if email_resp.ok:
-                for entry in email_resp.json():
-                    if entry.get("primary") and entry.get("verified"):
-                        email = entry.get("email")
-                        break
+        from modules.oauth_security import verified_github_email
+        email_resp = requests.get("https://api.github.com/user/emails", headers=headers, timeout=10)
+        email_resp.raise_for_status()
+        email = verified_github_email(email_resp.json())
         return {
             "email": email,
             "name": data.get("name") or data.get("login"),
@@ -3779,7 +3775,8 @@ def handle_oauth_callback():
         return False
 
     pending = st.session_state.get("oauth_pending", {})
-    provider_key = pending.get(returned_state)
+    # OAuth state is single-use: consume it before exchanging the authorization code.
+    provider_key = pending.pop(returned_state, None)
     if not provider_key or provider_key not in OAUTH_PROVIDERS:
         st.query_params.clear()
         st.error("OAuth sign-in failed a security check (unrecognized state). Please try again.")
