@@ -48,6 +48,10 @@ GITHUB_WEBHOOK_SECRET = os.environ.get("GITHUB_WEBHOOK_SECRET")
 from nema_agora.api import router as nema_case_router
 app.include_router(nema_case_router)
 
+# Authenticated service-to-service access to the existing Sovereign Brain.
+from sovereign_intelligence.api import router as intelligence_router
+app.include_router(intelligence_router)
+
 
 def require_api_key(x_api_key: Optional[str] = Header(None)):
     if not API_KEY:
