@@ -4,6 +4,7 @@ from unittest.mock import Mock
 
 import pytest
 from fastapi import HTTPException
+from pydantic import ValidationError
 
 from platform_jobs import user_api
 
@@ -189,11 +190,11 @@ def test_supabase_auth_server_outage_returns_retryable_service_error(monkeypatch
 
 @pytest.mark.parametrize("field", ["tenant_id", "requested_by", "role", "is_admin"])
 def test_user_job_request_rejects_client_supplied_identity_fields(field):
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         user_api.UserJobCreateRequest(prompt="build a workflow", **{field: "attacker-controlled"})
 
 
 @pytest.mark.parametrize("field", ["provider", "model", "strategy"])
 def test_user_job_request_rejects_blank_routing_values(field):
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         user_api.UserJobCreateRequest(prompt="build a workflow", **{field: "   "})
