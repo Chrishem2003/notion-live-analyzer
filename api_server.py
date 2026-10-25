@@ -56,6 +56,11 @@ app.include_router(intelligence_router)
 from platform_jobs.api import router as platform_jobs_router
 app.include_router(platform_jobs_router)
 
+# Per-user job routes are opt-in and derive owner UUIDs from verified Supabase Auth tokens.
+if os.environ.get("USER_JOB_API_ENABLED", "false").strip().lower() in {"1", "true", "yes", "on"}:
+    from platform_jobs.user_api import router as user_jobs_router
+    app.include_router(user_jobs_router)
+
 
 def require_api_key(x_api_key: Optional[str] = Header(None)):
     if not API_KEY:

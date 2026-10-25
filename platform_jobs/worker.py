@@ -27,12 +27,21 @@ def _execute(job: dict[str, Any]) -> dict[str, Any]:
         prompt=payload["prompt"], provider=payload.get("provider"),
         model=payload.get("model"), strategy=payload.get("strategy", "direct"),
     )
+    answer = getattr(result, "answer", None)
+    if not isinstance(answer, str) or not answer.strip():
+        raise ValueError("invalid_intelligence_result")
+    # Bound durable result size so a provider response cannot grow the job store
+    # without limit. The full provider output is never written to worker logs.
+    max_answer_chars = 40000
+    if len(answer) > max_answer_chars:
+        answer = answer[:max_answer_chars] + " [Output truncated by platform storage limit.]"
     verification = getattr(result, "verification", None)
     assessment = getattr(result, "assessment", None)
     control = getattr(result, "control", None)
     action = getattr(control, "action", None)
     return {
-        "answer": result.answer, "provider": result.provider, "model": result.model,
+        "answer": answer, "provider": str(getattr(result, "provider", "unknown"))[:80],
+        "model": str(getattr(result, "model", "unknown"))[:200],
         "verification": {"passed": getattr(verification, "passed", None), "confidence": getattr(verification, "confidence", None)} if verification else None,
         "governance": {"accepted": getattr(assessment, "accepted", None), "action": getattr(action, "value", None)},
     }
