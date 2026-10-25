@@ -58,8 +58,12 @@ def _verified_user(authorization: Optional[str] = Header(default=None)) -> dict[
         return {"id": user_id, "email": email if isinstance(email, str) else ""}
     except HTTPException:
         raise
-    except (requests.RequestException, ValueError, TypeError, AttributeError):
-        raise HTTPException(status_code=401, detail="Unable to verify bearer token.")
+    except requests.RequestException as exc:
+        # A network/provider outage is not proof that the user's token is invalid.
+        # Return 503 so clients can retry instead of forcing a misleading re-login.
+        raise HTTPException(status_code=503, detail="Authentication verification is temporarily unavailable.") from exc
+    except (ValueError, TypeError, AttributeError) as exc:
+        raise HTTPException(status_code=401, detail="Unable to verify bearer token.") from exc
 
 
 class UserJobCreateRequest(BaseModel):
