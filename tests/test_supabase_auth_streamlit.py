@@ -56,3 +56,20 @@ def test_current_user_returns_remote_verified_identity(monkeypatch):
     result = adapter.current_supabase_user()
     assert result == {"id": "user-2", "email": "two@example.com"}
     assert state[adapter.SESSION_USER_KEY] == result
+
+def test_supabase_identity_never_uses_legacy_email_admin_mapping():
+    assert adapter.may_use_legacy_admin_email_lookup(
+        {"auth_provider": "supabase", "role": "user"}, enabled=True
+    ) is False
+
+
+def test_legacy_admin_lookup_remains_available_when_supabase_mode_is_off():
+    assert adapter.may_use_legacy_admin_email_lookup(
+        {"auth_provider": "supabase", "role": "user"}, enabled=False
+    ) is True
+
+
+def test_legacy_identity_keeps_existing_admin_lookup_path():
+    assert adapter.may_use_legacy_admin_email_lookup(
+        {"email": "admin@example.com", "role": "admin"}, enabled=True
+    ) is True
