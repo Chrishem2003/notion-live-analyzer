@@ -52,6 +52,19 @@ def request_shared_ai(
             raise SharedAIError("Shared AI rejected the user session. Please sign in again.")
         if response.status_code == 429:
             raise SharedAIError("Shared AI request limit reached. Please wait before retrying.")
+        if response.status_code == 502:
+            # Surface only known-safe server diagnostics. Never echo arbitrary
+            # upstream payloads, which could contain provider internals or data.
+            safe_details = {
+                "The configured AI provider failed to complete the request.",
+                "AI request failed; no workflow or external action was executed.",
+            }
+            try:
+                detail = response.json().get("detail")
+            except (ValueError, AttributeError):
+                detail = None
+            if isinstance(detail, str) and detail in safe_details:
+                raise SharedAIError(f"Shared AI could not generate an answer: {detail}")
         raise SharedAIError(f"Shared AI request failed (HTTP {response.status_code}).")
     try:
         result = response.json()
