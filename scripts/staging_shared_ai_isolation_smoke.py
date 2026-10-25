@@ -66,28 +66,30 @@ def main() -> int:
     except ValueError as exc:
         raise RuntimeError("Create synthetic job: returned job ID is not a UUID.") from exc
 
-    # Same-key retry must return the same job, not create a duplicate.
-    retry = request("POST", root, token_a, json=payload, headers={"Idempotency-Key": key})
-    expect_status(retry, 202, "Idempotent retry as User A")
-    if retry.json().get("job_id") != job_id:
-        raise RuntimeError("Idempotent retry returned a different job ID.")
+    try:
+        # Same-key retry must return the same job, not create a duplicate.
+        retry = request("POST", root, token_a, json=payload, headers={"Idempotency-Key": key})
+        expect_status(retry, 202, "Idempotent retry as User A")
+        if retry.json().get("job_id") != job_id:
+            raise RuntimeError("Idempotent retry returned a different job ID.")
 
-    # User A can inspect it; User B cannot discover or cancel it.
-    expect_status(request("GET", f"{root}/{job_id}", token_a), 200, "User A reads own job")
-    expect_status(request("GET", f"{root}/{job_id}", token_b), 404, "User B cross-account read")
-    expect_status(request("DELETE", f"{root}/{job_id}", token_b), 404, "User B cross-account cancellation")
+        # User A can inspect it; User B cannot discover or cancel it.
+        expect_status(request("GET", f"{root}/{job_id}", token_a), 200, "User A reads own job")
+        expect_status(request("GET", f"{root}/{job_id}", token_b), 404, "User B cross-account read")
+        expect_status(request("DELETE", f"{root}/{job_id}", token_b), 404, "User B cross-account cancellation")
 
-    history_b = request("GET", f"{root}?limit=50", token_b)
-    expect_status(history_b, 200, "User B history after User A submission")
-    rows = history_b.json()
-    if not isinstance(rows, list) or any(row.get("job_id") == job_id for row in rows if isinstance(row, dict)):
-        raise RuntimeError("User B history exposed User A's job.")
+        history_b = request("GET", f"{root}?limit=50", token_b)
+        expect_status(history_b, 200, "User B history after User A submission")
+        rows = history_b.json()
+        if not isinstance(rows, list) or any(row.get("job_id") == job_id for row in rows if isinstance(row, dict)):
+            raise RuntimeError("User B history exposed User A's job.")
+    finally:
+        # Best-effort cleanup even if an isolation assertion fails.
+        cleanup = request("DELETE", f"{root}/{job_id}", token_a)
+        if cleanup.status_code not in (200, 409, 404):
+            raise RuntimeError(f"Staging cleanup failed with HTTP {cleanup.status_code}; response body withheld.")
 
-    # Cancel own synthetic job so a worker-disabled staging queue stays tidy.
-    cancelled = request("DELETE", f"{root}/{job_id}", token_a)
-    if cancelled.status_code not in (200, 409):
-        raise RuntimeError(f"User A cancellation: expected HTTP 200 or 409, got {cancelled.status_code}.")
-    print("PASS: two distinct users, owner read, cross-user 404, history isolation, idempotency, and cancellation request.")
+    print("PASS: two distinct users, owner read, cross-user 404, history isolation, idempotency, and cancellation cleanup.")
     print("Review staging logs separately for token/prompt/result non-disclosure. No tokens or response bodies were printed.")
     return 0
 
