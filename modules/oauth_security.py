@@ -15,3 +15,16 @@ def verified_google_profile(data: dict[str, Any]) -> dict[str, str | None]:
         "name": data.get("name") or email.split("@")[0],
         "provider_id": data.get("sub"),
     }
+
+
+def verified_github_email(entries: Any) -> str | None:
+    """Select only GitHub's explicitly primary and verified email address."""
+    if not isinstance(entries, list):
+        return None
+    for entry in entries:
+        if not isinstance(entry, dict) or entry.get("primary") is not True or entry.get("verified") is not True:
+            continue
+        email = entry.get("email")
+        if isinstance(email, str) and email.strip():
+            return email.strip().lower()
+    return None
