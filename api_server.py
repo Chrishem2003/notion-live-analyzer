@@ -56,6 +56,10 @@ app.include_router(intelligence_router)
 from platform_jobs.api import router as platform_jobs_router
 app.include_router(platform_jobs_router)
 
+# Shared multi-user AI gateway; disabled by default and fail-closed until staged.
+from shared_ai_gateway import router as shared_ai_router
+app.include_router(shared_ai_router)
+
 
 def require_api_key(x_api_key: Optional[str] = Header(None)):
     if not API_KEY:
