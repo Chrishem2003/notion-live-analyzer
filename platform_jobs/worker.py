@@ -58,7 +58,7 @@ def run() -> None:
         repo = None
         try:
             repo = SupabaseJobRepository()
-            job = repo.claim(lease_seconds=180)
+            job = repo.claim(lease_seconds=900)
             if not job:
                 time.sleep(poll_seconds)
                 continue
