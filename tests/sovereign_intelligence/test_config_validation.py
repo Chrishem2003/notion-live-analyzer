@@ -5,13 +5,13 @@ import pytest
 from sovereign_intelligence.config import BrainConfig
 
 
-@pytest.mark.parametrize("provider", ["openai", "openrouter", "anthropic", "google", " OPENAI "])
+@pytest.mark.parametrize("provider", ["openai", "openrouter", "anthropic", "google", "ollama", " OPENAI "])
 def test_supported_provider_names_are_normalized(provider):
     config = BrainConfig(default_provider=provider)
     assert config.default_provider == provider.strip().lower()
 
 
-@pytest.mark.parametrize("provider", ["", "unknown", "ollama", "google-genai", None])
+@pytest.mark.parametrize("provider", ["", "unknown", "google-genai", None])
 def test_unknown_provider_is_rejected(provider):
     with pytest.raises(ValueError, match="supported provider"):
         BrainConfig(default_provider=provider)
@@ -58,7 +58,15 @@ def test_environment_boolean_parser_accepts_explicit_false(monkeypatch):
 
 
 def test_provider_autodetection_ignores_whitespace_keys(monkeypatch):
-    for key in ("ANTHROPIC_API_KEY", "OPENAI_API_KEY", "OPENROUTER_API_KEY", "GOOGLE_API_KEY"):
+    for key in (
+        "ANTHROPIC_API_KEY",
+        "OPENAI_API_KEY",
+        "OPENROUTER_API_KEY",
+        "GOOGLE_API_KEY",
+        "OLLAMA_BASE_URL",
+        "OLLAMA_MODEL",
+        "SOVEREIGN_AI_PROVIDER",
+    ):
         monkeypatch.delenv(key, raising=False)
     monkeypatch.setenv("ANTHROPIC_API_KEY", "   ")
     monkeypatch.setenv("GOOGLE_API_KEY", "test-only-key")

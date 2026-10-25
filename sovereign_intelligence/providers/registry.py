@@ -44,8 +44,8 @@ class ProviderRegistry:
 
     def configured_names(self) -> list[str]:
         """
-        Return cloud providers with credentials and local Ollama when reachable.
-        Credential values are never returned or logged.
+        Return registered cloud providers with credentials and local Ollama
+        when reachable. Credential values are never returned or logged.
         """
         names = []
 
@@ -57,7 +57,8 @@ class ProviderRegistry:
         }
 
         for name, key in environment_keys.items():
-            if os.getenv(key, "").strip():
+            # Do not advertise a provider that this registry cannot serve.
+            if name in self._providers and os.getenv(key, "").strip():
                 names.append(name)
 
         ollama = self._providers.get("ollama")
