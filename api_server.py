@@ -25,7 +25,7 @@ import json
 import os
 from typing import Optional
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Request, WebSocket, WebSocketDisconnect, status
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, WebSocket, WebSocketDisconnect, status
 from pydantic import BaseModel, Field, validator
 
 from celery_app import celery_app
@@ -530,17 +530,22 @@ async def chat_websocket(websocket: WebSocket, room_id: str, token: str):
 
 
 @app.post("/api/v1/chat/token")
-def issue_chat_token_endpoint(email: str, _auth: bool = Depends(require_api_key)):
+def issue_chat_token_endpoint(
+    email: str,
+    ttl_seconds: int = Query(default=300, ge=60, le=900),
+    _auth: bool = Depends(require_api_key),
+):
     """
-    Streamlit calls this server-to-server (using the platform API key, not
-    exposed to the browser) for its already-authenticated user, then hands
-    the resulting short-lived token to the browser-side WebSocket JS. The
-    platform API key itself never reaches the browser.
+    Issue a short-lived HMAC token for a trusted, already-authenticated
+    server-side caller. The platform API key must never reach the browser.
     """
     from chat_auth import issue_chat_token
+    normalized_email = email.strip().lower()
+    if not normalized_email or len(normalized_email) > 320 or "@" not in normalized_email:
+        raise HTTPException(status_code=422, detail="A valid email address is required.")
     try:
-        token = issue_chat_token(email)
-        return {"token": token, "expires_in_seconds": 3600}
+        token = issue_chat_token(normalized_email, ttl_seconds=ttl_seconds)
+        return {"token": token, "expires_in_seconds": ttl_seconds}
     except ChatAuthError as e:
         raise HTTPException(status_code=503, detail=str(e))
 
