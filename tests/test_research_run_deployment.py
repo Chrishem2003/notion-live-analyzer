@@ -23,10 +23,10 @@ def test_free_api_service_fails_closed_without_durable_storage():
     api_block = source.split("name: notion-live-analyzer-api", 1)[1]
 
     assert "plan: free" in api_block
-    assert "key: RESEARCH_RUN_IDEMPOTENCY_DB\\n        value: /var/data/research_run_idempotency.sqlite3" in api_block
-    assert "key: RESEARCH_RUN_IDEMPOTENCY_DB\\n        value: /tmp/research_run_idempotency.sqlite3" not in api_block
-    assert 'key: RESEARCH_RUN_ALLOW_EPHEMERAL_LEDGER\\n        value: "false"' in api_block
-    assert 'key: RESEARCH_RUN_WRITEBACK_ENABLED\\n        value: "false"' in api_block
+    assert "key: RESEARCH_RUN_IDEMPOTENCY_DB\n        value: /var/data/research_run_idempotency.sqlite3" in api_block
+    assert "key: RESEARCH_RUN_IDEMPOTENCY_DB\n        value: /tmp/research_run_idempotency.sqlite3" not in api_block
+    assert 'key: RESEARCH_RUN_ALLOW_EPHEMERAL_LEDGER\n        value: "false"' in api_block
+    assert 'key: RESEARCH_RUN_WRITEBACK_ENABLED\n        value: "false"' in api_block
     assert "Do not enable this API for real research until the disk/database and" in source
 
 
@@ -47,8 +47,8 @@ def _run_startup_script(tmp_path, flag):
     call_log = tmp_path / "commands.log"
 
     stubs = {
-        "python": '#!/bin/sh\\nprintf \'python:%s\\n\' "$*" >> "$CALL_LOG"\\nexit 0\\n',
-        "uvicorn": '#!/bin/sh\\nprintf \'uvicorn:%s\\n\' "$*" >> "$CALL_LOG"\\nexit 0\\n',
+        "python": '#!/bin/sh\nprintf \'python:%s\\n\' "$*" >> "$CALL_LOG"\nexit 0\n',
+        "uvicorn": '#!/bin/sh\nprintf \'uvicorn:%s\\n\' "$*" >> "$CALL_LOG"\nexit 0\n',
     }
     for name, body in stubs.items():
         executable = bin_dir / name
@@ -104,7 +104,7 @@ def test_api_service_uses_dedicated_lightweight_runtime_image():
     blueprint = Path("render.yaml").read_text(encoding="utf-8")
     api_block = blueprint.split("name: notion-live-analyzer-api", 1)[1]
     assert "dockerfilePath: ./Dockerfile.api" in api_block
-    assert "dockerfilePath: ./Dockerfile\\n" not in api_block
+    assert "dockerfilePath: ./Dockerfile\n" not in api_block
 
     dockerfile = Path("Dockerfile.api").read_text(encoding="utf-8")
     assert "COPY requirements-api.txt ." in dockerfile
