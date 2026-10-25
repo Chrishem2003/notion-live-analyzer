@@ -5,6 +5,8 @@ Tokens are never rendered or logged. Automation proposals never execute workflow
 """
 from __future__ import annotations
 
+import uuid
+
 import streamlit as st
 
 from modules.shared_ai_client import (
@@ -81,12 +83,24 @@ def render_shared_ai_assistant(access_token: str) -> None:
             if not prompt.strip():
                 st.warning("Describe the job first.")
             else:
+                normalized_prompt = prompt.strip()
+                if st.session_state.get("shared_ai_pending_prompt") != normalized_prompt:
+                    st.session_state["shared_ai_pending_prompt"] = normalized_prompt
+                    st.session_state["shared_ai_pending_idempotency_key"] = str(uuid.uuid4())
+                retry_key = st.session_state["shared_ai_pending_idempotency_key"]
                 try:
-                    result = request_user_job(prompt=prompt.strip(), access_token=access_token)
+                    result = request_user_job(
+                        prompt=normalized_prompt,
+                        access_token=access_token,
+                        idempotency_key=retry_key,
+                    )
                 except SharedAIError as exc:
+                    # Preserve the same key on retry after ambiguous network failures.
                     st.error(str(exc))
                 else:
                     st.session_state["shared_ai_last_job_id"] = result["job_id"]
+                    st.session_state.pop("shared_ai_pending_prompt", None)
+                    st.session_state.pop("shared_ai_pending_idempotency_key", None)
                     st.success(f"Job {result['job_id']} — status: {result['status']}")
                     if result["status"] == "queued":
                         st.caption("The server confirmed queue acceptance. Processing requires the separately managed worker.")
