@@ -1,7 +1,7 @@
 """Optional Streamlit surface for shared AI and approval-gated automation drafts.
 
 Call only after the app has obtained a verified Supabase access token server-side.
-Tokens are never rendered or logged. No workflow or external action is executed.
+Tokens are never rendered or logged. Automation proposals never execute workflows or external connector actions; durable intelligence jobs run only through the separately gated worker.
 """
 from __future__ import annotations
 
