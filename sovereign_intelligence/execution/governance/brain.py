@@ -6,6 +6,7 @@ from uuid import uuid4
 
 from sovereign_intelligence.config import BrainConfig
 from sovereign_intelligence.providers.failover import ProviderFailover
+from sovereign_intelligence.providers.circuit import ProviderCircuitBreaker
 from sovereign_intelligence.providers.routing_models import ProviderCandidate
 
 from sovereign_intelligence.models import (
@@ -106,9 +107,14 @@ class GovernedBrainExecutor:
         team: MultiAgentTeam | None = None,
         decision_engine: DecisionEngine | None = None,
         governance_pipeline: GovernedDecisionPipeline | None = None,
+        circuit_breaker: ProviderCircuitBreaker | None = None,
     ) -> None:
         self.providers = providers
         self.config = config or BrainConfig.from_env()
+        # Keep provider health/circuit state across requests handled by this brain.
+        # The API caches its brain instance, so this avoids resetting breaker state
+        # every time a new governed request constructs a ProviderFailover router.
+        self.circuit_breaker = circuit_breaker or ProviderCircuitBreaker()
         self.verifier = verifier or Verifier()
         self.team = team or MultiAgentTeam()
         self.decision_engine = decision_engine or DecisionEngine()
@@ -166,6 +172,7 @@ class GovernedBrainExecutor:
         failover = ProviderFailover(
             providers=self.providers,
             candidates=candidates,
+            circuit_breaker=self.circuit_breaker,
         )
 
         failover_events: list[dict[str, Any]] = []
