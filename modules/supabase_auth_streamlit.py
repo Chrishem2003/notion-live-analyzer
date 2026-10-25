@@ -28,6 +28,11 @@ def _enabled() -> bool:
     }
 
 
+def may_use_legacy_admin_email_lookup(identity: dict[str, Any], enabled: bool) -> bool:
+    """Return false for Supabase identities until UUID-based roles are mapped."""
+    return not (enabled and identity.get("auth_provider") == "supabase")
+
+
 def current_supabase_user() -> dict[str, str] | None:
     """Revalidate the current session token; clear invalid/expired sessions."""
     token = st.session_state.get(SESSION_TOKEN_KEY)
