@@ -7,6 +7,7 @@ The backend service-role key is used only inside the server-side repository.
 from __future__ import annotations
 
 import os
+import re
 from typing import Optional
 from uuid import UUID
 
@@ -101,6 +102,8 @@ def create_user_job(
 ):
     if payload.job_type != "intelligence.solve":
         raise HTTPException(status_code=422, detail="Unsupported job type.")
+    if not re.fullmatch(r"[A-Za-z0-9._:-]{1,200}", idempotency_key):
+        raise HTTPException(status_code=422, detail="Invalid idempotency key.")
     repo = None
     try:
         repo = SupabaseJobRepository()
