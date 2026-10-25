@@ -235,3 +235,51 @@ def test_repository_rejects_unknown_cancellation_rpc_response():
                 )
         finally:
             repo.close()
+
+
+
+def test_worker_does_not_resurrect_or_fail_job_when_completion_is_rejected(monkeypatch):
+    from unittest.mock import Mock
+    from platform_jobs import worker
+
+    repo = Mock()
+    repo.claim.return_value = {
+        "job_id": "22222222-2222-4222-8222-222222222222",
+        "job_type": "intelligence.solve",
+        "payload": {"prompt": "test"},
+        "attempt_count": 1,
+    }
+    repo.finish.return_value = False
+    repo.close = Mock()
+    monkeypatch.setattr(worker, "SupabaseJobRepository", lambda: repo)
+    monkeypatch.setattr(worker, "_execute", lambda _job: {"answer": "late response"})
+
+    assert worker.run_once() == "completion_rejected"
+    repo.finish.assert_called_once_with("22222222-2222-4222-8222-222222222222", {"answer": "late response"})
+    repo.fail.assert_not_called()
+    repo.close.assert_called_once()
+
+
+def test_user_job_status_projection_never_selects_private_prompt_payload():
+    import os
+    from unittest.mock import Mock, patch
+
+    session = Mock()
+    session.request.return_value = _fake_response([])
+    with patch.dict(os.environ, {
+        "SUPABASE_URL": "https://example.supabase.co",
+        "SUPABASE_SERVICE_ROLE_KEY": "server-only-test-key",
+    }):
+        repo = SupabaseJobRepository(session=session)
+        try:
+            repo.get_job(
+                "22222222-2222-4222-8222-222222222222",
+                tenant_id="11111111-1111-4111-8111-111111111111",
+            )
+        finally:
+            repo.close()
+
+    selected = session.request.call_args.kwargs["params"]["select"]
+    assert "payload" not in selected.split(",")
+    assert "result_json" in selected.split(",")
+    assert session.request.call_args.kwargs["params"]["tenant_id"] == "eq.11111111-1111-4111-8111-111111111111"
