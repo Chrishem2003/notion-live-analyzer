@@ -1,4 +1,4 @@
-"""Streamlit-facing adapter for the staged Supabase Auth migration.
+""Streamlit-facing adapter for the staged Supabase Auth migration.
 
 This module is opt-in and is used only when SUPABASE_AUTH_ENABLED is true.
 It deliberately has no fallback to local SQLite authentication: a Supabase
@@ -7,6 +7,7 @@ outage must never silently downgrade authentication.
 from __future__ import annotations
 
 import os
+import uuid
 from typing import Any
 
 import streamlit as st
@@ -28,24 +29,38 @@ def _enabled() -> bool:
     }
 
 
-def configured_supabase_admin_ids(value: str | None = None) -> set[str]:
-    """Parse a server-controlled comma-separated list of Supabase user UUIDs.
+def _normalize_uuid(value: str) -> str | None:
+    """Return a canonical UUID string, rejecting arbitrary strings."""
+    if not isinstance(value, str) or not value.strip():
+        return None
+    try:
+        return str(uuid.UUID(value.strip()))
+    except (ValueError, AttributeError, TypeError):
+        return None
 
-    Only immutable UUIDs belong here; never put emails or user-editable metadata
-    in this allowlist. Empty configuration grants no administrator privileges.
+
+def configured_supabase_admin_ids(value: str | None = None) -> set[str]:
+    """Parse a server-controlled allowlist, retaining valid UUIDs only.
+
+    Never put emails or user-editable metadata in this allowlist. Empty or
+    malformed configuration grants no administrator privileges.
     """
     raw = os.getenv("SUPABASE_ADMIN_USER_IDS", "") if value is None else value
-    return {item.strip().lower() for item in raw.split(",") if item.strip()}
+    normalized = (_normalize_uuid(item) for item in raw.split(","))
+    return {item for item in normalized if item is not None}
 
 
 def supabase_role_for_user(user_id: str, enabled: bool, admin_ids: set[str] | None = None) -> str:
-    """Resolve a Supabase role using only a verified UUID and server allowlist."""
-    if not enabled or not isinstance(user_id, str) or not user_id.strip():
+    """Resolve a role from a verified Supabase UUID and server allowlist."""
+    normalized_user_id = _normalize_uuid(user_id)
+    if not enabled or normalized_user_id is None:
         return "user"
-    allowed = configured_supabase_admin_ids() if admin_ids is None else {
-        item.strip().lower() for item in admin_ids if isinstance(item, str)
+    allowed_source = configured_supabase_admin_ids() if admin_ids is None else admin_ids
+    allowed = {
+        normalized for item in allowed_source
+        if (normalized := _normalize_uuid(item)) is not None
     }
-    return "admin" if user_id.strip().lower() in allowed else "user"
+    return "admin" if normalized_user_id in allowed else "user"
 
 
 def may_use_legacy_admin_email_lookup(identity: dict[str, Any], enabled: bool) -> bool:
