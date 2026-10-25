@@ -23,6 +23,17 @@ def _enabled() -> bool:
     return os.environ.get("USER_JOB_API_ENABLED", "false").strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _quota_limit() -> int:
+    raw = os.environ.get("USER_JOB_QUOTA_PER_HOUR", "20").strip()
+    try:
+        value = int(raw)
+    except ValueError as exc:
+        raise JobStoreUnavailable("User job quota configuration is invalid.") from exc
+    if value < 1 or value > 1000:
+        raise JobStoreUnavailable("User job quota configuration is out of range.")
+    return value
+
+
 def _verified_user(authorization: Optional[str] = Header(default=None)) -> dict[str, str]:
     if not _enabled():
         raise HTTPException(status_code=503, detail="Per-user job API is disabled.")
@@ -79,7 +90,7 @@ def create_user_job(
         repo = SupabaseJobRepository()
         allowed = repo.reserve_user_quota(
             tenant_id=user["id"], idempotency_key=idempotency_key,
-            limit=int(os.environ.get("USER_JOB_QUOTA_PER_HOUR", "20")),
+            limit=_quota_limit(),
             window_seconds=3600,
         )
         if not allowed:
