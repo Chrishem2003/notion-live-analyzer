@@ -8,7 +8,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-import time
+import re
 from typing import Any
 from urllib.parse import urlparse
 
@@ -65,8 +65,8 @@ class SupabaseJobRepository:
 
     def enqueue(self, *, idempotency_key: str, job_type: str, payload: dict[str, Any], max_attempts: int = 3) -> dict[str, Any]:
         key = idempotency_key.strip()
-        if not key or len(key) > 200:
-            raise ValueError("Idempotency key must contain 1–200 characters.")
+        if not key or len(key) > 200 or not re.fullmatch(r"[A-Za-z0-9._:-]{1,200}", key):
+            raise ValueError("Idempotency key must use 1–200 letters, digits, dots, underscores, colons, or hyphens.")
         if job_type != "intelligence.solve":
             raise ValueError("Unsupported job type.")
         if not isinstance(payload, dict):
