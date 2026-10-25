@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-import sovereign_intelligence.api as intelligence_api
+import sovereign_intelligence.api.service_router as intelligence_api
 
 
 def make_client() -> TestClient:
