@@ -143,3 +143,47 @@ def test_repository_quota_reservation_calls_atomic_rpc_and_returns_boolean():
         "p_limit": 20,
         "p_window_seconds": 3600,
     }
+
+
+def test_worker_bounds_large_intelligence_answers(monkeypatch):
+    from types import SimpleNamespace
+    from unittest.mock import patch
+    from sovereign_intelligence.api import service_router
+
+    huge_answer = "A" * 50000
+    brain = Mock()
+    brain.solve_governed.return_value = SimpleNamespace(
+        answer=huge_answer, provider="test-provider", model="test-model",
+        verification=None, assessment=None, control=None,
+    )
+    monkeypatch.setattr(service_router, "_get_brain", lambda: brain)
+
+    from platform_jobs.worker import _execute
+    result = _execute({
+        "job_type": "intelligence.solve",
+        "payload": {"prompt": "summarize safely"},
+    })
+
+    assert len(result["answer"]) < 40100
+    assert result["answer"].startswith("A" * 100)
+    assert "Output truncated by platform storage limit" in result["answer"]
+    brain.solve_governed.assert_called_once()
+
+
+def test_worker_rejects_empty_or_non_text_intelligence_answers(monkeypatch):
+    from types import SimpleNamespace
+    from sovereign_intelligence.api import service_router
+
+    for answer in ("  ", None, {"unexpected": "object"}):
+        brain = Mock()
+        brain.solve_governed.return_value = SimpleNamespace(
+            answer=answer, provider="test-provider", model="test-model",
+            verification=None, assessment=None, control=None,
+        )
+        monkeypatch.setattr(service_router, "_get_brain", lambda brain=brain: brain)
+        from platform_jobs.worker import _execute
+        with pytest.raises(ValueError, match="invalid_intelligence_result"):
+            _execute({
+                "job_type": "intelligence.solve",
+                "payload": {"prompt": "test"},
+            })
