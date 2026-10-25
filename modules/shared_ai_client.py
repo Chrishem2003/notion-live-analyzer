@@ -7,6 +7,7 @@ the token with Supabase Auth and derives the actor from the verified user ID.
 """
 from __future__ import annotations
 
+import os
 from urllib.parse import urlparse
 
 import requests
@@ -23,7 +24,7 @@ def request_shared_ai(
     input_text: str,
     access_token: str,
 ) -> dict:
-    base_url = __import__("os").getenv("SHARED_AI_API_URL", "").strip().rstrip("/")
+    base_url = os.getenv("SHARED_AI_API_URL", "").strip().rstrip("/")
     token = access_token.strip() if isinstance(access_token, str) else ""
 
     if not base_url or not token:
