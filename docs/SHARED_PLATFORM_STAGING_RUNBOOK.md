@@ -14,7 +14,7 @@ Status: pre-release checklist. This document does not enable the gateway or auth
 Configure values only in the relevant Render service's environment settings. Never commit or paste secrets into chat.
 
 - `SHARED_AI_GATEWAY_ENABLED=false` until every gate below passes.
-- `AI_GATEWAY_REDIS_URL`: copy the actual private URL from the Render Key Value dashboard. Never guess it.
+- `AI_GATEWAY_REDIS_URL`: copy the actual connection URL from the Render Key Value dashboard only after confirming the networking path is supported. Never guess it.
 - `AI_GATEWAY_RATE_LIMIT_PER_MINUTE=10` initially; supported range 1–120.
 - `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` (or supported anon key) for Supabase JWT validation. Do not use a service-role key here.
 - `PLATFORM_API_KEY` and `CHAT_TOKEN_SECRET` for the existing service-token flow; keep both private.
@@ -37,7 +37,7 @@ Configure values only in the relevant Render service's environment settings. Nev
 - **Ollama:** `http://127.0.0.1:11434` is for a process on the same computer only. Do not expose its port publicly or configure hosted Render to use a developer PC's loopback address.
 
 ## Known blockers at this snapshot
-- Render Key Value exists, but its actual private connection URL has not yet been configured in the API service.
+- Render Key Value exists, but its actual connection path has not been proven reachable from the Oregon API service; the existing datastore is in Frankfurt.
 - Gateway remains disabled pending configuration and staging identity tests.
 - NEMA integration PR #52 is divergent and should not be merged blindly.
 - Local Windows Ollama smoke testing still needs to be performed on the actual development computer.
@@ -51,10 +51,10 @@ The gateway test suite verifies that audit actor identifiers are HMAC-keyed with
 
 ## Shared AI token lifetime
 
-The shared Streamlit client requests a five-minute HMAC token for each AI call. The token endpoint validates requested lifetimes between 60 and 3,600 seconds; existing chat clients retain the 3,600-second default unless they request a shorter lifetime. The platform API key remains server-to-server only. Staging must still verify that the email passed to token issuance is taken only from the server-side authenticated session, never from an untrusted form or request payload.
+The shared Streamlit client requests a five-minute HMAC token for each AI call. The token endpoint now accepts lifetimes from **60 to 900 seconds**, defaults to **300 seconds**, and returns the configured expiry. The platform API key remains server-to-server only. Staging must still verify that the email passed to token issuance is taken only from the server-side authenticated session, never from an untrusted form or request payload. This trusted-server assertion is not equivalent to independently validating the app user's identity; multi-user release still requires verified identity binding and two-account isolation tests.
 
 ## Verified Render region constraint (2026-10-25)
 
-The current API web service is in **Oregon**, while the existing free Key Value instance `notion-live-analyzer-ai-rate-limit` is in **Frankfurt**. Render internal datastore URLs are for services in the same region, so do not configure the API with the Key Value internal URL as-is. See the official [Render Key Value connection guide](https://render.com/docs/key-value) and [private networking guide](https://render.com/docs/private-network).
+The current API web service is in **Oregon**, while the existing free Key Value instance `notion-live-analyzer-ai-rate-limit` is in **Frankfurt**. Render internal datastore URLs are for services in the same region, so do not configure the API with the internal URL as-is. See the official [Render Key Value connection guide](https://render.com/docs/key-value) and [private networking guide](https://render.com/docs/private-network).
 
 Zero-cost-safe next steps are to verify the API service's published outbound IP ranges and evaluate a TLS external Key Value connection with a narrowly scoped allowlist, or plan a same-region datastore migration. Do not use an unrestricted external allowlist, do not guess the URL, and do not delete/recreate the existing Key Value instance without an explicit backup and migration plan. The gateway must stay disabled until the API can successfully reach the rate-limit store and the shared-quota tests pass.
