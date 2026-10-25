@@ -170,34 +170,74 @@ def require_user(authorization: Optional[str] = Header(default=None)) -> str:
     return f"supabase:{user_id.strip()}"
 
 def _consume_rate_limit(actor: str) -> None:
-    """Enforce a distributed fixed-window quota; fail closed if Redis is absent."""
-    redis_url = os.getenv("AI_GATEWAY_REDIS_URL", "").strip()
-    if not redis_url:
-        raise HTTPException(status_code=503, detail="Shared AI requires a configured distributed rate-limit backend.")
+    """Enforce a distributed fixed-window quota using Redis or a Supabase RPC.
+
+    Redis remains preferred when configured. The Supabase alternative uses an
+    atomic Postgres function and a server-only service-role credential. If the
+    selected backend is unavailable, requests fail closed.
+    """
     try:
         limit = int(os.getenv("AI_GATEWAY_RATE_LIMIT_PER_MINUTE", "10"))
     except ValueError:
         raise HTTPException(status_code=503, detail="Shared AI rate-limit configuration is invalid.")
     if limit < 1 or limit > 120:
         raise HTTPException(status_code=503, detail="Shared AI rate-limit configuration is invalid.")
-    key = "shared-ai:minute:" + hashlib.sha256(actor.encode("utf-8")).hexdigest()
-    try:
-        client = redis.Redis.from_url(
-            redis_url,
-            socket_connect_timeout=2,
-            socket_timeout=2,
-            decode_responses=True,
-        )
-        count = int(client.eval(
-            "local n = redis.call('INCR', KEYS[1]); "
-            "if n == 1 then redis.call('EXPIRE', KEYS[1], ARGV[1]) end; "
-            "return n",
-            1,
-            key,
-            60,
-        ))
-    except (redis.RedisError, OSError, ValueError):
-        raise HTTPException(status_code=503, detail="Shared AI rate-limit service is unavailable.")
+
+    redis_url = os.getenv("AI_GATEWAY_REDIS_URL", "").strip()
+    quota_hash_secret = os.getenv("CHAT_TOKEN_SECRET", "").encode("utf-8")
+    if not quota_hash_secret:
+        raise HTTPException(status_code=503, detail="Shared AI rate-limit hashing secret is not configured.")
+    # Keyed pseudonym prevents database/Redis snapshots from exposing guessable
+    # hashes of email addresses or other low-entropy actor identifiers.
+    actor_hash = hmac.new(quota_hash_secret, actor.encode("utf-8"), hashlib.sha256).hexdigest()
+    if redis_url:
+        key = "shared-ai:minute:" + actor_hash
+        try:
+            client = redis.Redis.from_url(
+                redis_url,
+                socket_connect_timeout=2,
+                socket_timeout=2,
+                decode_responses=True,
+            )
+            count = int(client.eval(
+                "local n = redis.call('INCR', KEYS[1]); "
+                "if n == 1 then redis.call('EXPIRE', KEYS[1], ARGV[1]) end; "
+                "return n",
+                1,
+                key,
+                60,
+            ))
+        except (redis.RedisError, OSError, ValueError):
+            raise HTTPException(status_code=503, detail="Shared AI rate-limit service is unavailable.")
+    else:
+        supabase_url = os.getenv("SUPABASE_URL", "").strip().rstrip("/")
+        service_key = os.getenv("AI_GATEWAY_SUPABASE_SERVICE_ROLE_KEY", "").strip()
+        parsed_url = urlparse(supabase_url)
+        if parsed_url.scheme != "https" or not parsed_url.netloc or not service_key:
+            raise HTTPException(
+                status_code=503,
+                detail="Shared AI requires Redis or the configured private Supabase rate-limit RPC.",
+            )
+        try:
+            response = requests.post(
+                f"{supabase_url}/rest/v1/rpc/consume_shared_ai_rate_limit",
+                headers={
+                    "apikey": service_key,
+                    "Authorization": f"Bearer {service_key}",
+                    "Content-Type": "application/json",
+                },
+                json={"p_actor_hash": actor_hash, "p_limit": limit},
+                timeout=5.0,
+            )
+            if response.status_code != 200:
+                raise ValueError("Supabase rate-limit RPC rejected the request.")
+            raw_count = response.json()
+            if type(raw_count) is not int or raw_count < 1:
+                raise ValueError("Supabase rate-limit RPC returned an invalid counter.")
+            count = raw_count
+        except (requests.RequestException, ValueError, TypeError):
+            raise HTTPException(status_code=503, detail="Shared AI rate-limit service is unavailable.")
+
     if count > limit:
         raise HTTPException(status_code=429, detail="Shared AI request limit reached. Please wait before retrying.")
 
