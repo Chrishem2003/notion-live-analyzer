@@ -35,3 +35,14 @@ The connected Supabase project was inspected using schema/table metadata, pg_pol
 ## Audit limitations
 
 This is a metadata/grants snapshot, not a penetration test. It does not prove the deployed API routes are correctly authorized, and it does not validate production environment variables. Re-run the advisor and policy/grant inspection after any schema or permission change.
+
+## Opt-in per-user durable job API (draft implementation)
+
+A separate router now exists at `platform_jobs/user_api.py`. It is mounted only when `USER_JOB_API_ENABLED=true`; the default remains disabled. The router calls Supabase Auth's `/auth/v1/user` endpoint with the bearer token and publishable/anon key, validates the returned user ID as a UUID, and derives both `tenant_id` and `requested_by` from that verified ID. It does not accept those ownership fields from the request body. The service-role key is used only by the server-side job repository.
+
+- Per-user reads filter by the verified UUID and return the same 404 for missing and other-user jobs.
+- The existing service-key router remains a distinct internal API and must not be exposed as end-user auth.
+- The feature flag is not enabled in production; no environment settings were changed.
+- This first cut implements personal user isolation only. Organization/agency sharing, cancellation, quotas, and worker-side execution authorization remain separate release gates.
+- Before enabling the router in any deployment, run the new tests and a two-account staging test against a disposable database, verify API routing/HTTPS/CORS at the deployment boundary, and confirm the queue schema migration is applied in staging only.
+
