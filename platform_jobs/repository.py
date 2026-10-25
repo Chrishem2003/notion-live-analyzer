@@ -159,3 +159,20 @@ class SupabaseJobRepository:
         if value not in {"cancelled", "not_found", "not_cancellable"}:
             raise JobStoreUnavailable("Job store returned an invalid cancellation result.")
         return value
+
+
+    def list_user_jobs(self, *, tenant_id: str, limit: int = 20) -> list[dict[str, Any]]:
+        """Return a bounded status-only projection for one verified tenant."""
+        if not re.fullmatch(r"[0-9a-fA-F-]{36}", tenant_id):
+            raise ValueError("User tenant must be a UUID.")
+        if limit < 1 or limit > 50:
+            raise ValueError("Job history limit must be between 1 and 50.")
+        rows = self._request("GET", "platform_jobs", params={
+            "select": "job_id,job_type,status,error_code,attempt_count,max_attempts,created_at,updated_at,completed_at",
+            "tenant_id": f"eq.{tenant_id}",
+            "order": "created_at.desc",
+            "limit": str(limit),
+        })
+        if not isinstance(rows, list):
+            raise JobStoreUnavailable("Job store returned an invalid history response.")
+        return rows
