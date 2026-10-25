@@ -359,3 +359,16 @@ def test_user_job_cancel_fails_closed_when_database_unavailable(monkeypatch):
 
     assert error.value.status_code == 503
     repo.close.assert_called_once()
+
+
+def test_invalid_idempotency_key_is_rejected_before_quota_reservation(monkeypatch):
+    repo_factory = Mock()
+    monkeypatch.setattr(user_api, "SupabaseJobRepository", repo_factory)
+    with pytest.raises(HTTPException) as error:
+        user_api.create_user_job(
+            user_api.UserJobCreateRequest(prompt="analyze"),
+            idempotency_key="../invalid",
+            user={"id": "11111111-1111-4111-8111-111111111111", "email": ""},
+        )
+    assert error.value.status_code == 422
+    repo_factory.assert_not_called()
