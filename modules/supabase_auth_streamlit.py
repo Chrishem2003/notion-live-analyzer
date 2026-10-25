@@ -68,11 +68,22 @@ def may_use_legacy_admin_email_lookup(identity: dict[str, Any], enabled: bool) -
     return not (enabled and identity.get("auth_provider") == "supabase")
 
 
+def _clear_shared_ai_session_state() -> None:
+    """Prevent job history, drafts, and pending idempotency keys crossing accounts."""
+    for key in list(st.session_state.keys()):
+        if key.startswith("shared_ai_"):
+            st.session_state.pop(key, None)
+    st.session_state.pop("supabase_signin_password", None)
+    st.session_state.pop("supabase_signup_password", None)
+    st.session_state.pop("supabase_signup_confirm", None)
+
+
 def current_supabase_user() -> dict[str, str] | None:
     """Revalidate the current session token; clear invalid/expired sessions."""
     token = st.session_state.get(SESSION_TOKEN_KEY)
     if not token:
         st.session_state.pop(SESSION_USER_KEY, None)
+        _clear_shared_ai_session_state()
         return None
     try:
         user = verify_access_token(token)
@@ -80,15 +91,17 @@ def current_supabase_user() -> dict[str, str] | None:
         # Fail closed on network/client surprises too; never retain stale identity.
         st.session_state.pop(SESSION_TOKEN_KEY, None)
         st.session_state.pop(SESSION_USER_KEY, None)
+        _clear_shared_ai_session_state()
         return None
     st.session_state[SESSION_USER_KEY] = user
     return user
 
 
 def logout_supabase_user() -> None:
-    """Clear access token and identity from the server-side Streamlit session."""
+    """Clear identity and user-specific UI state from the server-side session."""
     st.session_state.pop(SESSION_TOKEN_KEY, None)
     st.session_state.pop(SESSION_USER_KEY, None)
+    _clear_shared_ai_session_state()
 
 
 def render_supabase_auth() -> dict[str, Any] | None:
