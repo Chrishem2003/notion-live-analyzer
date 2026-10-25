@@ -18,6 +18,8 @@ class IntelligenceServiceClient:
             raise ValueError("INTELLIGENCE_API_URL must be an absolute HTTP(S) URL.")
         if parsed.username or parsed.password or parsed.query or parsed.fragment:
             raise ValueError("INTELLIGENCE_API_URL must not contain credentials, query parameters, or fragments.")
+        if parsed.scheme != "https" and parsed.hostname not in {"localhost", "127.0.0.1", "::1"}:
+            raise ValueError("INTELLIGENCE_API_URL must use HTTPS except for local development.")
         if not (api_key or "").strip():
             raise ValueError("PLATFORM_API_KEY is required for the shared intelligence service.")
         self.base_url = base_url.strip().rstrip("/")
