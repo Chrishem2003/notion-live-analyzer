@@ -13,6 +13,7 @@ from modules.shared_ai_client import (
     SharedAIError,
     cancel_user_job,
     get_user_job,
+    list_user_jobs,
     request_automation_draft,
     request_shared_ai,
     request_user_job,
@@ -108,6 +109,26 @@ def render_shared_ai_assistant(access_token: str) -> None:
         if last_job_id:
             st.markdown("**Most recent job from this session**")
             st.code(last_job_id)
+        if st.button("Load my recent jobs", key="shared_ai_job_history_load"):
+            try:
+                history = list_user_jobs(access_token=access_token, limit=20)
+            except SharedAIError as exc:
+                st.error(str(exc))
+            else:
+                st.session_state["shared_ai_job_history"] = history
+        history = st.session_state.get("shared_ai_job_history", [])
+        if history:
+            labels = {
+                f"{row['status']} · {row['job_id']} · {row.get('created_at', 'time unavailable')}": row["job_id"]
+                for row in history
+            }
+            selected_history = st.selectbox(
+                "Your recent jobs",
+                list(labels),
+                key="shared_ai_job_history_select",
+            )
+            if st.button("Inspect selected job", key="shared_ai_job_history_inspect"):
+                st.session_state["shared_ai_job_lookup"] = labels[selected_history]
         lookup_id = st.text_input(
             "Job ID to inspect or cancel",
             key="shared_ai_job_lookup",
