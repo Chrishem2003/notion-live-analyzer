@@ -52,3 +52,14 @@ def test_idempotency_key_rejects_postgrest_filter_syntax():
                 repo.enqueue(idempotency_key="bad,key", job_type="intelligence.solve", payload={"prompt": "x"})
         finally:
             repo.close()
+
+
+def test_worker_is_disabled_by_default(monkeypatch):
+    from unittest.mock import Mock
+    from platform_jobs import worker
+
+    monkeypatch.delenv("PLATFORM_JOB_WORKER_ENABLED", raising=False)
+    repository_factory = Mock()
+    monkeypatch.setattr(worker, "SupabaseJobRepository", repository_factory)
+    assert worker.run_once() == "disabled"
+    repository_factory.assert_not_called()
