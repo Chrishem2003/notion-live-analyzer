@@ -78,3 +78,18 @@ The optional shared AI Streamlit surface now has a dedicated `Design an automati
 This is still a proposal-only capability. It does not save workflows, invoke connectors, schedule jobs, or execute external actions. Tests cover bearer-token forwarding, missing-token failure, HTTPS enforcement, and rejection of a step without an approval gate.
 
 The helper is not yet connected to the main application's verified login flow. Do not set `SUPABASE_AUTH_ENABLED=true` or `SHARED_AI_GATEWAY_ENABLED=true` in production. Complete main-app auth wiring, session expiry/logout checks, two-account isolation, provider connectivity, and quota-backend verification in staging first.
+
+
+## Main-app Shared AI integration status (2026-10-25)
+
+The main Streamlit portal now includes a **Shared AI & Automation** navigation entry behind the `SUPABASE_AUTH_ENABLED` feature flag. With the flag unset/false, the entry shows a staging-disabled message and the existing portal authentication is unchanged. With the flag explicitly enabled in an isolated staging environment, the entry uses the opt-in Supabase Auth adapter, verifies the user's token on reruns, and renders the shared AI assistant only for a verified Supabase session. The portal's sign-out path also clears any staged Supabase token.
+
+During this migration stage, Shared AI uses a separate Supabase sign-in inside the existing portal; it does not silently convert legacy local/OAuth accounts into Supabase identities. This is intentional to avoid unsafe identity linking or accidental role inheritance. Supabase roles are resolved only from a server-side UUID allowlist; do not grant admin status based on email or user-editable metadata.
+
+Staging procedure:
+1. Deploy the feature branch only to an isolated staging service, not the production Render services.
+2. Configure Supabase URL and public/publishable key for the staging service; never put the service-role key in Streamlit.
+3. Keep `SHARED_AI_GATEWAY_ENABLED=false` until the gateway, quota store, and provider are verified. UI sign-in can be tested independently.
+4. Set `SUPABASE_AUTH_ENABLED=true` only on that staging service, then verify sign-in, confirmation-required signup, expiry/rejected token, explicit Shared AI sign-out, portal sign-out, and session isolation.
+5. Test two unrelated Supabase users and verify each actor/quota identity differs; attempt cross-account job/data access and confirm denial.
+6. Do not merge or enable production until all CI and staging gates pass. This separate-login stage is not the final single-login experience.
