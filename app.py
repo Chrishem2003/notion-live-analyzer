@@ -4031,6 +4031,12 @@ else:
 
     if st.sidebar.button("🔒 Lock Portal & Sign Out", width='stretch'):
         cookie_manager.delete("chrishem_user_email")
+        # Clear the separate staged Supabase session as well, if present.
+        try:
+            from modules.supabase_auth_streamlit import logout_supabase_user
+            logout_supabase_user()
+        except Exception:
+            pass
         st.session_state.portal_unlocked = False
         st.rerun()
 
@@ -4046,6 +4052,7 @@ else:
         "📊 Sovereign Analytics Engine",
         "🏗️ Sovereign CAD",
         "📝 Query Log",
+        "🤖 Shared AI & Automation",
         "🔬 Bioinformatics Studio",
         "⚙️ Profile Settings",
         "🎓 Student Discount Verification",
@@ -4057,7 +4064,29 @@ else:
         st.toast(toast_msg) if hasattr(st, "toast") else st.info(toast_msg)
 
     # --- WORKSPACE MODULE ROUTING ---
-    if menu_selection == "🧠 Brain FM Focus Studio":
+    if menu_selection == "🤖 Shared AI & Automation":
+        import os
+        if os.getenv("SUPABASE_AUTH_ENABLED", "false").strip().lower() not in {"1", "true", "yes", "on"}:
+            st.title("🤖 Shared AI & Automation")
+            st.warning(
+                "This workspace is staged behind Supabase Auth. It is not enabled yet. "
+                "The existing account system remains unchanged; enable only in a verified staging environment."
+            )
+            st.caption("Release gates: verified Supabase identity, isolated account data/quota, provider connectivity, and safe automation review.")
+        else:
+            from modules.supabase_auth_streamlit import (
+                SESSION_TOKEN_KEY,
+                render_supabase_auth,
+            )
+            from modules.shared_ai_streamlit import render_shared_ai_assistant
+            verified_user = render_supabase_auth()
+            access_token = st.session_state.get(SESSION_TOKEN_KEY, "")
+            if verified_user and access_token:
+                render_shared_ai_assistant(access_token)
+            else:
+                st.info("Sign in with your Supabase account to use Shared AI. This login is separate from the existing portal login during staging.")
+
+    elif menu_selection == "🧠 Brain FM Focus Studio":
 # [merged] removed: from modules.brain_fm import render_brain_fm_studio
         render_brain_fm_studio()
 
