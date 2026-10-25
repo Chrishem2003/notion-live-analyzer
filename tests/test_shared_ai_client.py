@@ -64,3 +64,50 @@ def test_automation_draft_rejects_non_https_remote_url(monkeypatch):
     monkeypatch.setenv("SHARED_AI_API_URL", "http://ai.example.test")
     with pytest.raises(client.SharedAIError, match="HTTPS"):
         client.request_automation_draft(description="Build a flow", access_token="token")
+
+
+def test_user_job_submission_sends_bearer_and_idempotency(monkeypatch):
+    monkeypatch.setenv("SHARED_AI_API_URL", "https://api.example.test")
+    response = _response(202, {
+        "job_id": "11111111-1111-4111-8111-111111111111",
+        "status": "queued",
+        "created_at": "now",
+        "mode": "user_scoped",
+    })
+    calls = []
+    monkeypatch.setattr(client.requests, "request", lambda *a, **kw: (calls.append((a, kw)) or response))
+    result = client.request_user_job(
+        prompt="Analyze my data",
+        access_token="signed-in-token",
+        idempotency_key="retry-safe-key",
+    )
+    assert calls[0][0] == ("POST", "https://api.example.test/api/v1/user-jobs")
+    assert calls[0][1]["headers"]["Authorization"] == "Bearer signed-in-token"
+    assert calls[0][1]["headers"]["Idempotency-Key"] == "retry-safe-key"
+    assert calls[0][1]["json"]["prompt"] == "Analyze my data"
+    assert result["client_idempotency_key"] == "retry-safe-key"
+
+
+def test_user_job_client_fails_closed_without_token(monkeypatch):
+    monkeypatch.setenv("SHARED_AI_API_URL", "https://api.example.test")
+    request = Mock()
+    monkeypatch.setattr(client.requests, "request", request)
+    with pytest.raises(client.SharedAIError, match="not configured"):
+        client.request_user_job(prompt="Analyze", access_token="")
+    request.assert_not_called()
+
+
+def test_user_job_client_hides_other_account_as_not_found(monkeypatch):
+    monkeypatch.setenv("SHARED_AI_API_URL", "https://api.example.test")
+    response = _response(404, {"detail": "Job not found."})
+    monkeypatch.setattr(client.requests, "request", lambda *a, **kw: response)
+    with pytest.raises(client.SharedAIError, match="not found for this account"):
+        client.get_user_job(job_id="22222222-2222-4222-8222-222222222222", access_token="token")
+
+
+def test_user_job_client_requires_cancel_confirmation(monkeypatch):
+    monkeypatch.setenv("SHARED_AI_API_URL", "https://api.example.test")
+    response = _response(200, {"job_id": "job-1", "status": "running"})
+    monkeypatch.setattr(client.requests, "request", lambda *a, **kw: response)
+    with pytest.raises(client.SharedAIError, match="did not confirm"):
+        client.cancel_user_job(job_id="job-1", access_token="token")
