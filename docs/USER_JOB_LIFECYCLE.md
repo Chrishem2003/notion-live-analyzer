@@ -17,12 +17,13 @@ This feature is opt-in and must remain disabled until an isolated staging enviro
 4. An atomic database RPC reserves a per-user rolling-window quota. If quota enforcement is unavailable, the API fails closed.
 5. The repository inserts the durable queue row using the verified UUID as both `tenant_id` and `requested_by`.
 6. A worker claims a queued job with a lease, calls the governed intelligence service, and attempts an atomic completion. Failed attempts are recorded through the queue RPC and may be retried within the configured attempt limit.
-7. `GET /api/v1/user-jobs/{job_id}` returns a tenant-scoped status projection and result, not the original prompt payload.
+7. `GET /api/v1/user-jobs/{job_id}` returns a tenant-scoped status projection and result, not the original prompt payload. The durable queue's terminal success state is `succeeded` (not `completed`).
 8. `DELETE /api/v1/user-jobs/{job_id}` atomically cancels only a queued/running job owned by that user. A late provider response cannot complete a job once cancellation has changed its status.
 
 ## Status and errors
 
 - `202`: job accepted and durably queued.
+- `succeeded`: worker completed the job successfully; `failed` and `cancelled` are separate terminal states.
 - `401`: missing, invalid, or expired bearer token.
 - `404`: job does not exist or is not visible to this user.
 - `409`: idempotency conflict or job is no longer cancellable.
