@@ -34,7 +34,7 @@ def _execute(job: dict[str, Any]) -> dict[str, Any]:
     # without limit. The full provider output is never written to worker logs.
     max_answer_chars = 40000
     if len(answer) > max_answer_chars:
-        answer = answer[:max_answer_chars] + "\\n[Output truncated by platform storage limit.]"
+        answer = answer[:max_answer_chars] + " [Output truncated by platform storage limit.]"
     verification = getattr(result, "verification", None)
     assessment = getattr(result, "assessment", None)
     control = getattr(result, "control", None)
