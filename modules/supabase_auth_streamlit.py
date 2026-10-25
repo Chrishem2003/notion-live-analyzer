@@ -1,4 +1,4 @@
-""Streamlit-facing adapter for the staged Supabase Auth migration.
+"""Streamlit-facing adapter for the staged Supabase Auth migration.
 
 This module is opt-in and is used only when SUPABASE_AUTH_ENABLED is true.
 It deliberately has no fallback to local SQLite authentication: a Supabase
