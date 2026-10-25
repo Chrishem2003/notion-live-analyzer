@@ -117,10 +117,13 @@ class SupabaseJobRepository:
         limit: int = 20, window_seconds: int = 3600,
     ) -> bool:
         """Atomically reserve one per-user quota slot in a rolling window."""
+        key = idempotency_key.strip()
+        if not key or len(key) > 200 or not re.fullmatch(r"[A-Za-z0-9._:-]{1,200}", key):
+            raise ValueError("Idempotency key must use 1–200 letters, digits, dots, underscores, colons, or hyphens.")
         try:
             value = self._request("POST", "rpc/reserve_user_job_quota", json={
                 "p_tenant_id": tenant_id,
-                "p_idempotency_key": idempotency_key,
+                "p_idempotency_key": key,
                 "p_limit": limit,
                 "p_window_seconds": window_seconds,
             })
