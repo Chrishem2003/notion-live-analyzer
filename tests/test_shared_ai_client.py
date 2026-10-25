@@ -120,3 +120,20 @@ def test_user_job_client_rejects_malformed_job_id_before_request(monkeypatch):
     with pytest.raises(client.SharedAIError, match="valid UUID"):
         client.get_user_job(job_id="../../admin", access_token="token")
     request.assert_not_called()
+
+
+def test_user_job_idempotent_retry_accepts_existing_terminal_state(monkeypatch):
+    monkeypatch.setenv("SHARED_AI_API_URL", "https://api.example.test")
+    response = _response(202, {
+        "job_id": "11111111-1111-4111-8111-111111111111",
+        "status": "succeeded",
+        "created_at": "now",
+        "mode": "user_scoped",
+    })
+    monkeypatch.setattr(client.requests, "request", lambda *a, **kw: response)
+    result = client.request_user_job(
+        prompt="Analyze my data",
+        access_token="token",
+        idempotency_key="already-finished-key",
+    )
+    assert result["status"] == "succeeded"
