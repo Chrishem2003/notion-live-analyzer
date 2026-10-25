@@ -1,0 +1,70 @@
+name: User job database integration
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - "supabase/migrations/**"
+      - "tests/sql/**"
+      - ".github/workflows/user-job-database-integration.yml"
+  push:
+    branches: [ main ]
+    paths:
+      - "supabase/migrations/**"
+      - "tests/sql/**"
+      - ".github/workflows/user-job-database-integration.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: user-job-db-integration-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  postgres-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: test-only-password
+          POSTGRES_DB: app_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d app_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: test-only-password
+      PGDATABASE: app_test
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client
+      - name: Create Supabase-compatible test roles and extension
+        run: |
+          psql -v ON_ERROR_STOP=1 <<'SQL'
+          create role anon nologin;
+          create role authenticated nologin;
+          create role service_role nologin bypassrls;
+          create extension if not exists pgcrypto;
+          SQL
+      - name: Apply durable queue migration to disposable database
+        run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261025115631_platform_durable_job_queue.sql
+      - name: Apply quota and cancellation migrations to disposable database
+        run: |
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261025162000_user_job_quota_reservations.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261025170000_user_scoped_job_cancellation.sql
+      - name: Verify tenant isolation, idempotency, quotas, cancellation and RPC privileges
+        run: psql -v ON_ERROR_STOP=1 -f tests/sql/user_job_migrations.integration.sql
