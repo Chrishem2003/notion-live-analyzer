@@ -50,6 +50,8 @@ def _verified_user(authorization: Optional[str] = Header(default=None)) -> dict[
             headers={"apikey": public_key, "Authorization": f"Bearer {token}"},
             timeout=5,
         )
+        if response.status_code == 429 or response.status_code >= 500:
+            raise HTTPException(status_code=503, detail="Authentication verification is temporarily unavailable.")
         if response.status_code != 200:
             raise HTTPException(status_code=401, detail="Invalid or expired bearer token.")
         payload = response.json()
