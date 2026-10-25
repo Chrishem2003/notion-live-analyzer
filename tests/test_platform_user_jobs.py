@@ -56,3 +56,46 @@ def test_invalid_supabase_identity_uuid_is_rejected(monkeypatch):
     with pytest.raises(HTTPException) as error:
         user_api._verified_user("Bearer valid-token")
     assert error.value.status_code == 401
+
+def test_user_job_read_is_scoped_to_verified_user_uuid(monkeypatch):
+    user_id = "11111111-1111-4111-8111-111111111111"
+    repo = Mock()
+    repo.get_job.return_value = None
+    repo.close = Mock()
+    monkeypatch.setattr(user_api, "SupabaseJobRepository", lambda: repo)
+
+    with pytest.raises(HTTPException) as error:
+        user_api.get_user_job(
+            "22222222-2222-4222-8222-222222222222",
+            user={"id": user_id, "email": "user@example.com"},
+        )
+
+    assert error.value.status_code == 404
+    repo.get_job.assert_called_once_with(
+        "22222222-2222-4222-8222-222222222222", tenant_id=user_id
+    )
+    repo.close.assert_called_once()
+
+
+def test_user_job_creation_sets_owner_from_verified_identity(monkeypatch):
+    user_id = "11111111-1111-4111-8111-111111111111"
+    repo = Mock()
+    repo.enqueue.return_value = {
+        "job_id": "33333333-3333-4333-8333-333333333333",
+        "status": "queued",
+        "created_at": "2026-10-25T00:00:00Z",
+    }
+    repo.close = Mock()
+    monkeypatch.setattr(user_api, "SupabaseJobRepository", lambda: repo)
+
+    result = user_api.create_user_job(
+        user_api.UserJobCreateRequest(prompt="summarize my dataset"),
+        idempotency_key="request-1",
+        user={"id": user_id, "email": "user@example.com"},
+    )
+
+    assert result["mode"] == "user_scoped"
+    assert repo.enqueue.call_args.kwargs["tenant_id"] == user_id
+    assert repo.enqueue.call_args.kwargs["requested_by"] == user_id
+    repo.close.assert_called_once()
+
