@@ -26,6 +26,13 @@ def test_configured_names_ignore_whitespace_only_keys(monkeypatch):
 
 
 def test_configured_names_never_return_key_values(monkeypatch):
+    for key in (
+        "OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY",
+        "GOOGLE_API_KEY",
+        "OPENROUTER_API_KEY",
+    ):
+        monkeypatch.delenv(key, raising=False)
     monkeypatch.setenv("OPENAI_API_KEY", "do-not-return-this-secret")
     registry = ProviderRegistry()
     registry._providers = {"openai": object()}
@@ -34,3 +41,19 @@ def test_configured_names_never_return_key_values(monkeypatch):
 
     assert names == ["openai"]
     assert "do-not-return-this-secret" not in repr(names)
+
+
+def test_configured_names_only_include_registered_providers(monkeypatch):
+    for key in (
+        "OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY",
+        "GOOGLE_API_KEY",
+        "OPENROUTER_API_KEY",
+    ):
+        monkeypatch.delenv(key, raising=False)
+    monkeypatch.setenv("GOOGLE_API_KEY", "configured-but-not-registered")
+    monkeypatch.setenv("OPENAI_API_KEY", "registered-provider-key")
+    registry = ProviderRegistry()
+    registry._providers = {"openai": object()}
+
+    assert registry.configured_names() == ["openai"]
