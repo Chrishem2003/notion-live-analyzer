@@ -137,3 +137,26 @@ def test_user_job_idempotent_retry_accepts_existing_terminal_state(monkeypatch):
         idempotency_key="already-finished-key",
     )
     assert result["status"] == "succeeded"
+
+
+def test_user_job_history_uses_authenticated_endpoint_and_validates_ids(monkeypatch):
+    monkeypatch.setenv("SHARED_AI_API_URL", "https://api.example.test")
+    response = _response(200, [{
+        "job_id": "11111111-1111-4111-8111-111111111111",
+        "status": "queued",
+        "created_at": "now",
+    }])
+    calls = []
+    monkeypatch.setattr(client.requests, "request", lambda *a, **kw: (calls.append((a, kw)) or response))
+    result = client.list_user_jobs(access_token="token", limit=10)
+    assert result[0]["status"] == "queued"
+    assert calls[0][0] == ("GET", "https://api.example.test/api/v1/user-jobs?limit=10")
+    assert calls[0][1]["headers"]["Authorization"] == "Bearer token"
+
+
+def test_user_job_history_rejects_invalid_ids(monkeypatch):
+    monkeypatch.setenv("SHARED_AI_API_URL", "https://api.example.test")
+    response = _response(200, [{"job_id": "../../admin", "status": "queued"}])
+    monkeypatch.setattr(client.requests, "request", lambda *a, **kw: response)
+    with pytest.raises(client.SharedAIError, match="valid UUID"):
+        client.list_user_jobs(access_token="token")
