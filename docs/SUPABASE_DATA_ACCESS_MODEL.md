@@ -42,9 +42,10 @@ A separate router now exists at `platform_jobs/user_api.py`. It is mounted only 
 
 - Per-user reads filter by the verified UUID and return the same 404 for missing and other-user jobs.
 - The existing service-key router remains a distinct internal API and must not be exposed as end-user auth.
+- `DELETE /api/v1/user-jobs/{job_id}` uses a database RPC that atomically scopes by verified user UUID and only transitions that user's queued/running job to `cancelled`; cross-user and unknown IDs both return 404. A running provider call may continue consuming compute until it returns, but its result cannot overwrite the cancelled status because the worker finish transition only accepts `running` jobs.
 - The feature flag is not enabled in production; no environment settings were changed.
-- This first cut implements personal user isolation only. Organization/agency sharing, cancellation, and worker-side execution authorization remain separate release gates.
+- This first cut implements personal user isolation only. Organization/agency sharing and worker-side execution authorization remain separate release gates. User-scoped cancellation is implemented in the draft API, but still requires real staging validation before enablement.
 - The draft adds `reserve_user_job_quota`, an atomic rolling-window reservation RPC with a default limit of 20 jobs per user per hour (`USER_JOB_QUOTA_PER_HOUR`). It serializes per-user quota checks to prevent concurrent requests overspending the limit, treats retries with the same idempotency key as the same reservation, and fails closed if the quota store is unavailable.
-- The new migration `20261025162000_user_job_quota_reservations.sql` is draft-only and has not been applied to production. Apply it only to an isolated staging database after review, then test concurrent submissions, quota exhaustion, and idempotent retries.
+- The new migrations `20261025162000_user_job_quota_reservations.sql` and `20261025170000_user_scoped_job_cancellation.sql` are draft-only and have not been applied to any database. Apply them only to an isolated staging database after review, then test concurrent submissions, quota exhaustion, idempotent retries, cancellation races, and cross-user cancellation denial.
 - Before enabling the router in any deployment, run the new tests and a two-account staging test against a disposable database, verify API routing/HTTPS/CORS at the deployment boundary, and confirm the queue schema migration is applied in staging only.
 
