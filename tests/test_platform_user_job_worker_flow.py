@@ -81,6 +81,7 @@ def setup_function():
 
 
 def test_user_submission_flows_through_worker_and_persists_result(monkeypatch):
+    monkeypatch.setenv("PLATFORM_JOB_WORKER_ENABLED", "true")
     owner = "11111111-1111-4111-8111-111111111111"
     monkeypatch.setattr(user_api, "SupabaseJobRepository", InMemoryJobRepository)
     monkeypatch.setattr(worker, "SupabaseJobRepository", InMemoryJobRepository)
@@ -108,6 +109,7 @@ def test_user_submission_flows_through_worker_and_persists_result(monkeypatch):
 
 
 def test_worker_failure_is_recorded_without_exposing_exception_text(monkeypatch):
+    monkeypatch.setenv("PLATFORM_JOB_WORKER_ENABLED", "true")
     owner = "11111111-1111-4111-8111-111111111111"
     monkeypatch.setattr(user_api, "SupabaseJobRepository", InMemoryJobRepository)
     monkeypatch.setattr(worker, "SupabaseJobRepository", InMemoryJobRepository)
