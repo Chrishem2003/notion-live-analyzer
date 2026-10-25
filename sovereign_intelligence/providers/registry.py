@@ -6,6 +6,7 @@ from .openai import OpenAIProvider
 from .openrouter import OpenRouterProvider
 from .anthropic import AnthropicProvider
 from .google import GoogleProvider
+from .ollama import OllamaProvider
 
 
 class ProviderRegistry:
@@ -37,14 +38,14 @@ class ProviderRegistry:
         registry.register(OpenRouterProvider())
         registry.register(AnthropicProvider())
         registry.register(GoogleProvider())
+        registry.register(OllamaProvider())
 
         return registry
 
     def configured_names(self) -> list[str]:
         """
-        Return providers that currently have credentials configured.
-
-        This never returns or logs credential values.
+        Return registered cloud providers with credentials and local Ollama
+        when reachable. Credential values are never returned or logged.
         """
         names = []
 
@@ -55,10 +56,15 @@ class ProviderRegistry:
             "openrouter": "OPENROUTER_API_KEY",
         }
 
-        for name in self._providers:
-            key = environment_keys.get(name)
-            if key and os.getenv(key, "").strip():
+        for name, key in environment_keys.items():
+            # Do not advertise a provider that this registry cannot serve.
+            if name in self._providers and os.getenv(key, "").strip():
                 names.append(name)
+
+        ollama = self._providers.get("ollama")
+        if ollama is not None and callable(getattr(ollama, "is_available", None)):
+            if ollama.is_available():
+                names.append("ollama")
 
         return sorted(names)
 
