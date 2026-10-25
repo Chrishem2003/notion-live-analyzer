@@ -87,8 +87,9 @@ def render_shared_ai_assistant(access_token: str) -> None:
                     st.error(str(exc))
                 else:
                     st.session_state["shared_ai_last_job_id"] = result["job_id"]
-                    st.success(f"Job queued: {result['job_id']}")
-                    st.caption("The server confirmed queue acceptance. Processing requires the separately managed worker.")
+                    st.success(f"Job {result['job_id']} — status: {result['status']}")
+                    if result["status"] == "queued":
+                        st.caption("The server confirmed queue acceptance. Processing requires the separately managed worker.")
         last_job_id = st.session_state.get("shared_ai_last_job_id", "")
         if last_job_id:
             st.markdown("**Most recent job from this session**")
