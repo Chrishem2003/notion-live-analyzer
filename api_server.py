@@ -49,7 +49,7 @@ from nema_agora.api import router as nema_case_router
 app.include_router(nema_case_router)
 
 # Authenticated service-to-service access to the existing Sovereign Brain.
-from sovereign_intelligence.api import router as intelligence_router
+from sovereign_intelligence.api.service_router import router as intelligence_router
 app.include_router(intelligence_router)
 
 
