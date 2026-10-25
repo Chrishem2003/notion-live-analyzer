@@ -186,6 +186,19 @@ def _validated_job_id(job_id: str) -> str:
         raise SharedAIError("Job ID must be a valid UUID.") from None
 
 
+def list_user_jobs(*, access_token: str, limit: int = 20) -> list[dict]:
+    if limit < 1 or limit > 50:
+        raise SharedAIError("Job history limit must be between 1 and 50.")
+    result = _user_jobs_request("GET", f"?limit={limit}", access_token=access_token)
+    if not isinstance(result, list):
+        raise SharedAIError("User job service returned an invalid history response.")
+    for row in result:
+        if not isinstance(row, dict) or not isinstance(row.get("job_id"), str):
+            raise SharedAIError("User job service returned an invalid history item.")
+        _validated_job_id(row["job_id"])
+    return result
+
+
 def get_user_job(*, job_id: str, access_token: str) -> dict:
     safe_job_id = _validated_job_id(job_id)
     return _user_jobs_request("GET", f"/{safe_job_id}", access_token=access_token)
