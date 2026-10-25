@@ -187,3 +187,51 @@ def test_worker_rejects_empty_or_non_text_intelligence_answers(monkeypatch):
                 "job_type": "intelligence.solve",
                 "payload": {"prompt": "test"},
             })
+
+
+def test_repository_cancellation_uses_tenant_scoped_atomic_rpc():
+    import os
+    from unittest.mock import Mock, patch
+
+    tenant_id = "11111111-1111-4111-8111-111111111111"
+    job_id = "22222222-2222-4222-8222-222222222222"
+    session = Mock()
+    response = _fake_response("cancelled")
+    session.request.return_value = response
+    with patch.dict(os.environ, {
+        "SUPABASE_URL": "https://example.supabase.co",
+        "SUPABASE_SERVICE_ROLE_KEY": "server-only-test-key",
+    }):
+        repo = SupabaseJobRepository(session=session)
+        try:
+            result = repo.cancel_user_job(job_id=job_id, tenant_id=tenant_id)
+        finally:
+            repo.close()
+
+    assert result == "cancelled"
+    call = session.request.call_args
+    assert call.args[0] == "POST"
+    assert call.args[1].endswith("/rest/v1/rpc/cancel_user_platform_job")
+    assert call.kwargs["json"] == {"p_job_id": job_id, "p_tenant_id": tenant_id}
+
+
+def test_repository_rejects_unknown_cancellation_rpc_response():
+    import os
+    from unittest.mock import Mock, patch
+    from platform_jobs.repository import JobStoreUnavailable
+
+    session = Mock()
+    session.request.return_value = _fake_response("some_other_state")
+    with patch.dict(os.environ, {
+        "SUPABASE_URL": "https://example.supabase.co",
+        "SUPABASE_SERVICE_ROLE_KEY": "server-only-test-key",
+    }):
+        repo = SupabaseJobRepository(session=session)
+        try:
+            with pytest.raises(JobStoreUnavailable, match="cancellation service"):
+                repo.cancel_user_job(
+                    job_id="22222222-2222-4222-8222-222222222222",
+                    tenant_id="11111111-1111-4111-8111-111111111111",
+                )
+        finally:
+            repo.close()
