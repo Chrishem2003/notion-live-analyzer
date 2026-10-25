@@ -8,6 +8,10 @@ declare
     user_b uuid := '22222222-2222-4222-8222-222222222222';
     job_a uuid := 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
     job_done uuid := 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+    job_retry uuid := 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
+    job_lease uuid := 'dddddddd-dddd-4ddd-8ddd-dddddddddddd';
+    claimed public.platform_jobs;
+    changed boolean;
     payload_json jsonb := '{"prompt":"integration test"}'::jsonb;
     result text;
 begin
@@ -64,6 +68,70 @@ begin
     result := public.cancel_user_platform_job(job_done, user_a);
     if result <> 'not_cancellable' then
         raise exception 'terminal job must not be cancellable, got %', result;
+    end if;
+
+    -- A late worker completion must not resurrect a cancelled job or persist output.
+    changed := public.finish_platform_job(job_a, '{"answer":"late provider response"}'::jsonb);
+    if changed is not false then
+        raise exception 'late completion of cancelled job must be rejected';
+    end if;
+    if (select result_json from public.platform_jobs where job_id = job_a) is not null then
+        raise exception 'late completion wrote a result to cancelled job';
+    end if;
+
+    -- A failed attempt is rescheduled, then reaches terminal failure at max_attempts.
+    insert into public.platform_jobs(
+        job_id, tenant_id, requested_by, job_type, status, payload,
+        idempotency_key, payload_hash, max_attempts
+    ) values (
+        job_retry, user_a::text, user_a::text, 'intelligence.solve', 'queued',
+        payload_json, 'job-retry', 'hash-retry', 2
+    );
+    select * into claimed from public.claim_platform_job(30);
+    if claimed.job_id <> job_retry or claimed.status <> 'running' or claimed.attempt_count <> 1 then
+        raise exception 'first queued job claim failed or attempt count is wrong';
+    end if;
+    changed := public.fail_platform_job(job_retry, 'integration_error', 0);
+    if changed is not true then
+        raise exception 'first failure should schedule retry';
+    end if;
+    if (select status from public.platform_jobs where job_id = job_retry) <> 'queued' then
+        raise exception 'first failure should return job to queue';
+    end if;
+    select * into claimed from public.claim_platform_job(30);
+    if claimed.job_id <> job_retry or claimed.attempt_count <> 2 then
+        raise exception 'retry claim should increment attempt count';
+    end if;
+    changed := public.fail_platform_job(job_retry, 'integration_error', 0);
+    if changed is not true then
+        raise exception 'second failure should be recorded';
+    end if;
+    if (select status from public.platform_jobs where job_id = job_retry) <> 'failed' then
+        raise exception 'job should become terminal after max_attempts';
+    end if;
+    changed := public.finish_platform_job(job_retry, '{"answer":"must not overwrite failure"}'::jsonb);
+    if changed is not false then
+        raise exception 'late completion must not overwrite terminal failure';
+    end if;
+
+    -- An expired running lease is recoverable by a later worker.
+    insert into public.platform_jobs(
+        job_id, tenant_id, requested_by, job_type, status, payload,
+        idempotency_key, payload_hash, attempt_count, max_attempts, lease_expires_at
+    ) values (
+        job_lease, user_a::text, user_a::text, 'intelligence.solve', 'running',
+        payload_json, 'job-lease', 'hash-lease', 1, 3, now() - interval '1 minute'
+    );
+    select * into claimed from public.claim_platform_job(30);
+    if claimed.job_id <> job_lease or claimed.status <> 'running' or claimed.attempt_count <> 2 then
+        raise exception 'expired lease was not recovered with incremented attempt count';
+    end if;
+    changed := public.finish_platform_job(job_lease, '{"answer":"completed after recovery"}'::jsonb);
+    if changed is not true then
+        raise exception 'recovered job should finish successfully';
+    end if;
+    if (select status from public.platform_jobs where job_id = job_lease) <> 'succeeded' then
+        raise exception 'recovered job result did not persist';
     end if;
 
     if has_function_privilege('anon', 'public.cancel_user_platform_job(uuid,uuid)', 'EXECUTE') then
