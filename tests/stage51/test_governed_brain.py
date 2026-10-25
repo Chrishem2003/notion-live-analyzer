@@ -512,7 +512,6 @@ def test_stage51_long_lived_brain_passes_shared_breaker(monkeypatch):
 
 
 def test_stage51_governed_audit_does_not_store_prompt_or_exception_text():
-    from types import SimpleNamespace
     from sovereign_intelligence.orchestrator import SovereignBrain
 
     brain = SovereignBrain()
