@@ -37,3 +37,18 @@ def test_worker_does_not_accept_arbitrary_job_types():
     from platform_jobs.worker import _execute
     with pytest.raises(ValueError, match="unsupported_job_type"):
         _execute({"job_type": "execute.python", "payload": {"code": "print(1)"}})
+
+
+def test_idempotency_key_rejects_postgrest_filter_syntax():
+    # Validate at the boundary so the key cannot alter PostgREST filter syntax.
+    import os
+    from unittest.mock import patch
+    from platform_jobs.repository import SupabaseJobRepository
+
+    with patch.dict(os.environ, {"SUPABASE_URL": "https://example.supabase.co", "SUPABASE_SERVICE_ROLE_KEY": "test-key"}):
+        repo = SupabaseJobRepository()
+        try:
+            with pytest.raises(ValueError, match="Idempotency key"):
+                repo.enqueue(idempotency_key="bad,key", job_type="intelligence.solve", payload={"prompt": "x"})
+        finally:
+            repo.close()
