@@ -135,6 +135,31 @@ def create_user_job(
             repo.close()
 
 
+@router.delete("/{job_id}")
+def cancel_user_job(job_id: str, user: dict[str, str] = Depends(_verified_user)):
+    """Cancel only the authenticated user's queued/running job."""
+    try:
+        parsed_id = str(UUID(job_id))
+    except (ValueError, TypeError, AttributeError) as exc:
+        raise HTTPException(status_code=422, detail="job_id must be a UUID.") from exc
+    repo = None
+    try:
+        repo = SupabaseJobRepository()
+        outcome = repo.cancel_user_job(job_id=parsed_id, tenant_id=user["id"])
+        if outcome == "not_found":
+            raise HTTPException(status_code=404, detail="Job not found.")
+        if outcome == "not_cancellable":
+            raise HTTPException(status_code=409, detail="Job is no longer cancellable.")
+        return {"job_id": parsed_id, "status": "cancelled"}
+    except HTTPException:
+        raise
+    except JobStoreUnavailable as exc:
+        raise HTTPException(status_code=503, detail="Durable job storage is temporarily unavailable.") from exc
+    finally:
+        if repo:
+            repo.close()
+
+
 @router.get("/{job_id}")
 def get_user_job(job_id: str, user: dict[str, str] = Depends(_verified_user)):
     try:
