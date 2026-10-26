@@ -224,3 +224,66 @@ def test_storage_readiness_is_reviewer_only(monkeypatch):
     with pytest.raises(HTTPException) as error:
         api.storage_readiness(_auth={"actor": "issuer.example|submitter", "role": "submitter"})
     assert error.value.status_code == 403
+
+
+def test_measurement_submission_auth_accepts_only_signed_submission_roles(monkeypatch):
+    monkeypatch.setenv("PLATFORM_API_KEY", "test-platform-key")
+    monkeypatch.setenv("NEMA_PORTAL_SIGNING_SECRET", "test-signing-secret-with-at-least-32-characters")
+    actor = "https://issuer.example|submitter-123"
+
+    def signed(role):
+        message = f"{actor}\\n{role}".encode("utf-8")
+        return hmac.new(
+            b"test-signing-secret-with-at-least-32-characters",
+            message,
+            hashlib.sha256,
+        ).hexdigest()
+
+    principal = api._require_measurement_submission_access(
+        x_api_key="test-platform-key",
+        x_nema_actor=actor,
+        x_nema_role="submitter",
+        x_nema_signature=signed("submitter"),
+    )
+    assert principal == {"authenticated": True, "subject": actor, "role": "submitter"}
+
+    with pytest.raises(HTTPException) as viewer:
+        api._require_measurement_submission_access(
+            x_api_key="test-platform-key",
+            x_nema_actor=actor,
+            x_nema_role="viewer",
+            x_nema_signature=signed("viewer"),
+        )
+    assert viewer.value.status_code == 403
+
+    with pytest.raises(HTTPException) as forged:
+        api._require_measurement_submission_access(
+            x_api_key="test-platform-key",
+            x_nema_actor=actor,
+            x_nema_role="submitter",
+            x_nema_signature=signed("admin"),
+        )
+    assert forged.value.status_code == 401
+
+
+def test_measurement_submission_auth_fails_closed_for_missing_or_reused_secret(monkeypatch):
+    monkeypatch.setenv("PLATFORM_API_KEY", "test-platform-key")
+    monkeypatch.delenv("NEMA_PORTAL_SIGNING_SECRET", raising=False)
+    with pytest.raises(HTTPException) as missing:
+        api._require_measurement_submission_access(
+            x_api_key="test-platform-key",
+            x_nema_actor="issuer|subject",
+            x_nema_role="submitter",
+            x_nema_signature="anything",
+        )
+    assert missing.value.status_code == 503
+
+    monkeypatch.setenv("NEMA_PORTAL_SIGNING_SECRET", "test-platform-key")
+    with pytest.raises(HTTPException) as reused:
+        api._require_measurement_submission_access(
+            x_api_key="test-platform-key",
+            x_nema_actor="issuer|subject",
+            x_nema_role="submitter",
+            x_nema_signature="anything",
+        )
+    assert reused.value.status_code == 503
