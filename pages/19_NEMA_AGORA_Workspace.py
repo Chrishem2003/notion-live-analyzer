@@ -1451,6 +1451,17 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
             {"unit_id": "holdout-001", "split": "holdout", "bbox_wgs84": [32.0, 1.0, 32.1, 1.1],
              "observation_start": "2025-06-01T00:00:00Z", "observation_end": "2025-06-02T00:00:00Z"}
         ],
+        "asset_lineage_records": [
+            {"record_id": "development-source-001", "split": "development",
+             "source_asset_sha256": "REPLACE_WITH_SHA256_OF_ACTUAL_SOURCE_FILE",
+             "tile_ids": ["REPLACE_WITH_DEVELOPMENT_TILE_ID"], "derived_from": []},
+            {"record_id": "validation-source-001", "split": "validation",
+             "source_asset_sha256": "REPLACE_WITH_SHA256_OF_ACTUAL_SOURCE_FILE",
+             "tile_ids": ["REPLACE_WITH_VALIDATION_TILE_ID"], "derived_from": []},
+            {"record_id": "holdout-source-001", "split": "holdout",
+             "source_asset_sha256": "REPLACE_WITH_SHA256_OF_ACTUAL_SOURCE_FILE",
+             "tile_ids": ["REPLACE_WITH_HOLDOUT_TILE_ID"], "derived_from": []}
+        ],
         "min_area_ha": 0.1
     }
     st.download_button(
@@ -1464,7 +1475,7 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
         "Upload combined holdout evaluation JSON",
         type=["json"],
         key="nema_gated_evaluation_json",
-        help="Include reference_review_package, split_manifests, evaluation_records, spatiotemporal_units and optional min_area_ha.",
+        help="Required: reference_review_package, split_manifests, evaluation_records, spatiotemporal_units, and asset_lineage_records. Replace every lineage placeholder with real file hashes and stable tile/parent IDs; the gate blocks metrics if the manifest is missing or has cross-split reuse.",
     )
     if st.button(
         "Run gated holdout evaluation",
@@ -1480,6 +1491,7 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
                 split_manifests=payload.get("split_manifests"),
                 evaluation_records=payload.get("evaluation_records"),
                 spatiotemporal_units=payload.get("spatiotemporal_units"),
+                asset_lineage_records=payload.get("asset_lineage_records"),
                 min_area_ha=payload.get("min_area_ha", 0.1),
             )
             st.session_state["nema_gated_holdout_evaluation"] = report
@@ -1488,7 +1500,7 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
             st.error(f"Holdout evaluation blocked: {exc}")
     gated_report = st.session_state.get("nema_gated_holdout_evaluation")
     if gated_report:
-        st.success("Declared gates passed; offline fixture metrics were computed.")
+        st.success("Declared review, split, spatial/temporal, and asset-lineage gates passed; offline metrics were computed.")
         st.write(f"**State:** {gated_report['state']}")
         st.write(f"**Reference set:** {gated_report['reference_set_id']} · **Version:** {gated_report['reference_set_version']}")
         st.write(f"**Holdout units:** {gated_report['holdout_unit_count']}")
@@ -1496,6 +1508,8 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
         st.write(f"**Split manifest SHA-256:** {gated_report['split_manifest_sha256']}")
         st.json(gated_report["evaluation"])
         st.write("**Spatial/temporal audit:**", gated_report["spatiotemporal_audit"]["state"])
+        st.write("**Asset-lineage audit:**", gated_report["asset_lineage_audit"]["decision"])
+        st.write("**Asset-lineage manifest SHA-256:**", gated_report["asset_lineage_audit"]["manifest_sha256"])
         for limitation in gated_report["limitations"]:
             st.caption("• " + limitation)
         st.download_button(
