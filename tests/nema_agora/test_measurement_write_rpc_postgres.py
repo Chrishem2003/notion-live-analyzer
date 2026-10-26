@@ -213,6 +213,10 @@ def test_postgres_rpc_has_dedicated_non_login_owner_and_scoped_rls(migrated_post
         assert scalar("SELECT has_table_privilege('nema_measurement_writer', %s, 'UPDATE')", (table,)) is False
         assert scalar("SELECT has_table_privilege('nema_measurement_writer', %s, 'DELETE')", (table,)) is False
     assert scalar("SELECT rolbypassrls FROM pg_roles WHERE rolname = 'nema_measurement_writer'") is False
+    assert scalar("SELECT rolsuper FROM pg_roles WHERE rolname = 'nema_measurement_writer'") is False
+    assert scalar("SELECT rolcreatedb FROM pg_roles WHERE rolname = 'nema_measurement_writer'") is False
+    assert scalar("SELECT rolcreaterole FROM pg_roles WHERE rolname = 'nema_measurement_writer'") is False
+    assert scalar("SELECT rolreplication FROM pg_roles WHERE rolname = 'nema_measurement_writer'") is False
     assert scalar("SELECT rolcanlogin FROM pg_roles WHERE rolname = 'nema_measurement_writer'") is False
     assert scalar("""
         SELECT count(*) FROM pg_auth_members
