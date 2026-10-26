@@ -155,3 +155,45 @@ def test_rejects_invalid_aoi_before_raster_analysis():
             cloud_shadow_mask_applied=True,
             aoi_geojson={"type": "Polygon", "coordinates": []},
         )
+
+
+
+def test_aoi_quality_fraction_uses_domain_not_full_scene_area():
+    base = _geotiff([
+        [[0.4, 0.4], [0.5, 0.3]],
+        [[0.2, 0.2], [0.1, 0.3]],
+        [[0.6, 0.6], [0.7, 0.5]],
+    ])
+    comparison = _geotiff([
+        [[0.3, 0.4], [0.6, 0.2]],
+        [[0.3, 0.2], [0.1, 0.4]],
+        [[0.5, 0.6], [0.7, 0.4]],
+    ])
+    polygon = {
+        "type": "Polygon",
+        "coordinates": [[
+            [32.50001, 0.49991],
+            [32.50009, 0.49991],
+            [32.50009, 0.49999],
+            [32.50001, 0.49999],
+            [32.50001, 0.49991],
+        ]],
+    }
+    common = {
+        "valid_mask_bytes": _mask([[1, 1], [1, 1]]),
+        "aoi_id": "AOI-001",
+        "reflectance_scale": 1.0,
+        "cloud_shadow_mask_applied": True,
+        "aoi_geojson": polygon,
+    }
+    baseline = read_geotiff_scene(
+        raster_bytes=base, scene_id="BASE", acquired_at="2026-06-01T10:00:00Z", **common
+    )
+    later = read_geotiff_scene(
+        raster_bytes=comparison, scene_id="LATER", acquired_at="2026-09-01T10:00:00Z", **common
+    )
+    result = analyze_paired_raster_arrays(baseline_scene=baseline, comparison_scene=later)
+    assert result["state"] == "PIXEL_ANALYSIS_COMPLETE"
+    assert result["quality"]["aoi_domain_pixels"] == 1
+    assert result["quality"]["joint_valid_pixels"] == 1
+    assert result["quality"]["joint_valid_fraction"] == 1.0
