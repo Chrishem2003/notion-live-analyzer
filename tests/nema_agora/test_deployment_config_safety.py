@@ -88,3 +88,21 @@ def test_streamlit_workspace_stops_on_invalid_mode_before_showing_demo_mode():
     demo_notice = source.index('st.warning("Demo mode — session-only")')
     assert invalid_guard < stop < demo_notice
     assert "no workspace mode was started" in source[invalid_guard:stop]
+
+
+
+def test_persistent_workspace_stops_before_rendering_when_identity_is_missing_or_unprovisioned():
+    page = Path(__file__).resolve().parents[2] / "pages" / "18_NEMA_AGORA.py"
+    source = page.read_text(encoding="utf-8")
+    startup = source.index("_demo_init()\nservice, principal, mode = _persistent_context()")
+    persistent_guard = source.index('if mode == "persistent":', startup)
+    missing_identity_guard = source.index("if principal is None:", persistent_guard)
+    unprovisioned_guard = source.index("if not principal.is_authorised:", missing_identity_guard)
+    service_guard = source.index("if service is None:", unprovisioned_guard)
+    workspace_start = source.index("governance_policy = policy_from_secrets(st.secrets)", service_guard)
+
+    assert missing_identity_guard < workspace_start
+    assert unprovisioned_guard < workspace_start
+    assert service_guard < workspace_start
+    assert 'st.warning("Sign in is required before the persistent NEMA-AGORA workspace can be opened.")' in source
+    assert "session-only demo records" in source
