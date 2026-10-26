@@ -250,13 +250,30 @@ class NemaAgoraRepository:
                 """
             )
             columns = {row["name"] for row in connection.execute("PRAGMA table_info(observations)")}
-            if "owner_id" not in columns:
-                # Legacy records have no trustworthy owner. Keep them inaccessible
-                # to submitters; privileged reviewer/coordinator roles can review
-                # and reassign them through an approved migration workflow.
+            legacy_owner_migration = "owner_id" not in columns
+            if legacy_owner_migration:
+                # Legacy records have no trustworthy indexed owner. Assign them to
+                # a non-user principal and synchronize that one field in valid JSON
+                # so the integrity guard can still read the record for privileged
+                # migration/reassignment. Never infer ownership from legacy JSON.
                 connection.execute(
                     "ALTER TABLE observations ADD COLUMN owner_id TEXT NOT NULL DEFAULT 'legacy-unowned'"
                 )
+                legacy_rows = connection.execute(
+                    "SELECT case_id, record_json FROM observations"
+                ).fetchall()
+                for legacy_row in legacy_rows:
+                    try:
+                        legacy_record = json.loads(legacy_row["record_json"])
+                    except (TypeError, ValueError, json.JSONDecodeError):
+                        # Preserve malformed payloads for the integrity guard to reject.
+                        continue
+                    if isinstance(legacy_record, dict):
+                        legacy_record["owner_id"] = "legacy-unowned"
+                        connection.execute(
+                            "UPDATE observations SET record_json = ? WHERE case_id = ?",
+                            (json.dumps(legacy_record, ensure_ascii=False, sort_keys=True), legacy_row["case_id"]),
+                        )
             connection.execute(
                 "CREATE INDEX IF NOT EXISTS idx_observations_owner ON observations(owner_id)"
             )
