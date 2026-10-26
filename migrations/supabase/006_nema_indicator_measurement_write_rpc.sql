@@ -247,13 +247,24 @@ grant select, insert on table public.nema_measurement_idempotency to nema_measur
 grant insert on table public.nema_measurement_audit to nema_measurement_writer;
 
 drop policy if exists nema_measurement_writer_access on public.nema_indicator_measurements;
-create policy nema_measurement_writer_access on public.nema_indicator_measurements
-    for all to nema_measurement_writer using (true) with check (true);
+drop policy if exists nema_measurement_writer_select on public.nema_indicator_measurements;
+drop policy if exists nema_measurement_writer_insert on public.nema_indicator_measurements;
+create policy nema_measurement_writer_select on public.nema_indicator_measurements
+    for select to nema_measurement_writer using (true);
+create policy nema_measurement_writer_insert on public.nema_indicator_measurements
+    for insert to nema_measurement_writer with check (true);
+
 drop policy if exists nema_measurement_writer_access on public.nema_measurement_idempotency;
-create policy nema_measurement_writer_access on public.nema_measurement_idempotency
-    for all to nema_measurement_writer using (true) with check (true);
+drop policy if exists nema_measurement_writer_select on public.nema_measurement_idempotency;
+drop policy if exists nema_measurement_writer_insert on public.nema_measurement_idempotency;
+create policy nema_measurement_writer_select on public.nema_measurement_idempotency
+    for select to nema_measurement_writer using (true);
+create policy nema_measurement_writer_insert on public.nema_measurement_idempotency
+    for insert to nema_measurement_writer with check (true);
+
 drop policy if exists nema_measurement_writer_access on public.nema_measurement_audit;
-create policy nema_measurement_writer_access on public.nema_measurement_audit
+drop policy if exists nema_measurement_writer_insert on public.nema_measurement_audit;
+create policy nema_measurement_writer_insert on public.nema_measurement_audit
     for insert to nema_measurement_writer with check (true);
 
 grant usage on schema public to service_role;
@@ -280,7 +291,7 @@ commit;
 -- * Validate database-computed digest parity and replay behavior on the target PostgreSQL version.
 -- * Test concurrent duplicate requests, conflict, injected rollback, and unique-key collision.
 -- * Verify function owner is nema_measurement_writer (NOLOGIN, NOINHERIT, no BYPASSRLS).
--- * Verify writer-role table grants and scoped RLS policies match this migration.
+-- * Verify writer-role table grants and command-specific SELECT/INSERT RLS policies match this migration.
 -- * Confirm RLS/grants and fixed search_path; verify no anon/authenticated execution.
 -- * This RPC does not authenticate p_actor_id/p_actor_role; API must derive these from OIDC/session.
 -- * Evidence bytes and reviewer independence require separate authenticated workflows.
