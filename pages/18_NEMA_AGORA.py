@@ -1162,6 +1162,11 @@ if active_section == "Maps & metrics" and map_tool == "Data sources & asset rece
             "I have applied a documented cloud/shadow validity mask to both mask files",
             value=False, key="nema_geotiff_mask_assertion",
         )
+        band_mapping_assertion = st.checkbox(
+            "I verified the input band order is B03 (green), B04 (red), B08 (near infrared) for both scenes",
+            value=False, key="nema_geotiff_band_mapping_assertion",
+            help="This is an uploader assertion only; the app does not yet inspect provider product metadata to verify band identities.",
+        )
         minimum_aoi_pixels = st.number_input(
             "Minimum valid analysis-domain size (pixels)", min_value=1, max_value=250000,
             value=25, step=1, key="nema_geotiff_min_aoi_pixels",
@@ -1173,6 +1178,8 @@ if active_section == "Maps & metrics" and map_tool == "Data sources & asset rece
                 st.error("Upload both raster files, both valid-pixel masks, and the AOI GeoJSON boundary.")
             elif not mask_assertion:
                 st.error("Confirm the cloud/shadow mask workflow before processing.")
+            elif not band_mapping_assertion:
+                st.error("Confirm the expected spectral band order before processing.")
             else:
                 try:
                     aoi_geojson = json.loads(aoi_geojson_file.getvalue().decode("utf-8"))
@@ -1181,6 +1188,7 @@ if active_section == "Maps & metrics" and map_tool == "Data sources & asset rece
                         scene_id=base_scene_id, acquired_at=base_acquired, aoi_id=raster_aoi_id,
                         reflectance_scale=scale, reflectance_offset=offset,
                         cloud_shadow_mask_applied=mask_assertion,
+                        band_mapping_confirmed=band_mapping_assertion,
                         aoi_geojson=aoi_geojson,
                     )
                     comp_scene = read_geotiff_scene(
@@ -1188,6 +1196,7 @@ if active_section == "Maps & metrics" and map_tool == "Data sources & asset rece
                         scene_id=comp_scene_id, acquired_at=comp_acquired, aoi_id=raster_aoi_id,
                         reflectance_scale=scale, reflectance_offset=offset,
                         cloud_shadow_mask_applied=mask_assertion,
+                        band_mapping_confirmed=band_mapping_assertion,
                         aoi_geojson=aoi_geojson,
                     )
                     geo_result = analyze_paired_raster_arrays(
