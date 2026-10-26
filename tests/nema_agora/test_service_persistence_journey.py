@@ -80,3 +80,25 @@ def test_unprovisioned_principal_cannot_start_persistent_journey(tmp_path):
 
     with pytest.raises(PermissionError, match="not provisioned"):
         service.create_observation(_record(), unprovisioned)
+
+
+def test_submitter_cannot_spoof_owner_or_read_another_users_case(tmp_path):
+    service = initialize_persistent_service(tmp_path / "nema-owner-isolation.sqlite3")
+    submitter = _principal("submitter-owner", "submitter")
+    other_submitter = _principal("other-submit­ter", "submitter")
+
+    forged_record = _record()
+    forged_record["owner_id"] = other_submitter.subject_key
+    created = service.create_observation(forged_record, submitter)
+
+    # Ownership is assigned by the service from the authenticated principal.
+    assert created["owner_id"] == submitter.subject_key
+    assert service.get_observation(created["case_id"], submitter) == created
+
+    # Another submitter cannot retrieve the case by guessing its identifier or
+    # make it appear in their personal queue.
+    assert service.get_observation(created["case_id"], other_submitter) is None
+    assert all(
+        item["case_id"] != created["case_id"]
+        for item in service.list_observations(other_submitter)
+    )
