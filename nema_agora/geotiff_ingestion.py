@@ -115,6 +115,7 @@ def read_geotiff_scene(
                 else:
                     nodata_valid = np.ones(mask_data.shape, dtype=bool)
                 valid = mask_values & mask_band_valid & nodata_valid
+                domain_mask = np.ones(mask_data.shape, dtype=bool)
                 scaled = raw.astype("float64") * float(reflectance_scale) + float(reflectance_offset)
                 valid &= np.all(np.isfinite(scaled), axis=0)
                 # The analysis contract accepts normalized reflectance only.
@@ -128,7 +129,8 @@ def read_geotiff_scene(
                         invert=True,
                         all_touched=False,
                     )
-                    valid &= aoi_mask
+                    domain_mask = aoi_mask
+                    valid &= domain_mask
                     aoi_clipping_applied = True
                 scaled[:, ~valid] = 0.0
                 bands = {
@@ -151,6 +153,7 @@ def read_geotiff_scene(
                     "crs": "EPSG:4326",
                     "bands": bands,
                     "valid_mask": valid_list,
+                    "domain_mask": domain_mask.tolist(),
                     "cloud_mask_applied": True,
                     "ingestion": {
                         "method": "manual_geotiff_upload",
@@ -162,6 +165,8 @@ def read_geotiff_scene(
                         "reflectance_offset": float(reflectance_offset),
                         "cloud_shadow_mask_applied_by_uploader": True,
                         "aoi_clipping_applied": aoi_clipping_applied,
+                        "aoi_pixel_count": int(np.count_nonzero(domain_mask)),
+                        "aoi_valid_pixel_fraction": (float(np.count_nonzero(valid)) / int(np.count_nonzero(domain_mask))) if np.count_nonzero(domain_mask) else 0.0,
                         "aoi_validation": validate_geojson_aoi(aoi_geojson) if aoi_geojson is not None else None,
                         "valid_mask_pixels": int(np.count_nonzero(valid)),
                         "total_pixels": int(src.width * src.height),
