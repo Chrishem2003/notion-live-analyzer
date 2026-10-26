@@ -276,3 +276,62 @@ def test_postgres_rpc_has_dedicated_non_login_owner_and_scoped_rls(migrated_post
           AND roles @> ARRAY['nema_measurement_writer']::name[]
           AND cmd NOT IN ('SELECT', 'INSERT')
     """) == 0
+
+
+def test_postgres_duplicate_measurement_id_with_new_key_rolls_back_idempotency(migrated_postgres):
+    measurement_id = "pg-duplicate-id-" + uuid.uuid4().hex
+    first_key = "pg-key-" + uuid.uuid4().hex
+    second_key = "pg-key-" + uuid.uuid4().hex
+    call_rpc(measurement_id, first_key, record())
+
+    with pytest.raises(psycopg2.Error):
+        call_rpc(measurement_id, second_key, record())
+
+    assert scalar(
+        "SELECT count(*) FROM public.nema_indicator_measurements WHERE measurement_id=%s",
+        (measurement_id,),
+    ) == 1
+    assert scalar(
+        "SELECT count(*) FROM public.nema_measurement_idempotency WHERE measurement_id=%s",
+        (measurement_id,),
+    ) == 1
+    assert scalar(
+        "SELECT count(*) FROM public.nema_measurement_idempotency WHERE idempotency_key=%s",
+        (second_key,),
+    ) == 0
+    assert scalar(
+        "SELECT count(*) FROM public.nema_measurement_audit WHERE measurement_id=%s",
+        (measurement_id,),
+    ) == 1
+
+
+def test_postgres_client_roles_cannot_write_measurement_or_audit_tables(migrated_postgres):
+    for role in ("anon", "authenticated", "service_role"):
+        for table in (
+            "public.nema_indicator_measurements",
+            "public.nema_measurement_idempotency",
+            "public.nema_measurement_audit",
+        ):
+            assert scalar(
+                "SELECT has_table_privilege(%s, %s, 'INSERT')",
+                (role, table),
+            ) is False
+            assert scalar(
+                "SELECT has_table_privilege(%s, %s, 'UPDATE')",
+                (role, table),
+            ) is False
+            assert scalar(
+                "SELECT has_table_privilege(%s, %s, 'DELETE')",
+                (role, table),
+            ) is False
+
+    assert scalar(
+        "SELECT has_table_privilege('service_role', 'public.nema_indicator_measurements', 'SELECT')"
+    ) is True
+    assert scalar(
+        "SELECT has_table_privilege('service_role', 'public.nema_measurement_idempotency', 'SELECT')"
+    ) is True
+    assert scalar(
+        "SELECT has_table_privilege('service_role', 'public.nema_measurement_audit', 'SELECT')"
+    ) is True
+
