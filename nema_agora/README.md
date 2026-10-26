@@ -287,7 +287,7 @@ Do not mark CI evidence as passed until the GitHub Actions workflow visibly pass
 
 `migrations/supabase/002_nema_case_owner_scope.sql` adds a nullable `owner_id` and an owner/creation index. Existing rows deliberately remain unowned (`NULL`); never infer ownership from a display name, email, or free-text reporter reference.
 
-The read-only Supabase adapter supports owner-filtered list and single-case queries, with regression tests for the filter parameters and invalid owner identities. This is only the storage primitive: the signed API currently continues to deny submitter cross-case access, and the migration has not been applied to staging as part of this code change.
+The read-only Supabase adapter supports owner-filtered list and single-case queries, and the signed API now passes the verified issuer-plus-subject principal to owner-scoped case-list, case-detail, and review-packet lookups for submitters. Submitters are denied on SQLite storage, and storage readiness remains reviewer/coordinator/admin-only. Adapter filter tests and API scope-gate tests are included; end-to-end deployed validation is still pending. The migration has not been applied to staging as part of this code change.
 
 Before enabling submitter reads, the API must pass the verified issuer-plus-subject principal to the owner-filtered repository methods for case list and case detail, and only read audit history after an owner-scoped case lookup succeeds. Reviewer/coordinator/admin access must remain role-gated. Legacy rows remain hidden from submitters until an approved, evidence-backed ownership assignment exists.
 
