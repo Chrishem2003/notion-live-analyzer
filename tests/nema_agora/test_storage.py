@@ -279,3 +279,53 @@ def test_audit_and_operation_logs_are_append_only(tmp_path):
                     connection.execute(statement, (parameter,))
                 else:
                     connection.execute(statement)
+
+
+def test_read_fails_closed_when_record_payload_owner_drifts_from_indexed_owner(tmp_path):
+    import json
+    import sqlite3
+
+    path = tmp_path / "payload-owner-drift.sqlite3"
+    repository = NemaAgoraRepository(path)
+    created = repository.create_observation(
+        sample_record(), actor_id="integrity-owner", role="submitter"
+    )
+    tampered = dict(created)
+    tampered["owner_id"] = "other-user"
+    with sqlite3.connect(path) as connection:
+        connection.execute(
+            "UPDATE observations SET record_json = ? WHERE case_id = ?",
+            (json.dumps(tampered, sort_keys=True), created["case_id"]),
+        )
+
+    with pytest.raises(ValueError, match="Stored observation integrity check failed"):
+        repository.get_observation(
+            created["case_id"], actor_id="integrity-owner", role="submitter"
+        )
+    with pytest.raises(ValueError, match="Stored observation integrity check failed"):
+        repository.list_observations(
+            actor_id="integrity-owner", role="submitter"
+        )
+
+
+def test_read_fails_closed_when_record_payload_status_drifts_from_indexed_status(tmp_path):
+    import json
+    import sqlite3
+
+    path = tmp_path / "payload-status-drift.sqlite3"
+    repository = NemaAgoraRepository(path)
+    created = repository.create_observation(
+        sample_record(), actor_id="integrity-status-owner", role="submitter"
+    )
+    tampered = dict(created)
+    tampered["status"] = "Closed"
+    with sqlite3.connect(path) as connection:
+        connection.execute(
+            "UPDATE observations SET record_json = ? WHERE case_id = ?",
+            (json.dumps(tampered, sort_keys=True), created["case_id"]),
+        )
+
+    with pytest.raises(ValueError, match="Stored observation integrity check failed"):
+        repository.get_observation(
+            created["case_id"], actor_id="integrity-status-owner", role="submitter"
+        )
