@@ -19,8 +19,8 @@ def _settings() -> tuple[str, str, str]:
         raise NemaApiError("NEMA API URL must be a valid HTTPS URL.")
     if not api_key:
         raise NemaApiError("The NEMA API key is not configured for this Streamlit service. Add PLATFORM_API_KEY to the Streamlit service environment.")
-    if len(signing_secret) < 32:
-        raise NemaApiError("NEMA portal identity signing is not configured for this service.")
+    if len(signing_secret) < 32 or hmac.compare_digest(signing_secret, api_key):
+        raise NemaApiError("NEMA portal identity signing must use a separate secret of at least 32 characters.")
     return base_url, api_key, signing_secret
 
 def _get(
