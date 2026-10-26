@@ -5,6 +5,7 @@ geospatial alignment, or representativeness of a reference sample.
 """
 from __future__ import annotations
 from datetime import date
+import math
 import hashlib
 import json
 import re
@@ -59,11 +60,11 @@ def validate_dataset_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
     if end < start:
         raise SatelliteManifestError("acquisition_end must not precede acquisition_start.")
     resolution = manifest["spatial_resolution_m"]
-    if isinstance(resolution, bool) or not isinstance(resolution, (int, float)) or resolution <= 0:
+    if isinstance(resolution, bool) or not isinstance(resolution, (int, float)) or not math.isfinite(float(resolution)) or resolution <= 0:
         raise SatelliteManifestError("spatial_resolution_m must be a positive number.")
     for field, upper in (("cloud_cover_pct", 100.0), ("valid_pixel_fraction", 1.0)):
         value = manifest.get(field)
-        if isinstance(value, bool) or not isinstance(value, (int, float)):
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(float(value)):
             raise SatelliteManifestError(f"{field} must be supplied as a numeric quality value.")
         if not 0 <= value <= upper:
             raise SatelliteManifestError(f"{field} must be between 0 and {upper}.")
