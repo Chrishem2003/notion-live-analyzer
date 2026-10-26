@@ -349,12 +349,13 @@ class NemaAgoraRepository:
         with self._session() as connection:
             connection.execute("BEGIN IMMEDIATE")
             row = connection.execute(
-                "SELECT record_json FROM observations WHERE case_id = ?",
+                """SELECT case_id, owner_id, status, created_at, updated_at, record_json
+                   FROM observations WHERE case_id = ?""",
                 (case_id,),
             ).fetchone()
             if row is None:
                 raise KeyError(f"Case not found: {case_id}")
-            current = json.loads(row["record_json"])
+            current = _decode_observation_row(row)
             updated, event = apply_status_update(
                 current,
                 new_status=new_status,
