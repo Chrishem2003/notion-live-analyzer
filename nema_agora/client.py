@@ -10,15 +10,18 @@ import requests
 class NemaApiError(RuntimeError):
     """Safe-to-display API error; never includes request headers or secrets."""
 
-def _settings() -> tuple[str, str]:
+def _settings() -> tuple[str, str, str]:
     base_url = os.getenv("NEMA_CASE_API_BASE_URL", "https://notion-live-analyzer-api.onrender.com").strip().rstrip("/")
     api_key = os.getenv("PLATFORM_API_KEY", "").strip()
+    signing_secret = os.getenv("NEMA_PORTAL_SIGNING_SECRET", "").strip()
     parsed = urlparse(base_url)
     if parsed.scheme != "https" or not parsed.netloc or parsed.username or parsed.password:
         raise NemaApiError("NEMA API URL must be a valid HTTPS URL.")
     if not api_key:
         raise NemaApiError("The NEMA API key is not configured for this Streamlit service. Add PLATFORM_API_KEY to the Streamlit service environment.")
-    return base_url, api_key
+    if len(signing_secret) < 32:
+        raise NemaApiError("NEMA portal identity signing is not configured for this service.")
+    return base_url, api_key, signing_secret
 
 def _get(
     path: str,
@@ -27,7 +30,7 @@ def _get(
     role: str,
     params: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    base_url, api_key = _settings()
+    base_url, api_key, signing_secret = _settings()
     actor = principal_id.strip() if isinstance(principal_id, str) else ""
     trusted_role = role.strip().lower() if isinstance(role, str) else ""
     if not actor or len(actor) > 512:
@@ -35,7 +38,7 @@ def _get(
     if trusted_role not in {"reviewer", "coordinator", "admin"}:
         raise NemaApiError("This account role is not allowed to access cross-case records.")
     message = f"{actor}\\n{trusted_role}".encode("utf-8")
-    signature = hmac.new(api_key.encode("utf-8"), message, hashlib.sha256).hexdigest()
+    signature = hmac.new(signing_secret.encode("utf-8"), message, hashlib.sha256).hexdigest()
     headers = {
         "X-API-Key": api_key,
         "X-Nema-Actor": actor,
