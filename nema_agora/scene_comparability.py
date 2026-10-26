@@ -85,7 +85,7 @@ def assess_scene_comparability(
         if ingestion.get("band_mapping_confirmed_by_uploader") is not True:
             blocking.append({"code": f"{name}_BAND_MAPPING_NOT_CONFIRMED"})
         if ingestion.get("cloud_shadow_mask_applied_by_uploader") is not True:
-            blocking.append({"code": f"{name}_CLOUD_MASK_NOT_CONFIRMED")
+            blocking.append({"code": f"{name}_CLOUD_MASK_NOT_CONFIRMED"})
         fraction = ingestion.get("aoi_valid_pixel_fraction")
         if fraction is None:
             fraction = scene.get("valid_fraction")
