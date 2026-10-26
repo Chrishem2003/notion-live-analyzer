@@ -175,3 +175,22 @@ def test_postgres_audit_is_append_only(migrated_postgres):
             with conn.cursor() as cur:
                 cur.execute("UPDATE public.nema_measurement_audit SET actor_role='admin' WHERE measurement_id=%s", (measurement_id,))
                 conn.commit()
+
+
+
+def test_postgres_rpc_has_dedicated_non_login_owner_and_scoped_rls(migrated_postgres):
+    owner = scalar("""
+        SELECT r.rolname || ':' || r.rolcanlogin::text || ':' || r.rolbypassrls::text
+        FROM pg_proc p
+        JOIN pg_namespace n ON n.oid = p.pronamespace
+        JOIN pg_roles r ON r.oid = p.proowner
+        WHERE n.nspname = 'public' AND p.proname = 'submit_nema_indicator_measurement'
+    """)
+    assert owner == "nema_measurement_writer:false:false"
+    assert scalar("SELECT has_table_privilege('nema_measurement_writer', 'public.nema_indicator_measurements', 'INSERT')") is True
+    assert scalar("SELECT has_table_privilege('nema_measurement_writer', 'public.nema_measurement_idempotency', 'INSERT')") is True
+    assert scalar("SELECT has_table_privilege('nema_measurement_writer', 'public.nema_measurement_audit', 'INSERT')") is True
+    assert scalar("SELECT has_table_privilege('nema_measurement_writer', 'public.nema_measurement_audit', 'UPDATE')") is False
+    assert scalar("SELECT has_table_privilege('nema_measurement_writer', 'public.nema_measurement_audit', 'DELETE')") is False
+    assert scalar("SELECT rolbypassrls FROM pg_roles WHERE rolname = 'nema_measurement_writer'") is False
+    assert scalar("SELECT rowsecurity FROM pg_tables WHERE schemaname='public' AND tablename='nema_measurement_audit'") is True
