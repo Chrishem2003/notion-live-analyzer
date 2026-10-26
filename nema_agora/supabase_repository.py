@@ -126,7 +126,7 @@ class SupabaseReadOnlyNemaRepository:
         """Verify table reachability/schema only; do not claim backup or disk durability."""
         cases = self._get(
             "nema_cases",
-            {"select": "case_id,record_json,version,created_at,updated_at", "limit": "0"},
+            {"select": "case_id,owner_id,record_json,version,created_at,updated_at", "limit": "0"},
         )
         audits = self._get(
             "nema_case_audit",
