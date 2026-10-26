@@ -38,6 +38,7 @@ from nema_agora.asset_receipt import build_manual_asset_receipt, validate_asset_
 from nema_agora.geojson_aoi import validate_geojson_aoi
 from nema_agora.paired_study_manifest import build_paired_study_manifest, validate_paired_study_manifest
 from nema_agora.paired_raster_array_analysis import analyze_paired_raster_arrays, validate_paired_array_analysis
+from nema_agora.geotiff_ingestion import read_geotiff_scene
 
 st.set_page_config(page_title="NEMA-AGORA | Environmental Workspace", page_icon="🌿", layout="wide")
 
@@ -1126,6 +1127,81 @@ if active_section == "Maps & metrics" and map_tool == "Data sources & asset rece
             key="nema_agora_download_aoi_report",
             use_container_width=True,
         )
+
+    st.markdown("### Ingest real GeoTIFF scenes")
+    st.caption(
+        "Optional rasterio-backed path: upload one multiband GeoTIFF and one same-grid valid-pixel mask GeoTIFF for each date. "
+        "The first three bands must be ordered B03, B04, B08. The mask must use 1 for valid and 0 for invalid pixels."
+    )
+    st.warning(
+        "The cloud/shadow mask assertion is provided by the uploader and is not independently verified. "
+        "Only EPSG:4326, north-up unrotated grids up to 250,000 pixels are accepted. No reprojection or resampling is performed."
+    )
+    with st.expander("GeoTIFF pair upload and processing", expanded=False):
+        base_raster = st.file_uploader("Baseline multiband GeoTIFF", type=["tif", "tiff"], key="nema_geotiff_base")
+        base_mask = st.file_uploader("Baseline valid-pixel mask GeoTIFF", type=["tif", "tiff"], key="nema_geotiff_base_mask")
+        comp_raster = st.file_uploader("Comparison multiband GeoTIFF", type=["tif", "tiff"], key="nema_geotiff_comp")
+        comp_mask = st.file_uploader("Comparison valid-pixel mask GeoTIFF", type=["tif", "tiff"], key="nema_geotiff_comp_mask")
+        gi1, gi2, gi3 = st.columns(3)
+        with gi1:
+            base_scene_id = st.text_input("Baseline scene ID", value="BASELINE-001", key="nema_geotiff_base_id")
+            base_acquired = st.text_input("Baseline acquisition timestamp (timezone required)", value="2026-06-01T10:00:00Z", key="nema_geotiff_base_time")
+        with gi2:
+            comp_scene_id = st.text_input("Comparison scene ID", value="COMPARISON-001", key="nema_geotiff_comp_id")
+            comp_acquired = st.text_input("Comparison acquisition timestamp (timezone required)", value="2026-09-01T10:00:00Z", key="nema_geotiff_comp_time")
+        with gi3:
+            raster_aoi_id = st.text_input("AOI ID", value="PILOT-AOI-001", key="nema_geotiff_aoi")
+            scale = st.number_input("Reflectance scale multiplier", min_value=0.00000001, max_value=1.0, value=0.0001, format="%.8f", key="nema_geotiff_scale")
+            offset = st.number_input("Reflectance offset", min_value=-1.0, max_value=1.0, value=0.0, format="%.6f", key="nema_geotiff_offset")
+        mask_assertion = st.checkbox(
+            "I have applied a documented cloud/shadow validity mask to both mask files",
+            value=False, key="nema_geotiff_mask_assertion",
+        )
+        if st.button("Ingest GeoTIFF pair and calculate indices", key="nema_geotiff_process", type="primary", use_container_width=True):
+            st.session_state.pop("nema_agora_geotiff_analysis", None)
+            if not all((base_raster, base_mask, comp_raster, comp_mask)):
+                st.error("Upload both raster files and both valid-pixel mask files.")
+            elif not mask_assertion:
+                st.error("Confirm the cloud/shadow mask workflow before processing.")
+            else:
+                try:
+                    base_scene = read_geotiff_scene(
+                        raster_bytes=base_raster.getvalue(), valid_mask_bytes=base_mask.getvalue(),
+                        scene_id=base_scene_id, acquired_at=base_acquired, aoi_id=raster_aoi_id,
+                        reflectance_scale=scale, reflectance_offset=offset,
+                        cloud_shadow_mask_applied=mask_assertion,
+                    )
+                    comp_scene = read_geotiff_scene(
+                        raster_bytes=comp_raster.getvalue(), valid_mask_bytes=comp_mask.getvalue(),
+                        scene_id=comp_scene_id, acquired_at=comp_acquired, aoi_id=raster_aoi_id,
+                        reflectance_scale=scale, reflectance_offset=offset,
+                        cloud_shadow_mask_applied=mask_assertion,
+                    )
+                    geo_result = analyze_paired_raster_arrays(
+                        baseline_scene=base_scene, comparison_scene=comp_scene,
+                    )
+                    geo_result["ingestion"] = {
+                        "baseline": base_scene["ingestion"],
+                        "comparison": comp_scene["ingestion"],
+                    }
+                    st.session_state["nema_agora_geotiff_analysis"] = geo_result
+                except (ValueError, RuntimeError, TypeError) as exc:
+                    st.error("GeoTIFF ingestion stopped. Check the input contract and optional raster dependency.")
+                    st.caption(str(exc))
+        geo_result = st.session_state.get("nema_agora_geotiff_analysis")
+        if isinstance(geo_result, dict):
+            if geo_result.get("state") == "PIXEL_ANALYSIS_COMPLETE" and validate_paired_array_analysis(geo_result)["valid"]:
+                st.success("GeoTIFF pair processed and analysis integrity validated.")
+                st.json({key: value for key, value in geo_result.items() if key != "pixel_arrays"})
+                st.download_button(
+                    "Download GeoTIFF analysis evidence JSON",
+                    data=json.dumps(geo_result, sort_keys=True, ensure_ascii=False, indent=2),
+                    file_name="nema-agora-geotiff-analysis.json", mime="application/json",
+                    key="nema_geotiff_download", use_container_width=True,
+                )
+            else:
+                st.error("GeoTIFF analysis did not pass quality or integrity checks.")
+                st.json(geo_result.get("findings", []))
 
     st.markdown("### Run paired-scene pixel analysis")
     st.caption(
