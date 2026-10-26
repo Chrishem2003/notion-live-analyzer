@@ -55,3 +55,9 @@ def test_client_fails_closed_without_separate_identity_signing_secret():
 def test_client_rejects_reused_api_and_signing_secret():
     with pytest.raises(NemaApiError, match="separate secret"):
         list_cases("https://issuer.example|reviewer-1", "reviewer")
+
+
+@patch.dict("os.environ", {"PLATFORM_API_KEY": "test-secret", "NEMA_PORTAL_SIGNING_SECRET": "test-signing-secret-with-at-least-32-characters"}, clear=True)
+def test_client_requires_explicit_api_base_url_and_never_defaults_to_production():
+    with pytest.raises(NemaApiError, match="will not fall back to a production API"):
+        list_cases("https://issuer.example|reviewer-1", "reviewer")
