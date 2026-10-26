@@ -47,6 +47,7 @@ from nema_agora.stac_discovery import StacDiscoveryError, discover_scenes
 from nema_agora.raster_ingestion import RasterIngestionError, process_uploaded_geotiff
 from nema_agora.paired_raster_ingestion import PairedRasterError, compare_uploaded_geotiff_pair
 from nema_agora.spatial_workspace_bundle import build_spatial_evidence_bundle, validate_spatial_evidence_bundle
+from nema_agora.indicator_evidence import IndicatorEvidenceError, validate_measurement_record
 
 st.set_page_config(page_title="NEMA-AGORA Pilot", page_icon="🌿", layout="wide")
 
@@ -1023,6 +1024,38 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
             "Evidence gate: a target must not be marked measured or verified without a defined reporting period, "
             "calculation, denominator where applicable, source records, and a reviewable evidence reference."
         )
+
+        st.markdown("**Validate a measurement evidence record**")
+        st.caption(
+            "Upload a JSON record to check its indicator ID, reporting period, calculation, source IDs, "
+            "evidence digest, method version, and review fields. Validation does not authenticate the source "
+            "artifact or reviewer and does not change the registry status."
+        )
+        evidence_upload = st.file_uploader(
+            "Measurement evidence JSON",
+            type=["json"],
+            key="nema_indicator_evidence_upload",
+        )
+        if evidence_upload is not None:
+            try:
+                measurement_record = json.loads(evidence_upload.getvalue().decode("utf-8"))
+                if not isinstance(measurement_record, dict):
+                    raise IndicatorEvidenceError("Measurement evidence must be a JSON object.")
+                selected_indicator = next(
+                    (item for item in indicators if item.get("id") == measurement_record.get("indicator_id")),
+                    None,
+                )
+                if selected_indicator is None:
+                    raise IndicatorEvidenceError("indicator_id does not match an indicator in the current registry.")
+                validation_summary = validate_measurement_record(measurement_record, selected_indicator)
+                st.success("Measurement record passed structural and calculation checks.")
+                st.json(validation_summary)
+                st.warning(
+                    "This is a structural validation result only. Evidence authenticity, reviewer identity, "
+                    "and institutional acceptance still require independent verification."
+                )
+            except (UnicodeDecodeError, json.JSONDecodeError, IndicatorEvidenceError, TypeError, ValueError) as exc:
+                st.error(f"Measurement record rejected: {exc}")
     except (OSError, json.JSONDecodeError, KeyError, TypeError, ValueError):
         st.error("The indicator register could not be loaded or failed validation. No indicator status is being reported.");
 
