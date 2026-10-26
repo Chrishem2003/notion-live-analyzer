@@ -70,3 +70,15 @@ def test_rpc_computes_digest_from_record_in_database_not_caller_argument():
     assert "jsonb_build_object('measurement_id', p_measurement_id, 'record', p_record)" in sql
     assert "p_payload_sha256" not in sql
     assert "submit_nema_indicator_measurement(text, text, text, text, jsonb)" in sql
+
+
+
+def test_rpc_owner_transfer_uses_temporary_schema_create_grant_only():
+    sql = MIGRATION.read_text(encoding="utf-8").lower()
+    grant = "grant create on schema public to nema_measurement_writer;"
+    transfer = "owner to nema_measurement_writer;"
+    revoke = "revoke create on schema public from nema_measurement_writer;"
+    assert grant in sql
+    assert transfer in sql
+    assert revoke in sql
+    assert sql.index(grant) < sql.index(transfer) < sql.index(revoke)
