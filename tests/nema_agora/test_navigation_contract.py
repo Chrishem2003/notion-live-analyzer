@@ -156,6 +156,19 @@ def test_restore_is_admin_gated_and_requires_two_explicit_confirmations():
 
 
 
+def test_case_management_has_searchable_filtered_queue_and_status_summary():
+    page = (
+        Path(__file__).resolve().parents[2] / "pages" / "18_NEMA_AGORA.py"
+    ).read_text(encoding="utf-8")
+    assert 'st.text_input(\n                    "Search cases"' in page
+    assert '"Status filter"' in page
+    assert '"Category filter"' in page
+    assert "filtered_records = [" in page
+    assert "No cases match these filters." in page
+    assert 'queue_cols[idx].metric(status, status_counts.get(status, 0))' in page
+    assert '"Priority (unverified)"' in page
+
+
 def test_workspace_overview_has_task_shortcuts_and_safe_record_scope():
     page = (
         Path(__file__).resolve().parents[2] / "pages" / "18_NEMA_AGORA.py"
