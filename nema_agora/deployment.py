@@ -55,7 +55,7 @@ def run_health_checks() -> tuple[HealthCheck, ...]:
 def health_summary(checks: Iterable[HealthCheck] | None = None) -> dict:
     resolved = tuple(checks) if checks is not None else run_health_checks()
     return {
-        "healthy": all(check.ok for check in resolved),
+        "healthy": bool(resolved) and all(check.ok for check in resolved),
         "checks": [{"name": c.name, "ok": c.ok, "detail": c.detail} for c in resolved],
         "policy_version": POLICY_VERSION,
         "decision_notice": (
