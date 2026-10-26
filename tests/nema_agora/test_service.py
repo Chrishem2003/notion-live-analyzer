@@ -160,7 +160,9 @@ def test_governed_evidence_workflow_requires_review_and_export_permission(tmp_pa
     submitter = principal("submitter-flow", "submitter")
     reviewer = principal("reviewer-flow", "reviewer")
     coordinator = principal("coordinator-flow", "coordinator")
-    created = service.create_observation(record(), submitter)
+    observation = record()
+    observation["evidence_reference"] = "synthetic-upload.png"
+    created = service.create_observation(observation, submitter)
 
     with pytest.raises(PermissionError):
         service.build_governed_evidence_case(created["case_id"], submitter)
@@ -171,6 +173,19 @@ def test_governed_evidence_workflow_requires_review_and_export_permission(tmp_pa
     assert prepared["durable"] is True
     assert prepared["quality_assessment"]["human_review_required"] is True
     assert prepared["environmental_truth_claim"] is False
+    # User-supplied references remain pointers, never verified evidence.
+    reference = evidence_case.evidence[0]
+    assert reference.kind == "external_reference"
+    assert reference.metadata["pointer_only"] is True
+    assert reference.metadata["content_verified"] is False
+
+    # Reopening the SQLite-backed service must preserve provenance metadata.
+    reopened = NemaAgoraService(NemaAgoraRepository(service.repository.database_path))
+    persisted = reopened.build_governed_evidence_case(created["case_id"], reviewer)
+    persisted_reference = persisted["evidence_case"].evidence[0]
+    assert persisted_reference.metadata["pointer_only"] is True
+    assert persisted_reference.metadata["content_verified"] is False
+    assert persisted["evidence_case"].provenance_fingerprint == evidence_case.provenance_fingerprint
 
     with pytest.raises(ValueError, match="human-reviewed"):
         service.export_governed_evidence_case(evidence_case, coordinator)
@@ -189,6 +204,9 @@ def test_governed_evidence_workflow_requires_review_and_export_permission(tmp_pa
     assert payload["case"]["state"] == "EXPORTED"
     assert payload["integrity"]["valid"] is True
     assert payload["human_governed"] is True
+    exported_reference = payload["case"]["evidence"][0]
+    assert exported_reference["metadata"]["pointer_only"] is True
+    assert exported_reference["metadata"]["content_verified"] is False
     assert payload["durable"] is True
     assert payload["nema_authorization"] is False
 
