@@ -156,6 +156,33 @@ def test_restore_is_admin_gated_and_requires_two_explicit_confirmations():
 
 
 
+def test_review_transition_failures_use_safe_messages_and_success_confirms_transition():
+    page = (
+        Path(__file__).resolve().parents[2] / "pages" / "18_NEMA_AGORA.py"
+    ).read_text(encoding="utf-8")
+    action = page.index('reviewed = st.form_submit_button("Run workflow transition"')
+    handler = page.index("except (ValueError, PermissionError, KeyError) as exc:", action)
+    safe_message = page.index(
+        "The review could not be confirmed as saved. Reload the case and verify its current status before retrying.",
+        handler,
+    )
+    unexpected_handler = page.index("except Exception as exc:", handler)
+    unexpected_safe_message = page.index(
+        "The review could not be confirmed as saved because the workflow service encountered an unexpected error.",
+        unexpected_handler,
+    )
+    success = page.index("Record updated and workflow transition confirmed.", unexpected_safe_message)
+    assert action < handler < safe_message < unexpected_handler < unexpected_safe_message < success
+    assert 'st.error(str(exc))' not in page[handler:success]
+
+
+def test_case_selector_label_clarifies_filter_scope():
+    page = (
+        Path(__file__).resolve().parents[2] / "pages" / "18_NEMA_AGORA.py"
+    ).read_text(encoding="utf-8")
+    assert 'Select record to review (all visible cases)' in page
+
+
 def test_case_management_has_searchable_filtered_queue_and_status_summary():
     page = (
         Path(__file__).resolve().parents[2] / "pages" / "18_NEMA_AGORA.py"
