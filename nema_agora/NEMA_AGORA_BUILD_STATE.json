@@ -10,11 +10,11 @@
   "base_branch": "main",
   "draft_pr": true,
   "merge_allowed": false,
-  "current_head": "f1e2b1de96b6d2cc05d5f024e176abfbe03a7d50",
+  "current_head": "6a565c8a6fc70e605abaddebba25d1c6995300d3",
   "last_verified_head": "55f61e2ddee29e3f7de7302842cdff7c9493f098",
   "last_verified_phase": 186,
   "architecture_checkpoint_after": 174,
-  "last_action": "Phase 188 makes source-asset, satellite-tile, and derived-data lineage mandatory before holdout metrics; wires the manifest through the single-page Streamlit workspace; adds fail-closed missing-manifest regression coverage and updates gate documentation. Latest CI runs are in progress; no merge or deployment.",
+  "last_action": "Phase 188 makes asset lineage mandatory and verifies each referenced source file's actual uploaded bytes against the declared SHA-256 before holdout metrics; adds required filename mapping, unused/missing/tampered upload blocks, regression coverage, workspace UI upload controls, and docs. CI is pending; no merge or deployment.",
   "validation_status": "PHASE_188_IMPLEMENTED_CI_PENDING",
   "stop_conditions": [
     "destructive_or_irreversible_action",
@@ -36,10 +36,11 @@
     "phase_187_ci_verification",
     "staging_environment_binding_and_authenticated_read_validation",
     "phase_188_ci_verification",
-    "mandatory_lineage_gate_test_results"
+    "mandatory_lineage_gate_test_results",
+    "phase_188_source_byte_integrity_ci"
   ],
   "validation_evidence": {
-    "candidate_sha": "f1e2b1de96b6d2cc05d5f024e176abfbe03a7d50",
+    "candidate_sha": "6a565c8a6fc70e605abaddebba25d1c6995300d3",
     "focused_nema_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39125258952",
     "repository_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39125258931",
     "checks": {
@@ -66,10 +67,10 @@
     "phase_183_focused_nema_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39124710423",
     "phase_183_repository_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39124710554",
     "phase_186_verified_sha": "55f61e2ddee29e3f7de7302842cdff7c9493f0988",
-    "phase_187_focused_ci": "IN_PROGRESS",
-    "phase_187_repository_ci": "IN_PROGRESS",
-    "phase_188_focused_ci": "IN_PROGRESS",
-    "phase_188_repository_ci": "IN_PROGRESS"
+    "phase_187_focused_ci": "PENDING_LATEST_HEAD",
+    "phase_187_repository_ci": "PENDING_LATEST_HEAD",
+    "phase_188_focused_ci": "PENDING",
+    "phase_188_repository_ci": "PENDING"
   },
   "safety_boundary": "Independent student-led prototype; not an official NEMA service or endorsement. No official ELMIS/SWIMS integration, autonomous enforcement, or production approval is claimed."
 }
