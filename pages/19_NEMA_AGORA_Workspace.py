@@ -38,6 +38,7 @@ from nema_agora.satellite_evaluation import SatelliteEvaluationError, evaluate_c
 from nema_agora.satellite_manifest import SatelliteManifestError, validate_dataset_manifest
 from nema_agora.stac_discovery import StacDiscoveryError, discover_scenes
 from nema_agora.raster_ingestion import RasterIngestionError, process_uploaded_geotiff
+from nema_agora.paired_raster_ingestion import PairedRasterError, compare_uploaded_geotiff_pair
 from nema_agora.spatial_workspace_bundle import build_spatial_evidence_bundle, validate_spatial_evidence_bundle
 
 st.set_page_config(page_title="NEMA-AGORA Pilot", page_icon="🌿", layout="wide")
@@ -1401,6 +1402,142 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
             file_name="nema_sentinel2_pixel_screening_report.json",
             mime="application/json",
             key="nema_pixel_report_download",
+        )
+
+
+if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
+    st.divider()
+    st.subheader("Compare two supplied Sentinel-2 dates")
+    st.caption(
+        "Paired local GeoTIFF screening with strict grid compatibility checks and a shared AOI/valid-pixel mask. "
+        "This does not fetch imagery or make an environmental finding."
+    )
+    st.warning(
+        "Both files must contain B03, B04, B08 and SCL bands with explicit descriptions. "
+        "Reflectance scale and processing baseline must be verified from the original product metadata; "
+        "the labels below are operator declarations, not independently authenticated facts."
+    )
+    earlier_upload = st.file_uploader(
+        "Earlier-date multi-band GeoTIFF (max 100 MiB)",
+        type=["tif", "tiff"], key="nema_pair_earlier_upload",
+    )
+    later_upload = st.file_uploader(
+        "Later-date multi-band GeoTIFF (max 100 MiB)",
+        type=["tif", "tiff"], key="nema_pair_later_upload",
+    )
+    pair_aoi_upload = st.file_uploader(
+        "Optional shared AOI GeoJSON (max 5 MiB)",
+        type=["json", "geojson"], key="nema_pair_aoi_upload",
+    )
+    col_earlier, col_later = st.columns(2)
+    with col_earlier:
+        earlier_acquired_at = st.text_input(
+            "Earlier acquisition time (ISO-8601 with timezone)",
+            placeholder="2026-01-15T10:20:00Z", key="nema_pair_earlier_date",
+        )
+    with col_later:
+        later_acquired_at = st.text_input(
+            "Later acquisition time (ISO-8601 with timezone)",
+            placeholder="2026-02-14T10:20:00Z", key="nema_pair_later_date",
+        )
+    col_scale, col_baseline = st.columns(2)
+    with col_scale:
+        reflectance_scale_id = st.text_input(
+            "Verified reflectance scale/product identifier",
+            placeholder="e.g. Sentinel-2 L2A reflectance scaled by 10000",
+            key="nema_pair_scale_id",
+        )
+    with col_baseline:
+        processing_baseline = st.text_input(
+            "Verified processing baseline",
+            placeholder="e.g. 04.00", key="nema_pair_processing_baseline",
+        )
+    pair_aoi_crs_confirmed = False
+    if pair_aoi_upload is not None:
+        pair_aoi_crs_confirmed = st.checkbox(
+            "I verified that this AOI GeoJSON uses the exact CRS of both rasters.",
+            key="nema_pair_aoi_crs_confirmation",
+        )
+    col_ndvi, col_ndwi, col_coverage = st.columns(3)
+    with col_ndvi:
+        pair_ndvi_threshold = st.number_input(
+            "NDVI absolute-change threshold", min_value=0.001, max_value=2.0,
+            value=0.15, step=0.01, key="nema_pair_ndvi_threshold",
+        )
+    with col_ndwi:
+        pair_ndwi_threshold = st.number_input(
+            "NDWI absolute-change threshold", min_value=0.001, max_value=2.0,
+            value=0.15, step=0.01, key="nema_pair_ndwi_threshold",
+        )
+    with col_coverage:
+        pair_minimum_coverage = st.number_input(
+            "Minimum shared valid fraction", min_value=0.01, max_value=1.0,
+            value=0.70, step=0.05, key="nema_pair_minimum_coverage",
+        )
+    if st.button("Validate both dates and compare indices", key="nema_pair_compare_button", type="primary"):
+        if earlier_upload is None or later_upload is None:
+            st.error("Upload both earlier and later GeoTIFF files before comparing.")
+            st.session_state.pop("nema_pair_change_report", None)
+        elif not earlier_acquired_at.strip() or not later_acquired_at.strip():
+            st.error("Both acquisition timestamps are required.")
+            st.session_state.pop("nema_pair_change_report", None)
+        elif not reflectance_scale_id.strip() or not processing_baseline.strip():
+            st.error("Supply the verified reflectance scale/product identifier and processing baseline.")
+            st.session_state.pop("nema_pair_change_report", None)
+        elif pair_aoi_upload is not None and not pair_aoi_crs_confirmed:
+            st.error("AOI comparison is blocked until same-CRS confirmation is checked.")
+            st.session_state.pop("nema_pair_change_report", None)
+        else:
+            try:
+                with st.spinner("Validating both raster grids, applying shared masks and comparing indices…"):
+                    pair_report = compare_uploaded_geotiff_pair(
+                        earlier_upload.getvalue(),
+                        later_upload.getvalue(),
+                        earlier_acquired_at=earlier_acquired_at.strip(),
+                        later_acquired_at=later_acquired_at.strip(),
+                        reflectance_scale_id=reflectance_scale_id.strip(),
+                        processing_baseline=processing_baseline.strip(),
+                        aoi_geojson_bytes=pair_aoi_upload.getvalue() if pair_aoi_upload is not None else None,
+                        aoi_crs_confirmed_same_as_rasters=pair_aoi_crs_confirmed,
+                        ndvi_change_threshold=float(pair_ndvi_threshold),
+                        ndwi_change_threshold=float(pair_ndwi_threshold),
+                        minimum_valid_fraction=float(pair_minimum_coverage),
+                    )
+                st.session_state["nema_pair_change_report"] = pair_report
+            except PairedRasterError as exc:
+                st.session_state.pop("nema_pair_change_report", None)
+                st.error(f"Two-date comparison blocked: {exc}")
+    pair_report = st.session_state.get("nema_pair_change_report")
+    if pair_report:
+        st.warning(
+            "Screening only. Threshold-exceedance counts are not proof of environmental change, "
+            "wetland loss, causation, a legal violation or enforcement evidence."
+        )
+        st.write(f"**State:** {pair_report['state']}")
+        st.write(f"**Shared valid pixels:** {pair_report['compatibility']['shared_valid_pixel_count']:,} / "
+                 f"{pair_report['compatibility']['total_grid_pixels']:,}")
+        st.write(f"**Shared valid fraction:** {pair_report['compatibility']['shared_valid_pixel_fraction']:.1%}")
+        st.dataframe([
+            {
+                "Change measure": name,
+                "Median delta": stats["median_delta"],
+                "Mean delta": stats["mean_delta"],
+                "P05 delta": stats["p05_delta"],
+                "P95 delta": stats["p95_delta"],
+                "Pixels above +threshold": stats["pixels_above_positive_threshold"],
+                "Pixels below -threshold": stats["pixels_below_negative_threshold"],
+                "Threshold": stats["absolute_change_threshold"],
+            }
+            for name, stats in pair_report["indices"].items()
+        ], use_container_width=True, hide_index=True)
+        with st.expander("Paired source provenance, compatibility and limitations"):
+            st.json(pair_report)
+        st.download_button(
+            "Download two-date comparison report (JSON)",
+            data=json.dumps(pair_report, sort_keys=True, indent=2, allow_nan=False),
+            file_name="nema_sentinel2_two_date_comparison.json",
+            mime="application/json",
+            key="nema_pair_change_report_download",
         )
 
 
