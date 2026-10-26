@@ -60,7 +60,7 @@ def test_measurement_auth_rejects_roles_outside_submission_allowlist(monkeypatch
     assert exc.value.status_code == 403
 
 
-@pytest.mark.parametrize("actor", ["oidc|subject-42\\nadmin", "oidc|subject-42\\radmin"])
+@pytest.mark.parametrize("actor", ["oidc|subject-42\nadmin", "oidc|subject-42\radmin"])
 def test_measurement_auth_rejects_newline_in_actor_identity(monkeypatch, actor):
     api_key, secret = _configure(monkeypatch)
     with pytest.raises(HTTPException) as exc:
