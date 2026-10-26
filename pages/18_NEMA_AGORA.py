@@ -33,7 +33,39 @@ from nema_agora.spatial_temporal_quality import spatial_temporal_quality_evidenc
 from nema_agora.spatial_change_detection import detect_candidate
 from nema_agora.spatial_workspace_bundle import build_spatial_evidence_bundle, validate_spatial_evidence_bundle
 
-st.set_page_config(page_title="NEMA-AGORA Pilot", page_icon="🌿", layout="wide")
+st.set_page_config(page_title="NEMA-AGORA | Environmental Workspace", page_icon="🌿", layout="wide")
+
+# Lightweight visual system: clear hierarchy, consistent spacing and readable
+# navigation without relying on custom frontend packages.
+st.markdown(
+    """
+    <style>
+    [data-testid="stAppViewContainer"] .main .block-container {
+        padding-top: 1.6rem;
+        padding-bottom: 3rem;
+        max-width: 1500px;
+    }
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p {
+        line-height: 1.45;
+    }
+    [data-testid="stSidebar"] [data-testid="stRadio"] label {
+        padding-top: .28rem;
+        padding-bottom: .28rem;
+    }
+    [data-testid="stMetric"] {
+        border: 1px solid rgba(128, 128, 128, .22);
+        padding: .8rem 1rem;
+        border-radius: .8rem;
+    }
+    div[data-testid="stForm"] {
+        border: 1px solid rgba(128, 128, 128, .20);
+        border-radius: .8rem;
+        padding: 1rem;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 
 def _demo_init() -> None:
@@ -81,24 +113,15 @@ if governance_errors:
     st.stop()
 
 st.title("🌿 NEMA-AGORA")
-st.caption("Environmental Governance, Monitoring & Response — pilot workspace")
+st.caption("Environmental Governance, Monitoring & Response")
 st.markdown(
-    "Use the workspace menu in the sidebar to move between tasks. Capture an observation, "
-    "track human review, inspect advisory evidence, and review controlled reports."
+    "A single workspace for **observation intake, case review, environmental evidence, "
+    "monitoring metrics, and operational governance**. Choose a work area from the sidebar."
 )
-quick = st.columns(4)
-quick[0].markdown("**1 · Capture**")
-quick[0].caption("Submit a structured observation.")
-quick[1].markdown("**2 · Review**")
-quick[1].caption("Check quality and record human decisions.")
-quick[2].markdown("**3 · Understand**")
-quick[2].caption("Inspect evidence and advisory analysis.")
-quick[3].markdown("**4 · Report**")
-quick[3].caption("Review metrics and controlled exports.")
 st.info(
-    "Independent student-led prototype. This is not an official NEMA service, "
-    "does not submit reports to NEMA, and is not connected to ELMIS or SWIMS. "
-    "Do not enter personal, confidential, or urgent incident information."
+    "Pilot prototype — not an official NEMA service. It does not submit reports to NEMA "
+    "or connect to ELMIS/SWIMS. Use synthetic or appropriately consented test records; "
+    "do not enter personal, confidential, or urgent incident information."
 )
 
 with st.sidebar:
@@ -128,10 +151,12 @@ with st.sidebar:
     st.write("**Safety:** synthetic/consented test records only.")
     st.markdown("[Project source on GitHub](https://github.com/Chrishem2003/notion-live-analyzer)")
     st.divider()
-    st.subheader("Navigate workspace")
+    st.subheader("Workspace")
+    st.caption("Choose one work area. Related tools are grouped inside each section.")
     active_section = st.radio(
         "Choose a work area",
         [
+            "Workspace overview",
             "Submit observation",
             "Case management",
             "Intelligence workspace",
@@ -141,7 +166,15 @@ with st.sidebar:
         index=0,
         key="nema_agora_navigation",
         label_visibility="collapsed",
-        help="Choose one work area. Related tools are grouped together to keep navigation short.",
+        format_func=lambda value: {
+            "Workspace overview": "🏠  Overview",
+            "Submit observation": "📝  Capture observation",
+            "Case management": "📂  Case management",
+            "Intelligence workspace": "🧠  Intelligence & AI",
+            "Maps & metrics": "🗺️  Maps & monitoring",
+            "Governance & help": "🛡️  Governance & operations",
+        }.get(value, value),
+        help="Overview gives you a summary and shortcuts. Each work area contains its own related tools.",
     )
 
 if mode == "persistent" and (principal is None or not principal.is_authorised):
@@ -178,6 +211,74 @@ can_metrics = persistent and has_permission(principal.role, "metrics:read")
 can_audit = persistent and has_permission(principal.role, "audit:read")
 can_intelligence = persistent and has_permission(principal.role, "intelligence:use")
 can_shadow = persistent and has_permission(principal.role, "intelligence:shadow")
+
+
+def _go_to_section(section: str) -> None:
+    """Switch the sidebar radio before the next Streamlit rerun."""
+    st.session_state["nema_agora_navigation"] = section
+
+
+if active_section == "Workspace overview":
+    st.subheader("Workspace overview")
+    st.caption("Start here to see the current pilot state and move directly to a task.")
+
+    if persistent and not can_metrics:
+        visible_records = records_for_current_user()
+        st.caption("Record totals reflect only records visible to your account.")
+    else:
+        visible_records = records_for_current_user()
+
+    total_records = len(visible_records)
+    needs_review = sum(1 for item in visible_records if item.get("status") in ("Received", "Under review"))
+    progressed = sum(1 for item in visible_records if item.get("status") not in ("Received",))
+    closed_records = sum(1 for item in visible_records if item.get("status") == "Closed")
+
+    metric_cols = st.columns(4)
+    metric_cols[0].metric("Visible records", total_records)
+    metric_cols[1].metric("Awaiting / in review", needs_review)
+    metric_cols[2].metric("Progressed", progressed)
+    metric_cols[3].metric("Closed", closed_records)
+
+    if mode == "demo":
+        st.warning("Demo mode: records are session-only and may disappear when the session ends.")
+    elif persistent:
+        st.success(f"Persistent workspace · signed in as {principal.display_name or principal.subject} · role: {principal.role}")
+    else:
+        st.info("Persistent data is not available until authentication and server-side role provisioning succeed.")
+
+    st.markdown("### Quick actions")
+    action_cols = st.columns(3)
+    with action_cols[0]:
+        st.markdown("**📝 Capture**")
+        st.caption("Record an observation and run initial quality checks.")
+        st.button("Open observation form", key="overview_capture", type="primary", use_container_width=True,
+                  on_click=_go_to_section, args=("Submit observation",))
+    with action_cols[1]:
+        st.markdown("**📂 Review cases**")
+        st.caption("Inspect case status, human review and authorised audit history.")
+        st.button("Open case management", key="overview_cases", use_container_width=True,
+                  on_click=_go_to_section, args=("Case management",))
+    with action_cols[2]:
+        st.markdown("**🧠 Explore evidence**")
+        st.caption("Use advisory intelligence and spatial evidence tools.")
+        st.button("Open intelligence", key="overview_intelligence", use_container_width=True,
+                  on_click=_go_to_section, args=("Intelligence workspace",))
+
+    st.markdown("### Work areas")
+    overview_rows = [
+        ("📝 Capture observation", "Structured intake, consent confirmation and data-quality feedback."),
+        ("📂 Case management", "Valid workflow transitions, reviewer notes, provenance and controlled exports."),
+        ("🧠 Intelligence & AI", "Evidence analysis, reviewer copilot, shadow evaluation and observatory."),
+        ("🗺️ Maps & monitoring", "Map views, pilot metrics and spatial change evidence."),
+        ("🛡️ Governance & operations", "Release evidence, admin-only backup controls and pilot guidance."),
+    ]
+    for label, description in overview_rows:
+        with st.container(border=True):
+            st.markdown(f"**{label}**")
+            st.caption(description)
+
+    st.caption("Prototype metrics describe records in this workspace; they are not verified environmental outcomes or official response statistics.")
+
 
 # Keep secondary navigation local to the chosen work area so users see only
 # one task surface at a time instead of a long, vertically stacked dashboard.
