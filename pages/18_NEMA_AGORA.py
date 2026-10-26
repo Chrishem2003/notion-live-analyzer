@@ -365,8 +365,8 @@ if active_section == "Case management":
             st.info("No records available. Submit a pilot observation first, or switch to an account with authorised case access.")
         else:
             status_counts = {status: sum(1 for item in records if item.get("status") == status) for status in STATUSES}
-            queue_cols = st.columns(min(4, max(1, len(STATUSES))))
-            for idx, status in enumerate(STATUSES[:len(queue_cols)]):
+            queue_cols = st.columns(len(STATUSES))
+            for idx, status in enumerate(STATUSES):
                 queue_cols[idx].metric(status, status_counts.get(status, 0))
 
             st.markdown("### Find a case")
