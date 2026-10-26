@@ -59,3 +59,24 @@ Important boundaries:
 - The automated-acquisition and provider-connected flags must remain false in this manual receipt workflow.
 - Test fixtures use a tiny synthetic byte string to test checksums; they are not imagery and must never be presented as environmental findings.
 - Receipt metadata is a provenance foundation only. It is not yet an end-user upload screen, a production asset store, or a live Sentinel-2 pipeline.
+
+
+## Manual GeoTIFF ingestion milestone
+
+The optional module `geotiff_ingestion.py` can decode a user-uploaded multiband GeoTIFF and a separate same-grid valid-pixel mask GeoTIFF. It enforces a 250,000-pixel limit, checks CRS and affine-grid compatibility, requires timezone-aware acquisition metadata and explicit reflectance scaling, records SHA-256 checksums, and passes normalized arrays to the paired NDVI/NDWI analyzer.
+
+Install the optional dependencies with:
+
+```text
+pip install -r requirements-nema-agora-raster.txt
+```
+
+Input contract:
+- The first three bands must be ordered B03 (green), B04 (red), B08 (near infrared); the module does not identify bands from product metadata.
+- The uploaded mask must have value 1 for valid pixels and 0 for invalid pixels, and must share CRS, dimensions, and affine transform with its scene.
+- Use reflectance scale/offset appropriate to the exact source product. They are user supplied and not inferred.
+- Both scenes must already use EPSG:4326 and matching unrotated north-up grids. Other CRSs, rotated grids, reprojection and resampling are not supported.
+- The checkbox that cloud/shadow masking was applied is a user assertion. It is not proof that the mask is scientifically correct or was generated from a QA layer.
+- The input raster is not clipped to the AOI by this module. AOI IDs are metadata labels, not a geometry intersection test.
+
+The module does not connect to Copernicus, NEMA or WEIS, and does not automatically fetch or authenticate source scenes. A successful calculation is a spectral screening output for human review only. Validate the product IDs, reflectance scaling, QA mask lineage, geotransform, scene seasonality, and field evidence independently before relying on any finding.
