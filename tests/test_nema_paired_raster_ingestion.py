@@ -9,7 +9,7 @@ from rasterio.transform import from_origin
 from nema_agora.paired_raster_ingestion import PairedRasterError, compare_uploaded_geotiff_pair
 
 
-def make_raster(offset=0, transform=None, crs="EPSG:32636", scales=None, offsets=None):
+def make_raster(offset=0, transform=None, crs="EPSG:32636", scales=None, offsets=None, tags=None):
     base = np.array([
         [[3000, 3100, 3200, 3300], [3100, 3200, 3300, 3400], [3200, 3300, 3400, 3500], [3300, 3400, 3500, 3600]],
         [[2000, 2100, 2200, 2300], [2100, 2200, 2300, 2400], [2200, 2300, 2400, 2500], [2300, 2400, 2500, 2600]],
@@ -27,6 +27,8 @@ def make_raster(offset=0, transform=None, crs="EPSG:32636", scales=None, offsets
                 ds.scales = tuple(scales)
             if offsets is not None:
                 ds.offsets = tuple(offsets)
+            if tags is not None:
+                ds.update_tags(**tags)
         return mem.read()
 
 
@@ -104,3 +106,19 @@ def test_pair_blocks_embedded_spectral_scale_or_offset_mismatch():
     changed_offsets = (10.0, 0.0, 0.0, 0.0)
     with pytest.raises(PairedRasterError, match="Embedded spectral-band scales or offsets differ"):
         run(make_raster(offsets=base_offsets), make_raster(offset=100, offsets=changed_offsets))
+
+
+
+def test_report_includes_only_allowlisted_bounded_source_tags():
+    raw = make_raster(tags={
+        "PRODUCT_ID": "S2A_TEST_PRODUCT",
+        "PROCESSING_BASELINE": "04.00",
+        "SECRET_TOKEN": "must-not-be-copied",
+        "LONG_NOTE": "x" * 1000,
+    })
+    report = run(raw, make_raster(offset=100))
+    source_tags = report["source"]["earlier"]["metadata_tags"]
+    assert source_tags["PRODUCT_ID"] == "S2A_TEST_PRODUCT"
+    assert source_tags["PROCESSING_BASELINE"] == "04.00"
+    assert "SECRET_TOKEN" not in source_tags
+    assert "LONG_NOTE" not in source_tags
