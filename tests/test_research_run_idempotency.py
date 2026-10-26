@@ -1,4 +1,5 @@
 """Tests for the shared persistent research-run idempotency ledger."""
+from concurrent.futures import ProcessPoolExecutor
 import pytest
 import sqlite3
 
@@ -6,6 +7,12 @@ from modules.research_run_idempotency import (
     IdempotencyConflictError,
     RunIdempotencyLedger,
 )
+
+
+def _reserve_from_worker(database_path, run_id, payload):
+    """Create an independent ledger connection in a worker process."""
+    ledger = RunIdempotencyLedger(database_path)
+    return ledger.reserve(run_id, payload)["action"]
 
 
 def test_reservation_serializes_duplicate_requests_and_reuses_completed_result(tmp_path):
@@ -56,3 +63,41 @@ def test_stale_pending_reservation_moves_to_recovery_state(tmp_path):
             ("run-stale",),
         )
     assert ledger.reserve("run-stale", payload)["action"] == "recover"
+
+
+def test_completed_reservation_survives_ledger_reconstruction(tmp_path):
+    """A fresh ledger object must read the committed state from the same file."""
+    path = str(tmp_path / "durable" / "runs.sqlite3")
+    payload = {"run_name": "Synthetic recovery", "project": "demo-project"}
+
+    first_process_view = RunIdempotencyLedger(path)
+    assert first_process_view.reserve("run-reopen", payload) == {
+        "action": "reserved",
+        "page_id": None,
+    }
+    first_process_view.mark_complete("run-reopen", "notion-demo-page")
+
+    restarted_process_view = RunIdempotencyLedger(path)
+    assert restarted_process_view.reserve("run-reopen", payload) == {
+        "action": "complete",
+        "page_id": "notion-demo-page",
+    }
+
+
+def test_concurrent_processes_reserve_a_run_id_only_once(tmp_path):
+    """Independent processes sharing one SQLite file cannot both reserve a run."""
+    path = str(tmp_path / "concurrent" / "runs.sqlite3")
+    payload = {"run_name": "Concurrent synthetic reservation"}
+
+    with ProcessPoolExecutor(max_workers=2) as pool:
+        actions = list(
+            pool.map(
+                _reserve_from_worker,
+                [path, path],
+                ["run-concurrent", "run-concurrent"],
+                [payload, payload],
+            )
+        )
+
+    assert actions.count("reserved") == 1
+    assert actions.count("in_progress") == 1
