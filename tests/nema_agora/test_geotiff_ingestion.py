@@ -207,3 +207,22 @@ def test_aoi_quality_fraction_uses_domain_not_full_scene_area():
     assert result["quality"]["aoi_domain_pixels"] == 1
     assert result["quality"]["joint_valid_pixels"] == 1
     assert result["quality"]["joint_valid_fraction"] == 1.0
+
+
+
+def test_band_order_confirmation_is_required():
+    image = _geotiff([
+        [[0.4, 0.4], [0.5, 0.3]],
+        [[0.2, 0.2], [0.1, 0.3]],
+        [[0.6, 0.6], [0.7, 0.5]],
+    ])
+    with pytest.raises(ValueError, match="BAND_MAPPING_CONFIRMATION_REQUIRED"):
+        read_geotiff_scene(
+            raster_bytes=image,
+            valid_mask_bytes=_mask([[1, 1], [1, 1]]),
+            scene_id="BAND-CHECK",
+            acquired_at="2026-06-01T10:00:00Z",
+            aoi_id="AOI-001",
+            reflectance_scale=1.0,
+            cloud_shadow_mask_applied=True,
+        )
