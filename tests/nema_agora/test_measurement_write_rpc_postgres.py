@@ -90,6 +90,11 @@ def test_postgres_new_submission_and_identical_retry_are_atomic(migrated_postgre
     assert first["decision"] == "new"
     assert replay["decision"] == "replay"
     assert first["payload_sha256"] == replay["payload_sha256"]
+    expected_digest = scalar(
+        """SELECT encode(extensions.digest(convert_to(jsonb_build_object('measurement_id', %s, 'record', %s::jsonb)::text, 'UTF8'), 'sha256'), 'hex')""",
+        (measurement_id, Json(record())),
+    )
+    assert first["payload_sha256"] == expected_digest
     assert scalar("SELECT count(*) FROM public.nema_indicator_measurements WHERE measurement_id=%s", (measurement_id,)) == 1
     assert scalar("SELECT count(*) FROM public.nema_measurement_idempotency WHERE idempotency_key=%s", (key,)) == 1
     assert scalar("SELECT count(*) FROM public.nema_measurement_audit WHERE measurement_id=%s", (measurement_id,)) == 1
