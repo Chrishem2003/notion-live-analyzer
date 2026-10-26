@@ -5,6 +5,7 @@ per-actor authorization model are implemented and deployed.
 """
 from __future__ import annotations
 
+import hashlib
 import hmac
 import os
 import sqlite3
@@ -27,6 +28,34 @@ def _require_nema_api_key(x_api_key: Optional[str] = Header(default=None)) -> bo
     if not x_api_key or not hmac.compare_digest(x_api_key, configured):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or missing API key.")
     return True
+
+
+def _require_nema_read_access(
+    x_api_key: Optional[str] = Header(default=None),
+    x_nema_actor: Optional[str] = Header(default=None),
+    x_nema_role: Optional[str] = Header(default=None),
+    x_nema_signature: Optional[str] = Header(default=None),
+) -> dict[str, str]:
+    """Require service authentication plus a signed, server-resolved portal identity.
+
+    The Streamlit service signs the OIDC subject and role after resolving the role
+    from trusted server-side bindings. Submitters are deliberately denied this
+    cross-case API because case ownership is not yet consistently modeled.
+    """
+    _require_nema_api_key(x_api_key=x_api_key)
+    actor = x_nema_actor.strip() if isinstance(x_nema_actor, str) else ""
+    role = x_nema_role.strip().lower() if isinstance(x_nema_role, str) else ""
+    signature = x_nema_signature.strip() if isinstance(x_nema_signature, str) else ""
+    if not actor or len(actor) > 512 or not signature:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="A signed portal identity is required.")
+    if role not in {"reviewer", "coordinator", "admin"}:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="This role cannot access cross-case records.")
+    configured = os.environ.get("PLATFORM_API_KEY", "")
+    message = f"{actor}\\n{role}".encode("utf-8")
+    expected = hmac.new(configured.encode("utf-8"), message, hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(signature, expected):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="The signed portal identity is invalid.")
+    return {"actor": actor, "role": role}
 
 
 def _database_path() -> Path:
@@ -86,7 +115,7 @@ def _remote_storage_error(exc: Exception) -> HTTPException:
 @router.get("")
 def list_cases(
     limit: int = Query(default=100, ge=1, le=1000),
-    _auth: bool = Depends(_require_nema_api_key),
+    _auth: dict[str, str] = Depends(_require_nema_read_access),
 ):
     """List persisted case summaries; no write or enforcement operation is exposed."""
     from nema_agora.supabase_repository import NemaStorageUnavailableError
