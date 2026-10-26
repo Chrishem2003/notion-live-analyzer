@@ -37,6 +37,7 @@ from nema_agora.source_registry import list_sources
 from nema_agora.asset_receipt import build_manual_asset_receipt, validate_asset_receipt
 from nema_agora.geojson_aoi import validate_geojson_aoi
 from nema_agora.paired_study_manifest import build_paired_study_manifest, validate_paired_study_manifest
+from nema_agora.paired_raster_array_analysis import analyze_paired_raster_arrays
 
 st.set_page_config(page_title="NEMA-AGORA | Environmental Workspace", page_icon="🌿", layout="wide")
 
@@ -1125,6 +1126,89 @@ if active_section == "Maps & metrics" and map_tool == "Data sources & asset rece
             key="nema_agora_download_aoi_report",
             use_container_width=True,
         )
+
+    st.markdown("### Run paired-scene pixel analysis")
+    st.caption(
+        "Upload two JSON scene cubes containing decoded normalized reflectance arrays for B03, B04 and B08, "
+        "a boolean valid-pixel mask, acquisition metadata and a declared cloud-mask status. "
+        "This performs pixelwise NDVI and McFeeters NDWI calculations on aligned arrays; it does not read GeoTIFF files or fetch satellite data."
+    )
+    st.info(
+        "Input contract: each scene JSON must contain scene_id, acquired_at (timezone-aware), aoi_id, grid_id, "
+        "crs='EPSG:4326', bands with same-shaped 2D B03/B04/B08 arrays scaled to 0..1, valid_mask (boolean 2D array), "
+        "and cloud_mask_applied=true. For safety, each scene is limited to 250,000 pixels."
+    )
+    cube_left, cube_right = st.columns(2)
+    with cube_left:
+        baseline_cube_file = st.file_uploader(
+            "Baseline scene cube JSON", type=["json"], accept_multiple_files=False,
+            key="nema_agora_baseline_cube_json",
+        )
+    with cube_right:
+        comparison_cube_file = st.file_uploader(
+            "Comparison scene cube JSON", type=["json"], accept_multiple_files=False,
+            key="nema_agora_comparison_cube_json",
+        )
+    q1, q2, q3 = st.columns(3)
+    with q1:
+        min_valid_fraction = st.slider(
+            "Minimum valid fraction", min_value=0.1, max_value=1.0, value=0.7, step=0.05,
+            key="nema_agora_array_min_valid_fraction",
+        )
+    with q2:
+        min_ndvi_delta = st.slider(
+            "Absolute NDVI delta threshold", min_value=0.0, max_value=1.0, value=0.15, step=0.05,
+            key="nema_agora_array_min_ndvi_delta",
+        )
+    with q3:
+        min_ndwi_delta = st.slider(
+            "Absolute NDWI delta threshold", min_value=0.0, max_value=1.0, value=0.15, step=0.05,
+            key="nema_agora_array_min_ndwi_delta",
+        )
+    if st.button("Calculate pixel-level NDVI / NDWI deltas", key="nema_agora_run_array_analysis", type="primary", use_container_width=True):
+        st.session_state.pop("nema_agora_paired_array_analysis", None)
+        if not baseline_cube_file or not comparison_cube_file:
+            st.error("Upload both baseline and comparison scene cube JSON files.")
+        else:
+            try:
+                baseline_cube = json.loads(baseline_cube_file.getvalue().decode("utf-8"))
+                comparison_cube = json.loads(comparison_cube_file.getvalue().decode("utf-8"))
+                analysis_result = analyze_paired_raster_arrays(
+                    baseline_scene=baseline_cube,
+                    comparison_scene=comparison_cube,
+                    min_valid_fraction=min_valid_fraction,
+                    min_abs_ndvi_delta=min_ndvi_delta,
+                    min_abs_ndwi_delta=min_ndwi_delta,
+                )
+            except (UnicodeDecodeError, json.JSONDecodeError, ValueError, TypeError) as exc:
+                st.error("Pixel analysis could not run. Check the scene-cube JSON contract.")
+                st.caption(str(exc))
+            else:
+                st.session_state["nema_agora_paired_array_analysis"] = analysis_result
+    array_result = st.session_state.get("nema_agora_paired_array_analysis")
+    if isinstance(array_result, dict):
+        if array_result.get("state") == "PIXEL_ANALYSIS_COMPLETE":
+            st.success("Pixel-level analysis completed on the uploaded arrays.")
+            metrics = st.columns(4)
+            metrics[0].metric("Joint valid pixels", array_result["quality"]["joint_valid_pixels"])
+            metrics[1].metric("Joint valid fraction", f"{array_result['quality']['joint_valid_fraction']:.1%}")
+            metrics[2].metric("Mean NDVI delta", array_result["summary"]["NDVI"]["mean"])
+            metrics[3].metric("Mean NDWI delta", array_result["summary"]["NDWI_MCFEETERS"]["mean"])
+            st.caption("These are spectral screening statistics, not proof of environmental change or a legal conclusion.")
+            with st.expander("Inspect summary and pixel arrays"):
+                st.json({key: value for key, value in array_result.items() if key != "pixel_arrays"})
+                st.json(array_result["pixel_arrays"])
+            st.download_button(
+                "Download pixel analysis evidence JSON",
+                data=json.dumps(array_result, sort_keys=True, ensure_ascii=False, indent=2),
+                file_name="nema-agora-paired-pixel-analysis.json",
+                mime="application/json",
+                key="nema_agora_download_array_analysis",
+                use_container_width=True,
+            )
+        else:
+            st.error("Pixel analysis stopped at a quality or input control.")
+            st.json(array_result.get("findings", []))
 
     st.markdown("### Assemble a paired-scene study manifest")
     st.caption(
