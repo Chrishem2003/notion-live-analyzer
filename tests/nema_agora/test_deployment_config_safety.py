@@ -170,3 +170,47 @@ def test_package_path_failure_does_not_leak_exception_text(monkeypatch):
     assert "do-not-leak" not in check.detail
     assert "private/path" not in check.detail
     assert check.detail == "package path could not be resolved; inspect restricted server logs"
+
+
+def test_database_health_check_verifies_existing_sqlite_store_without_creating_files(tmp_path):
+    from nema_agora.deployment import _database_check
+    from nema_agora.storage import NemaAgoraRepository
+
+    missing = tmp_path / "not-created.sqlite3"
+    missing_check = _database_check(missing)
+    assert missing_check.ok is False
+    assert missing_check.detail == "configured database file is missing"
+    assert not missing.exists()
+
+    database = tmp_path / "pilot.sqlite3"
+    NemaAgoraRepository(database)
+    healthy_check = _database_check(database)
+    assert healthy_check.ok is True
+    assert healthy_check.detail == "database integrity verified"
+
+
+def test_database_health_check_fails_closed_for_corrupt_store(tmp_path):
+    from nema_agora.deployment import _database_check
+
+    database = tmp_path / "corrupt.sqlite3"
+    database.write_bytes(b"not a sqlite database")
+    check = _database_check(database)
+
+    assert check.ok is False
+    assert check.detail == "database integrity check failed"
+    assert "not a sqlite database" not in check.detail
+
+
+def test_run_health_checks_includes_database_check_only_when_explicitly_requested(tmp_path):
+    from nema_agora.deployment import run_health_checks
+    from nema_agora.storage import NemaAgoraRepository
+
+    database = tmp_path / "pilot.sqlite3"
+    NemaAgoraRepository(database)
+
+    default_names = {check.name for check in run_health_checks()}
+    configured_checks = run_health_checks(database)
+    configured = {check.name: check for check in configured_checks}
+
+    assert "persistent-database" not in default_names
+    assert configured["persistent-database"].ok is True
