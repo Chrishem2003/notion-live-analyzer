@@ -1220,6 +1220,16 @@ if active_section == "Maps & metrics" and map_tool == "Data sources & asset rece
         if isinstance(geo_result, dict):
             if geo_result.get("state") == "PIXEL_ANALYSIS_COMPLETE" and validate_paired_array_analysis(geo_result)["valid"]:
                 st.success("GeoTIFF pair processed and analysis integrity validated.")
+                comparability = geo_result.get("scene_comparability", {})
+                if isinstance(comparability, dict) and comparability.get("warnings"):
+                    st.warning("The numeric screening completed, but scene-comparability warnings require qualified human review.")
+                    st.dataframe(
+                        comparability["warnings"],
+                        use_container_width=True,
+                        hide_index=True,
+                    )
+                elif isinstance(comparability, dict) and comparability.get("state") == "COMPARABILITY_CHECKS_PASSED":
+                    st.info("Automated comparability screening passed. This is not proof of scientific equivalence or an environmental conclusion.")
                 display_result = {key: value for key, value in geo_result.items() if key != "pixel_arrays"}
                 display_ingestion = display_result.get("ingestion")
                 if isinstance(display_ingestion, dict):
@@ -1238,7 +1248,12 @@ if active_section == "Maps & metrics" and map_tool == "Data sources & asset rece
                 )
             else:
                 st.error("GeoTIFF analysis did not pass quality or integrity checks.")
-                st.json(geo_result.get("findings", []))
+                st.json({
+                    "findings": geo_result.get("findings", []),
+                    "scene_comparability": geo_result.get("scene_comparability"),
+                    "policy_version": geo_result.get("policy_version"),
+                    "state": geo_result.get("state"),
+                })
 
     st.markdown("### Run paired-scene pixel analysis")
     st.caption(
