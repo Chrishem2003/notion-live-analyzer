@@ -248,10 +248,6 @@ def get_case(case_id: str, _auth: dict[str, str] = Depends(_require_nema_read_ac
         if owner_id is not None:
             found = repository.get_case(case_id, owner_id=owner_id)
         else:
-            owner_id = _require_submitter_scope(_auth)
-        if owner_id is not None:
-            found = repository.get_case(case_id, owner_id=owner_id)
-        else:
             found = repository.get_case(case_id)
         if found is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Case not found.")
@@ -275,7 +271,11 @@ def review_packet(case_id: str, _auth: dict[str, str] = Depends(_require_nema_re
 
     repository = _repository()
     try:
-        found = repository.get_case(case_id)
+        owner_id = _require_submitter_scope(_auth)
+        if owner_id is not None:
+            found = repository.get_case(case_id, owner_id=owner_id)
+        else:
+            found = repository.get_case(case_id)
         if found is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Case not found.")
         record, version = found
