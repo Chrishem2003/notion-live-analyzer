@@ -62,6 +62,7 @@ def compare_two_dates(
     earlier_ndwi: Any,
     later_ndwi: Any,
     shared_valid_mask: Any,
+    comparison_domain_mask: Any | None = None,
     ndvi_change_threshold: float = 0.15,
     ndwi_change_threshold: float = 0.15,
     minimum_valid_fraction: float = 0.7,
@@ -93,9 +94,15 @@ def compare_two_dates(
         raise ChangeComparisonError("All index arrays and shared mask must match the declared grid shape.")
     if valid.dtype != np.bool_:
         raise ChangeComparisonError("shared_valid_mask must be boolean.")
+    if comparison_domain_mask is None:
+        domain = np.ones(shape, dtype=bool)
+    else:
+        domain = np.asarray(comparison_domain_mask)
+        if domain.shape != shape or domain.dtype != np.bool_:
+            raise ChangeComparisonError("comparison_domain_mask must be boolean and match the declared grid.")
     finite = np.isfinite(a_ndvi) & np.isfinite(b_ndvi) & np.isfinite(a_ndwi) & np.isfinite(b_ndwi)
-    valid = valid & finite
-    total = int(valid.size)
+    valid = valid & domain & finite
+    total = int(np.count_nonzero(domain))
     count = int(np.count_nonzero(valid))
     fraction = count / total if total else 0.0
     if fraction < minimum_valid_fraction:
@@ -140,6 +147,7 @@ def compare_two_dates(
             "shared_valid_pixel_count": count,
             "total_grid_pixels": total,
             "shared_valid_pixel_fraction": fraction,
+            "coverage_denominator": "comparison domain (AOI when supplied)",
             "minimum_valid_pixel_fraction": float(minimum_valid_fraction),
         },
         "indices": {"NDVI_delta": ndvi_stats, "NDWI_MCFEETERS_delta": ndwi_stats},
