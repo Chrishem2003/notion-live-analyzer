@@ -40,7 +40,13 @@ def evaluate_holdout_package(
         raise EvaluationGateError("evaluation blocked: declared unit IDs overlap across splits.")
     if spatial_audit["finding_count"]:
         raise EvaluationGateError("evaluation blocked: potential spatial/temporal overlap across splits requires review.")
-    if asset_lineage_audit is not None and asset_lineage_audit["finding_count"]:
+    if asset_lineage_records is None:
+        raise EvaluationGateError("evaluation blocked: asset_lineage_records is required; source-asset, tile, and derived-data separation must be audited before metrics.")
+    if not asset_lineage_records:
+        raise EvaluationGateError("evaluation blocked: asset_lineage_records must contain at least one declared asset record.")
+    if asset_lineage_audit is None:
+        raise EvaluationGateError("evaluation blocked: asset-lineage audit did not produce a report.")
+    if asset_lineage_audit["finding_count"]:
         raise EvaluationGateError("evaluation blocked: source assets, satellite tiles, or derived lineage are reused across splits.")
     declared_split_pairs = {(unit_id, split) for item in split_audit["canonical_manifests"] for unit_id in item["unit_ids"] for split in [item["split"]]}
     spatial_split_pairs = {(item["unit_id"], item["split"]) for item in spatiotemporal_units}
@@ -103,7 +109,7 @@ def evaluate_holdout_package(
         "asset_lineage_audit": asset_lineage_audit,
         "evaluation": metrics,
         "limitations": [
-            "Asset-lineage screening is included only when asset_lineage_records are supplied; omitting it leaves shared imagery, tile reuse, and derived-data leakage unchecked.",
+            "Asset-lineage screening is required, but it checks only declared hashes, tile IDs, and lineage links; it does not prove evidence authenticity or independence.",
             "The gate enforces declared ID matching only; it cannot detect aliases, spatial or temporal leakage, duplicate evidence, or holdout use during tuning.",
             "Reviewer identities, evidence references, labels, and blinding are not authenticated by this code.",
             "Metrics describe only the submitted holdout records and configured area threshold; they are not live operational performance.",
