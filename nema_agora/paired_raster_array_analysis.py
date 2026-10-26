@@ -136,6 +136,8 @@ def analyze_paired_raster_arrays(
     for name, value in (("MIN_ABS_NDVI_DELTA", min_abs_ndvi_delta), ("MIN_ABS_NDWI_DELTA", min_abs_ndwi_delta)):
         if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(float(value)) or not 0 <= float(value) <= 2:
             findings.append(f"INVALID_{name}")
+    if findings:
+        return {"policy_version": POLICY_VERSION, "state": "CONTROL_REQUIRED", "findings": [{"code": code} for code in findings]}
     try:
         baseline = _scene(baseline_scene, "BASELINE")
         comparison = _scene(comparison_scene, "COMPARISON")
