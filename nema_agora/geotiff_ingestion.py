@@ -119,6 +119,17 @@ def read_geotiff_scene(
                 valid &= np.all(np.isfinite(scaled), axis=0)
                 # The analysis contract accepts normalized reflectance only.
                 valid &= np.all((scaled >= 0) & (scaled <= 1), axis=0)
+                aoi_clipping_applied = False
+                if aoi_geojson is not None:
+                    aoi_mask = geometry_mask(
+                        _geojson_geometries(aoi_geojson),
+                        out_shape=(src.height, src.width),
+                        transform=src.transform,
+                        invert=True,
+                        all_touched=False,
+                    )
+                    valid &= aoi_mask
+                    aoi_clipping_applied = True
                 scaled[:, ~valid] = 0.0
                 bands = {
                     "B03": scaled[0].tolist(),
@@ -150,6 +161,8 @@ def read_geotiff_scene(
                         "reflectance_scale": float(reflectance_scale),
                         "reflectance_offset": float(reflectance_offset),
                         "cloud_shadow_mask_applied_by_uploader": True,
+                        "aoi_clipping_applied": aoi_clipping_applied,
+                        "aoi_validation": validate_geojson_aoi(aoi_geojson) if aoi_geojson is not None else None,
                         "valid_mask_pixels": int(np.count_nonzero(valid)),
                         "total_pixels": int(src.width * src.height),
                         "bounds": {
@@ -162,7 +175,8 @@ def read_geotiff_scene(
                             "Band mapping assumes input order B03, B04, B08 and must be verified by uploader.",
                             "Reflectance scale and offset are user-supplied and not inferred from metadata.",
                             "Cloud/shadow mask provenance is user asserted; not independently verified.",
-                            "No reprojection, resampling, AOI clipping or provider authenticity verification is performed.",
+                            "No reprojection, resampling, or provider authenticity verification is performed.",
+                            "Optional AOI clipping uses pixel-center inclusion; AOI authority and complete topology are not independently verified.",
                             "Grid identifier proves matching metadata only when compared with a separately ingested scene; it does not prove correct geospatial content.",
                         ],
                     },
@@ -172,3 +186,24 @@ def read_geotiff_scene(
     except Exception as exc:
         # Do not leak local paths or untrusted raster metadata in UI-facing error text.
         raise ValueError(f"GEOTIFF_READ_FAILED_{type(exc).__name__}") from exc
+
+
+def _geojson_geometries(document: Any) -> list[dict[str, Any]]:
+    """Extract validated GeoJSON geometries accepted by rasterio.features."""
+    if isinstance(document, str):
+        try:
+            document = json.loads(document)
+        except (json.JSONDecodeError, TypeError) as exc:
+            raise ValueError("INVALID_AOI_GEOJSON") from exc
+    kind = document.get("type") if isinstance(document, dict) else None
+    if kind == "Feature":
+        geometries = [document.get("geometry")]
+    elif kind == "FeatureCollection":
+        geometries = [feature.get("geometry") for feature in document.get("features", [])]
+    elif kind in {"Polygon", "MultiPolygon"}:
+        geometries = [document]
+    else:
+        raise ValueError("INVALID_AOI_GEOJSON")
+    if not geometries or any(not isinstance(geometry, dict) for geometry in geometries):
+        raise ValueError("INVALID_AOI_GEOJSON")
+    return geometries
