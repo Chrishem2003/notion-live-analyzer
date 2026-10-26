@@ -80,3 +80,8 @@ No environment secrets were changed and no database migration was applied. Befor
 Added `nema_agora/indicator_evidence.py` and `tests/test_nema_indicator_evidence.py`, and integrated JSON-record validation into the existing single-page NEMA-AGORA Pilot metrics workspace. Validation checks reporting periods, units, source IDs, artifact digest format, method version, calculation arithmetic, and independent-review fields for `verified` records. It does not persist uploaded records or alter registry status. Passing structural validation is not a claim of artifact authenticity or authenticated reviewer identity.
 
 Current CI must run against the final integration-branch head before this phase is considered verified. Release remains blocked by staging branch mismatch, missing API authentication configuration, unapplied owner-scope migrations, and unverified authenticated storage reads. No database migrations or environment secrets were changed.
+
+
+## Phase 192 — uploaded artifact digest consistency
+
+The evidence validator accepts optional evidence bytes and independently computes SHA-256. The one-page Pilot metrics workspace now lets reviewers supply both the measurement JSON and the referenced artifact; a digest mismatch is rejected, while omission of artifact bytes is explicitly reported as unchecked. Automated tests cover match, mismatch, and omission. This is byte-integrity checking only—not source authenticity, reviewer authentication, or institutional verification. No persistence or registry status mutation is enabled.
