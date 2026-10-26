@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Sequence
 
+from nema_agora.asset_lineage_audit import AssetLineageAuditError, audit_asset_lineage
 from nema_agora.reference_review import ReferenceReviewError, validate_reference_review_package
 from nema_agora.satellite_evaluation import SatelliteEvaluationError, evaluate_change_candidates
 from nema_agora.split_audit import SplitAuditError, audit_dataset_splits
@@ -23,6 +24,7 @@ def evaluate_holdout_package(
     split_manifests: Sequence[Mapping[str, Any]],
     evaluation_records: Sequence[Mapping[str, Any]],
     spatiotemporal_units: Sequence[Mapping[str, Any]],
+    asset_lineage_records: Sequence[Mapping[str, Any]] | None = None,
     min_area_ha: float = 0.1,
 ) -> dict[str, Any]:
     """Audit declared holdout prerequisites and compute metrics only if all pass."""
@@ -30,13 +32,16 @@ def evaluate_holdout_package(
         review = validate_reference_review_package(reference_review_package)
         split_audit = audit_dataset_splits(split_manifests)
         spatial_audit = audit_spatiotemporal_separation(spatiotemporal_units)
-    except (ReferenceReviewError, SplitAuditError, SpatiotemporalAuditError) as exc:
+        asset_lineage_audit = audit_asset_lineage(asset_lineage_records) if asset_lineage_records is not None else None
+    except (ReferenceReviewError, SplitAuditError, SpatiotemporalAuditError, AssetLineageAuditError) as exc:
         raise EvaluationGateError(f"evaluation prerequisites rejected: {exc}") from exc
 
     if split_audit["decision"] != "NO_DECLARED_UNIT_ID_OVERLAP":
         raise EvaluationGateError("evaluation blocked: declared unit IDs overlap across splits.")
     if spatial_audit["finding_count"]:
         raise EvaluationGateError("evaluation blocked: potential spatial/temporal overlap across splits requires review.")
+    if asset_lineage_audit is not None and asset_lineage_audit["finding_count"]:
+        raise EvaluationGateError("evaluation blocked: source assets, satellite tiles, or derived lineage are reused across splits.")
     declared_split_pairs = {(unit_id, split) for item in split_audit["canonical_manifests"] for unit_id in item["unit_ids"] for split in [item["split"]]}
     spatial_split_pairs = {(item["unit_id"], item["split"]) for item in spatiotemporal_units}
     if declared_split_pairs != spatial_split_pairs:
@@ -95,9 +100,11 @@ def evaluate_holdout_package(
         "holdout_unit_count": len(holdout_ids),
         "split_audit": split_audit,
         "spatiotemporal_audit": spatial_audit,
+        "asset_lineage_audit": asset_lineage_audit,
         "evaluation": metrics,
         "limitations": [
-            "The gate enforces declared ID matching only; it cannot detect aliases, spatial or temporal leakage, shared imagery, duplicate evidence, or holdout use during tuning.",
+            "Asset-lineage screening is included only when asset_lineage_records are supplied; omitting it leaves shared imagery, tile reuse, and derived-data leakage unchecked.",
+            "The gate enforces declared ID matching only; it cannot detect aliases, spatial or temporal leakage, duplicate evidence, or holdout use during tuning.",
             "Reviewer identities, evidence references, labels, and blinding are not authenticated by this code.",
             "Metrics describe only the submitted holdout records and configured area threshold; they are not live operational performance.",
             "An independent scientific reviewer must approve the split protocol and evidence before results are used for policy, enforcement, or public claims.",
