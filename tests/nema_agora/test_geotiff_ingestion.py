@@ -47,6 +47,7 @@ def test_ingests_pair_and_runs_index_analysis():
     common = dict(
         valid_mask_bytes=valid, aoi_id="AOI-001", reflectance_scale=1.0,
         cloud_shadow_mask_applied=True,
+        band_mapping_confirmed=True,
     )
     baseline = read_geotiff_scene(
         raster_bytes=base_bytes, scene_id="BASE", acquired_at="2026-06-01T10:00:00Z", **common
@@ -74,6 +75,7 @@ def test_rejects_mismatched_mask_grid_and_non_geographic_crs():
             raster_bytes=image, valid_mask_bytes=wrong_mask, scene_id="BASE",
             acquired_at="2026-06-01T10:00:00Z", aoi_id="AOI-001",
             reflectance_scale=1.0, cloud_shadow_mask_applied=True,
+        band_mapping_confirmed=True,
         )
     projected = _geotiff([
         [[0.4, 0.4], [0.5, 0.3]],
@@ -85,6 +87,7 @@ def test_rejects_mismatched_mask_grid_and_non_geographic_crs():
             raster_bytes=projected, valid_mask_bytes=_mask([[1, 1], [1, 1]]),
             scene_id="BASE", acquired_at="2026-06-01T10:00:00Z",
             aoi_id="AOI-001", reflectance_scale=1.0, cloud_shadow_mask_applied=True,
+        band_mapping_confirmed=True,
         )
 
 
@@ -98,6 +101,7 @@ def test_requires_timezone_mask_assertion_and_valid_scale():
         raster_bytes=image, valid_mask_bytes=_mask([[1, 1], [1, 1]]),
         scene_id="BASE", acquired_at="2026-06-01T10:00:00",
         aoi_id="AOI-001", reflectance_scale=1.0, cloud_shadow_mask_applied=True,
+        band_mapping_confirmed=True,
     )
     with pytest.raises(ValueError, match="TIMEZONE_AWARE"):
         read_geotiff_scene(**kwargs)
@@ -132,6 +136,7 @@ def test_aoi_geojson_clips_pixels_outside_polygon():
         aoi_id="AOI-001",
         reflectance_scale=1.0,
         cloud_shadow_mask_applied=True,
+        band_mapping_confirmed=True,
         aoi_geojson=polygon,
     )
     assert scene["valid_mask"] == [[True, False], [False, False]]
@@ -157,6 +162,7 @@ def test_rejects_invalid_aoi_before_raster_analysis():
             aoi_id="AOI-001",
             reflectance_scale=1.0,
             cloud_shadow_mask_applied=True,
+        band_mapping_confirmed=True,
             aoi_geojson={"type": "Polygon", "coordinates": []},
         )
 
