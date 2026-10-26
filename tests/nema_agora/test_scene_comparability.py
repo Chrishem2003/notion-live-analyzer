@@ -19,10 +19,10 @@ def _scene(scene_id, date):
             "band_mapping_confirmed_by_uploader": True,
             "cloud_shadow_mask_applied_by_uploader": True,
             "aoi_valid_pixel_fraction": 0.95,
-            "aoi_sha256": "a".repeat(64),
+            "aoi_sha256": "a" * 64,
             "aoi_clipping_applied": True,
-            "raster_sha256": "b".repeat(64),
-            "valid_mask_sha256": "c".repeat(64),
+            "raster_sha256": "b" * 64,
+            "valid_mask_sha256": "c" * 64,
             "raster_driver": "GTiff",
         },
     }
