@@ -42,6 +42,14 @@ The helper does not itself start the login flow, validate OIDC tokens, manage us
 - The system does not verify allegations or make regulatory decisions.
 - Do not enter personal, confidential, or urgent incident information.
 
+## Read-only case API deployment boundary
+
+The read-only case API requires both \`PLATFORM_API_KEY\` and a separate \`NEMA_PORTAL_SIGNING_SECRET\` of at least 32 characters. Configure both as deployment secrets on the Streamlit service and API service. They must match between services, must be different from each other, and must never be committed to Git or displayed in logs. If the signing secret is absent or too short, identity-protected reads fail closed.
+
+The Streamlit service signs the OIDC subject key and the role resolved from server-side role bindings; the API verifies the signature. The API only permits cross-case reads for reviewer, coordinator, and admin roles until submitter ownership filtering is implemented. This is a service-to-service boundary, not a substitute for user-level row ownership rules.
+
+For Supabase read-only mode, configure \`NEMA_CASE_STORAGE_BACKEND=supabase_postgres\`, \`SUPABASE_URL\`, and \`SUPABASE_SERVICE_ROLE_KEY\` only after the required \`nema_cases\` and \`nema_case_audit\` schema and access policies have been checked. The adapter performs reads only. A successful readiness response confirms table reachability/schema, not backup restoration, production durability, or write readiness.
+
 ## Run locally
 
 From the repository root, with the repository's environment activated:
