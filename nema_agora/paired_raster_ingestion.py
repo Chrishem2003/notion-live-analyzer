@@ -241,6 +241,9 @@ def compare_uploaded_geotiff_pair(
         "Only a short allowlist of embedded metadata tags is included in provenance; tags are untrusted file claims and are not authenticated by this workflow.",
         "Both dates use the same AOI and conservative SCL exclusion policy; valid pixels are the intersection of both dates.",
         "This local paired-raster workflow does not independently validate atmospheric correction, acquisition metadata, or the scientific suitability of the chosen threshold.",
+        "Seasonal phenology, rainfall, water-level variation, illumination, viewing geometry and land-management cycles can change NDVI/NDWI without a harmful or persistent land-cover change; compare like seasons and contextual records before interpretation.",
+        "The SCL class exclusion policy reduces some cloud, shadow and invalid-pixel contamination but cannot guarantee cloud-free observations; inspect source imagery, cloud edges, haze, shadows and residual artefacts.",
+        "A two-date difference is a screening signal only; it cannot by itself distinguish temporary seasonal variation from persistent change or establish cause, area, legal status or responsibility.",
     ])
     comparison["aoi_pixel_count"] = int(np.count_nonzero(aoi_mask))
     comparison["processing_report_sha256"] = hashlib.sha256(
