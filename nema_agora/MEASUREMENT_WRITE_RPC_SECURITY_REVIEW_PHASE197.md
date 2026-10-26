@@ -85,3 +85,12 @@ format as the portal client, and the auth regression test signs the same format.
 This was found before enabling a write route; no live submission route was
 added. The new CI run must confirm both the focused API tests and the PostgreSQL
 security suite remain green.
+
+
+## Phase 210 — fail closed on missing source references
+
+A further SQL three-valued-logic review found that the RPC's source-reference check compared jsonb_typeof(...) <> 'array'. When source_refs was absent, SQL NULL could make the IF condition evaluate to NULL rather than TRUE. The measurement table's constraints still provided a secondary barrier, but the RPC did not reliably return its intended controlled validation error.
+
+The proposed migration now uses IS DISTINCT FROM 'array' and checks array length in a separate branch, avoiding evaluation of jsonb_array_length on malformed input. PostgreSQL integration coverage now checks absent, JSON null, wrong-type object, and empty-array values all fail with the expected validation error.
+
+**Status:** proposed migration only; CI will verify this change against disposable PostgreSQL. No staging or production database has been changed.
