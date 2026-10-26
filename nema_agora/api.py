@@ -50,9 +50,14 @@ def _require_nema_read_access(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="A signed portal identity is required.")
     if role not in {"reviewer", "coordinator", "admin"}:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="This role cannot access cross-case records.")
-    configured = os.environ.get("PLATFORM_API_KEY", "")
-    message = f"{actor}\\n{role}".encode("utf-8")
-    expected = hmac.new(configured.encode("utf-8"), message, hashlib.sha256).hexdigest()
+    signing_secret = os.environ.get("NEMA_PORTAL_SIGNING_SECRET", "").strip()
+    if len(signing_secret) < 32:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="NEMA portal identity signing is not configured.",
+        )
+    message = f"{actor}\\\\n{role}".encode("utf-8")
+    expected = hmac.new(signing_secret.encode("utf-8"), message, hashlib.sha256).hexdigest()
     if not hmac.compare_digest(signature, expected):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="The signed portal identity is invalid.")
     return {"actor": actor, "role": role}
