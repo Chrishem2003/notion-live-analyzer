@@ -35,6 +35,7 @@ from nema_agora.spatial_temporal_change import spatial_temporal_change_evidence
 from nema_agora.spatial_temporal_quality import spatial_temporal_quality_evidence
 from nema_agora.spatial_change_detection import detect_candidate
 from nema_agora.satellite_evaluation import SatelliteEvaluationError, evaluate_change_candidates
+from nema_agora.satellite_manifest import SatelliteManifestError, validate_dataset_manifest
 from nema_agora.spatial_workspace_bundle import build_spatial_evidence_bundle, validate_spatial_evidence_bundle
 
 st.set_page_config(page_title="NEMA-AGORA Pilot", page_icon="🌿", layout="wide")
@@ -1175,6 +1176,76 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
             file_name="nema_satellite_evaluation_report.json",
             mime="application/json",
             key="nema_download_satellite_eval_json",
+        )
+
+
+if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
+    st.divider()
+    st.subheader("Satellite dataset manifest (provenance gate)")
+    st.caption(
+        "Validate metadata completeness before treating an evaluation as review-ready. "
+        "This does not fetch or authenticate source imagery or independently verify reference labels."
+    )
+    manifest_template = {
+        "dataset_id": "replace-with-dataset-id",
+        "aoi_id": "replace-with-area-of-interest-id",
+        "sensor": "Sentinel-2",
+        "product_id": "replace-with-product-id",
+        "processing_version": "record-processing-version",
+        "crs": "record-CRS",
+        "grid_id": "record-grid-version",
+        "reference_set_id": "record-reference-set-id",
+        "reference_set_version": "record-reference-set-version",
+        "sampling_method": "describe-sampling",
+        "label_review_method": "describe-independent-review",
+        "candidate_policy_version": "record-policy-version",
+        "split": "development",
+        "acquisition_start": "2026-01-01",
+        "acquisition_end": "2026-01-31",
+        "cloud_filter_method": "describe-cloud-filter",
+        "valid_pixel_method": "describe-valid-pixel-filter",
+        "spatial_resolution_m": 10.0,
+        "cloud_cover_pct": 20.0,
+        "valid_pixel_fraction": 0.8,
+        "source_sha256": "replace-with-64-character-source-sha256",
+    }
+    st.download_button(
+        "Download manifest JSON template",
+        data=json.dumps(manifest_template, indent=2),
+        file_name="nema_satellite_dataset_manifest_template.json",
+        mime="application/json",
+        key="nema_satellite_manifest_template",
+    )
+    manifest_file = st.file_uploader(
+        "Upload dataset manifest JSON",
+        type=["json"],
+        key="nema_satellite_manifest_json",
+        help="Replace every placeholder with the actual dataset metadata before validation.",
+    )
+    if st.button("Validate dataset manifest", key="nema_validate_satellite_manifest"):
+        if manifest_file is None:
+            st.warning("Upload a manifest JSON file first.")
+        else:
+            try:
+                parsed_manifest = json.loads(manifest_file.getvalue().decode("utf-8"))
+                validation = validate_dataset_manifest(parsed_manifest)
+                st.session_state["nema_satellite_manifest_validation"] = validation
+            except (UnicodeDecodeError, json.JSONDecodeError, SatelliteManifestError) as exc:
+                st.session_state.pop("nema_satellite_manifest_validation", None)
+                st.error(f"Manifest rejected: {exc}")
+    manifest_validation = st.session_state.get("nema_satellite_manifest_validation")
+    if manifest_validation:
+        st.warning("Metadata completeness is not independent verification. Review all warnings before using this manifest.")
+        st.write(f"**State:** {manifest_validation['state']}")
+        st.write(f"**Manifest SHA-256:** {manifest_validation['manifest_sha256']}")
+        for warning in manifest_validation["warnings"]:
+            st.caption("• " + warning)
+        st.download_button(
+            "Download validated manifest report",
+            data=json.dumps(manifest_validation, indent=2, allow_nan=False),
+            file_name="nema_satellite_manifest_validation_report.json",
+            mime="application/json",
+            key="nema_satellite_manifest_validation_report",
         )
 
 
