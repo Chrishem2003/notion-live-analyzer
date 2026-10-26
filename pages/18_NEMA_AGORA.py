@@ -1184,6 +1184,11 @@ if active_section == "Maps & metrics" and map_tool == "Data sources & asset rece
                         "baseline": base_scene["ingestion"],
                         "comparison": comp_scene["ingestion"],
                     }
+                    fingerprint_payload = dict(geo_result)
+                    fingerprint_payload.pop("fingerprint", None)
+                    geo_result["fingerprint"] = hashlib.sha256(
+                        json.dumps(fingerprint_payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode("utf-8")
+                    ).hexdigest()
                     st.session_state["nema_agora_geotiff_analysis"] = geo_result
                 except (ValueError, RuntimeError, TypeError) as exc:
                     st.error("GeoTIFF ingestion stopped. Check the input contract and optional raster dependency.")
