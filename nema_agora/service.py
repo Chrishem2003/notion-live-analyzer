@@ -76,6 +76,73 @@ class NemaAgoraService:
             actor_id=principal.subject_key, role=principal.role, status=status
         )
 
+    def case_workload_summary(
+        self,
+        principal: Principal,
+        *,
+        as_of: str | None = None,
+        review_age_days: int = 7,
+    ) -> dict[str, Any]:
+        """Summarise only cases visible to the authenticated principal.
+
+        The age threshold is an operational screening default, not an official SLA.
+        Records with malformed timestamps are reported separately, never silently
+        counted as fresh.
+        """
+        self._authorised(principal)
+        if isinstance(review_age_days, bool) or not isinstance(review_age_days, int) or review_age_days < 1:
+            raise ValueError("review_age_days must be a positive integer.")
+        current_value = as_of or datetime.now(timezone.utc).isoformat()
+        try:
+            current = datetime.fromisoformat(current_value.replace("Z", "+00:00"))
+        except (TypeError, ValueError) as exc:
+            raise ValueError("as_of must be an ISO 8601 timestamp with timezone.") from exc
+        if current.tzinfo is None or current.utcoffset() is None:
+            raise ValueError("as_of must be an ISO 8601 timestamp with timezone.")
+        current = current.astimezone(timezone.utc)
+        records = self.list_observations(principal)
+        open_statuses = {"Received", "Under review"}
+        status_counts: dict[str, int] = {}
+        stale_cases: list[dict[str, Any]] = []
+        invalid_timestamp_cases: list[str] = []
+        priority_counts: dict[str, int] = {}
+        for record in records:
+            status = str(record.get("status", "Unknown"))
+            status_counts[status] = status_counts.get(status, 0) + 1
+            severity = str(record.get("severity", "Unknown"))
+            priority_counts[severity] = priority_counts.get(severity, 0) + 1
+            if status not in open_statuses:
+                continue
+            timestamp = record.get("updated_at") or record.get("created_at")
+            try:
+                parsed = datetime.fromisoformat(str(timestamp).replace("Z", "+00:00"))
+                if parsed.tzinfo is None or parsed.utcoffset() is None:
+                    raise ValueError("timezone missing")
+                age_days = max(0.0, (current - parsed.astimezone(timezone.utc)).total_seconds() / 86400)
+            except (TypeError, ValueError):
+                invalid_timestamp_cases.append(str(record.get("case_id", "unknown")))
+                continue
+            if age_days >= review_age_days:
+                stale_cases.append({
+                    "case_id": str(record.get("case_id", "unknown")),
+                    "status": status,
+                    "severity": severity,
+                    "age_days": round(age_days, 2),
+                })
+        stale_cases.sort(key=lambda item: (-item["age_days"], item["case_id"]))
+        return {
+            "as_of": current.isoformat(),
+            "visible_case_count": len(records),
+            "open_review_count": sum(1 for item in records if item.get("status") in open_statuses),
+            "stale_review_count": len(stale_cases),
+            "stale_review_cases": stale_cases,
+            "invalid_timestamp_case_ids": sorted(invalid_timestamp_cases),
+            "status_counts": dict(sorted(status_counts.items())),
+            "priority_counts": dict(sorted(priority_counts.items())),
+            "review_age_threshold_days": review_age_days,
+            "threshold_is_screening_default_not_official_sla": True,
+        }
+
     def get_observation(self, case_id: str, principal: Principal) -> dict[str, Any] | None:
         self._authorised(principal)
         return self.repository.get_observation(
