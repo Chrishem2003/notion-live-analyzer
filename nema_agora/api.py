@@ -51,10 +51,10 @@ def _require_nema_read_access(
     if role not in {"reviewer", "coordinator", "admin"}:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="This role cannot access cross-case records.")
     signing_secret = os.environ.get("NEMA_PORTAL_SIGNING_SECRET", "").strip()
-    if len(signing_secret) < 32:
+    if len(signing_secret) < 32 or hmac.compare_digest(signing_secret, os.environ.get("PLATFORM_API_KEY", "")):
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="NEMA portal identity signing is not configured.",
+            detail="NEMA portal identity signing must use a separate secret of at least 32 characters.",
         )
     message = f"{actor}\n{role}".encode("utf-8")
     expected = hmac.new(signing_secret.encode("utf-8"), message, hashlib.sha256).hexdigest()
