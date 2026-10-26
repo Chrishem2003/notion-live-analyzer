@@ -92,6 +92,7 @@ def test_remote_repository_readiness_does_not_claim_durability(monkeypatch):
         assert result["storage_durability_verified"] is False
         assert result["production_writes_enabled"] is False
         assert len(session.calls) == 2
+        assert "owner_id" in session.calls[0][1]["select"]
         assert all(call[2] <= 5.0 for call in session.calls)
     finally:
         repository.close()
