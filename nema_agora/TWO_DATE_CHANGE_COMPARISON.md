@@ -13,6 +13,9 @@ The `nema_agora.paired_raster_ingestion.compare_uploaded_geotiff_pair` workflow 
 - A short allowlist of dataset and band metadata tags is captured for review, with values bounded to 240 characters. If an embedded PROCESSING_BASELINE tag exists and conflicts with the corresponding operator declaration, comparison is blocked. Tags remain untrusted claims, not authenticated evidence.
 - Outputs include index deltas, robust summary statistics, threshold-exceedance pixel counts, compatibility checks and a report SHA-256 digest.
 - Does not calculate area, infer causation, authenticate source imagery or make environmental/legal findings.
+- Explicitly flags seasonal phenology, rainfall/water-level variation, illumination, viewing geometry and land-management cycles as potential non-harmful causes of NDVI/NDWI differences.
+- The SCL exclusions reduce some cloud/shadow contamination but do not guarantee cloud-free pixels; reviewers must inspect imagery for cloud edges, haze, shadows and residual artefacts.
+- Two dates alone cannot establish persistent change. Prefer like-season comparisons, additional dates, and contextual rainfall, water-level and land-use records before escalation.
 
 ## Important caveat
 The scale and processing-baseline identifiers are separately entered operator assertions, checked for exact equality. The workflow does not independently authenticate those labels against provider metadata; reviewers must verify them from original product documentation. Embedded GeoTIFF scales and offsets are read for B03/B04/B08 and compared exactly, but matching defaults (often 1.0 and 0.0) do not prove the pixel values are physically scaled reflectance. A bounded allowlist of source tags is included in the report to help reviewers locate product identifiers and processing metadata; those tags may be missing, edited or forged and are not authenticated. The grid/CRS/transform and dimensions are derived from the raster files themselves. Exact grid or band-metadata equality does not prove source authenticity or scientific suitability.
@@ -25,3 +28,4 @@ Build a paired GeoTIFF loader and UI flow that:
 4. applies the same AOI mask and valid-pixel/cloud policy to both dates;
 5. generates a comparison report only after all checks pass;
 6. tests seasonal and cloud artefacts against independently reviewed local reference data.
+7. records a review decision that explicitly addresses seasonality, cloud/shadow contamination, acquisition comparability and whether additional dates or field verification are required.
