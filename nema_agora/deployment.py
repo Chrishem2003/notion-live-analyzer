@@ -31,7 +31,7 @@ def _module_checks() -> list[HealthCheck]:
         try:
             importlib.import_module(name)
         except Exception as exc:
-            checks.append(HealthCheck(f"import:{name}", False, f"{type(exc).__name__}: {exc}"))
+            checks.append(HealthCheck(f"import:{name}", False, "module import failed; inspect restricted server logs"))
         else:
             checks.append(HealthCheck(f"import:{name}", True, "imported"))
     return checks
@@ -41,10 +41,10 @@ def _path_check() -> HealthCheck:
         package = importlib.import_module("nema_agora")
         package_path = Path(package.__file__ or "")
     except Exception as exc:
-        return HealthCheck("package-path", False, f"{type(exc).__name__}: {exc}")
+        return HealthCheck("package-path", False, "package path could not be resolved; inspect restricted server logs")
     if not package_path.exists():
         return HealthCheck("package-path", False, "package path does not exist")
-    return HealthCheck("package-path", True, str(package_path))
+    return HealthCheck("package-path", True, "package path available")
 
 def run_health_checks() -> tuple[HealthCheck, ...]:
     checks = _module_checks()
