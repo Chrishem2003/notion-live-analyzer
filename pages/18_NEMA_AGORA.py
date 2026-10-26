@@ -36,6 +36,7 @@ from nema_agora.spatial_workspace_bundle import build_spatial_evidence_bundle, v
 from nema_agora.source_registry import list_sources
 from nema_agora.asset_receipt import build_manual_asset_receipt, validate_asset_receipt
 from nema_agora.geojson_aoi import validate_geojson_aoi
+from nema_agora.paired_study_manifest import build_paired_study_manifest, validate_paired_study_manifest
 
 st.set_page_config(page_title="NEMA-AGORA | Environmental Workspace", page_icon="🌿", layout="wide")
 
@@ -1124,6 +1125,77 @@ if active_section == "Maps & metrics" and map_tool == "Data sources & asset rece
             key="nema_agora_download_aoi_report",
             use_container_width=True,
         )
+
+    st.markdown("### Assemble a paired-scene study manifest")
+    st.caption(
+        "Combine a baseline receipt, a later comparison receipt and the AOI file into a reproducible study plan. "
+        "This does not calculate NDVI/NDWI or perform raster change analysis."
+    )
+    manifest_a, manifest_b = st.columns(2)
+    with manifest_a:
+        baseline_receipt_file = st.file_uploader(
+            "Baseline receipt JSON", type=["json"], accept_multiple_files=False,
+            key="nema_agora_baseline_receipt_json",
+        )
+    with manifest_b:
+        comparison_receipt_file = st.file_uploader(
+            "Comparison receipt JSON", type=["json"], accept_multiple_files=False,
+            key="nema_agora_comparison_receipt_json",
+        )
+    manifest_aoi_file = st.file_uploader(
+        "AOI GeoJSON for this study", type=["geojson", "json"],
+        accept_multiple_files=False, key="nema_agora_manifest_aoi_json",
+    )
+    study_id = st.text_input("Study ID", value="WETLAND-PILOT-001", key="nema_agora_study_id")
+    processing_notes = st.text_area(
+        "Processing and comparability checks still required",
+        value="Verify scene products, acquisition metadata, cloud masks, CRS/grid alignment, seasonality and field references before any change analysis.",
+        max_chars=2000, key="nema_agora_study_processing_notes",
+    )
+    if st.button("Build paired-scene study manifest", key="nema_agora_build_study_manifest", type="primary", use_container_width=True):
+        st.session_state.pop("nema_agora_paired_study_manifest", None)
+        if not baseline_receipt_file or not comparison_receipt_file or not manifest_aoi_file:
+            st.error("Provide both receipt JSON files and the AOI GeoJSON.")
+        else:
+            try:
+                baseline_json = json.loads(baseline_receipt_file.getvalue().decode("utf-8"))
+                comparison_json = json.loads(comparison_receipt_file.getvalue().decode("utf-8"))
+                aoi_json = json.loads(manifest_aoi_file.getvalue().decode("utf-8"))
+                manifest = build_paired_study_manifest(
+                    study_id=study_id,
+                    aoi_document=aoi_json,
+                    baseline_receipt=baseline_json,
+                    comparison_receipt=comparison_json,
+                    processing_notes=processing_notes,
+                )
+            except (UnicodeDecodeError, json.JSONDecodeError, ValueError, TypeError) as exc:
+                st.error("Study manifest was not created. Correct the inputs and retry.")
+                st.caption(str(exc))
+            else:
+                st.session_state["nema_agora_paired_study_manifest"] = manifest
+                st.success("Paired-scene study manifest created and validated in this session.")
+    study_manifest = st.session_state.get("nema_agora_paired_study_manifest")
+    if isinstance(study_manifest, dict):
+        manifest_report = validate_paired_study_manifest(study_manifest)
+        st.write(f"**Manifest integrity:** {'VALID' if manifest_report['valid'] else 'CONTROL REQUIRED'}")
+        st.write(f"**Study state:** {study_manifest.get('study_state')}")
+        st.write(f"**Fingerprint:** {study_manifest.get('fingerprint')}")
+        st.warning(
+            "READY FOR PROCESSING REVIEW is not a finding of environmental change. "
+            "Provider connection, raster processing, change analysis and official-boundary verification remain unclaimed."
+        )
+        if manifest_report["valid"]:
+            st.download_button(
+                "Download paired-scene study manifest",
+                data=json.dumps(study_manifest, sort_keys=True, ensure_ascii=False, indent=2),
+                file_name=f"{study_manifest['study_id']}-manifest.json",
+                mime="application/json",
+                key="nema_agora_download_study_manifest",
+                use_container_width=True,
+            )
+        else:
+            st.error("Manifest integrity failed; export is disabled.")
+            st.json(manifest_report["findings"])
 
     st.markdown("### Create a manual asset receipt")
     st.caption(
