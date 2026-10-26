@@ -16,7 +16,7 @@ import numpy as np
 from nema_agora.pixel_indices import PixelProcessingError, process_sentinel2_bands
 
 MAX_UPLOAD_BYTES = 100 * 1024 * 1024
-MAX_PIXEL_COUNT = 25_000_000
+MAX_PIXEL_COUNT = 5_000_000
 REQUIRED_BANDS = ("B03", "B04", "B08", "SCL")
 
 
@@ -134,7 +134,7 @@ def process_uploaded_geotiff(
                     "band_descriptions": descriptions,
                     "selected_band_indexes_1_based": indexes,
                     "transform": [float(v) for v in dataset.transform[:6]],
-                    "nodata_by_band": {name: dataset.nodatavals[indexes[name] - 1] for name in REQUIRED_BANDS},
+                    "nodata_by_band": {name: (float(dataset.nodatavals[indexes[name] - 1]) if dataset.nodatavals[indexes[name] - 1] is not None and np.isfinite(dataset.nodatavals[indexes[name] - 1]) else None) for name in REQUIRED_BANDS},
                     "reflectance_scale_assumption": "Values are used as stored; caller must confirm B03/B04/B08 share compatible reflectance scaling.",
                     "aoi_handling": "none_full_raster" if aoi_mask is None else "GeoJSON rasterized on source grid; caller attested same CRS",
                     "resampling_performed": False,
