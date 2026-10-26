@@ -37,7 +37,7 @@ from nema_agora.source_registry import list_sources
 from nema_agora.asset_receipt import build_manual_asset_receipt, validate_asset_receipt
 from nema_agora.geojson_aoi import validate_geojson_aoi
 from nema_agora.paired_study_manifest import build_paired_study_manifest, validate_paired_study_manifest
-from nema_agora.paired_raster_array_analysis import analyze_paired_raster_arrays
+from nema_agora.paired_raster_array_analysis import analyze_paired_raster_arrays, validate_paired_array_analysis
 
 st.set_page_config(page_title="NEMA-AGORA | Environmental Workspace", page_icon="🌿", layout="wide")
 
@@ -1187,7 +1187,8 @@ if active_section == "Maps & metrics" and map_tool == "Data sources & asset rece
                 st.session_state["nema_agora_paired_array_analysis"] = analysis_result
     array_result = st.session_state.get("nema_agora_paired_array_analysis")
     if isinstance(array_result, dict):
-        if array_result.get("state") == "PIXEL_ANALYSIS_COMPLETE":
+        array_integrity = validate_paired_array_analysis(array_result)
+        if array_result.get("state") == "PIXEL_ANALYSIS_COMPLETE" and array_integrity["valid"]:
             st.success("Pixel-level analysis completed on the uploaded arrays.")
             metrics = st.columns(4)
             metrics[0].metric("Joint valid pixels", array_result["quality"]["joint_valid_pixels"])
@@ -1207,8 +1208,8 @@ if active_section == "Maps & metrics" and map_tool == "Data sources & asset rece
                 use_container_width=True,
             )
         else:
-            st.error("Pixel analysis stopped at a quality or input control.")
-            st.json(array_result.get("findings", []))
+            st.error("Pixel analysis is not exportable: input/quality controls or output integrity validation failed.")
+            st.json(array_result.get("findings", array_integrity.get("findings", [])))
 
     st.markdown("### Assemble a paired-scene study manifest")
     st.caption(
