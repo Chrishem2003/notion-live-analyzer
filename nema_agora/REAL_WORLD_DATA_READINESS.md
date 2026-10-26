@@ -103,3 +103,10 @@ The default 180-day interval, 45-day day-of-year gap, and valid-pixel threshold 
 Additional comparability hardening: the paired-scene gate now requires an AOI-clipped ingestion path for both scenes, checks the normalized AOI geometry SHA-256 in addition to matching raster-domain masks, and requires raster and validity-mask checksums. This prevents equal pixel masks alone from being treated as proof that the exact same AOI geometry and source assets were used. The scene fingerprint includes supplied ingestion provenance. The workspace displays seasonal/interval warnings and preserves comparability details when analysis is blocked.
 
 These checks still do not validate checksum authenticity against an external trusted source, prove that an uploaded mask is scientifically correct, or establish that the AOI is an official boundary. They are consistency and traceability controls, not external attestation.
+
+
+## Offline evidence-export verification milestone
+
+The local evidence-package module now provides `verify_export_package` so a recipient can re-check a JSON-compatible exported package without relying on the package's own embedded validation claims. It rehydrates the case, recomputes evidence provenance and human-review fingerprints, verifies the exported/reviewed state, compares key embedded validation fields with freshly computed results, and requires the non-submission / closed-execution flags to remain explicit. JSON export is deterministic and rejects non-finite numbers.
+
+This verifier detects internal tampering and inconsistent claims; it does **not** authenticate who created the file, validate source media against an external trusted registry, prove environmental truth, or confer NEMA authorization. Keep the original uploaded assets, acquisition metadata, custody records and trusted checksums where those are required by the governing process. Never treat a valid package as an official regulatory submission.
