@@ -35,6 +35,7 @@ from nema_agora.spatial_change_detection import detect_candidate
 from nema_agora.spatial_workspace_bundle import build_spatial_evidence_bundle, validate_spatial_evidence_bundle
 from nema_agora.source_registry import list_sources
 from nema_agora.asset_receipt import build_manual_asset_receipt, validate_asset_receipt
+from nema_agora.geojson_aoi import validate_geojson_aoi
 
 st.set_page_config(page_title="NEMA-AGORA | Environmental Workspace", page_icon="🌿", layout="wide")
 
@@ -1080,6 +1081,50 @@ if active_section == "Maps & metrics" and map_tool == "Data sources & asset rece
             st.markdown(f"**{item['title']}** — [{item['publisher']}]({item['url']})")
             st.caption(item["intended_use"])
             st.caption("Limitations: " + "; ".join(item["limitations"]))
+    st.markdown("### Validate an area of interest (AOI)")
+    st.caption(
+        "Upload a GeoJSON polygon or multipolygon to check basic structure and WGS84 coordinate bounds before a monitoring study. "
+        "This does not validate legal boundaries, geometry topology, or positional accuracy."
+    )
+    aoi_file = st.file_uploader(
+        "GeoJSON AOI file",
+        type=["geojson", "json"],
+        accept_multiple_files=False,
+        key="nema_agora_aoi_upload",
+    )
+    if st.button("Validate AOI file", key="nema_agora_validate_aoi", use_container_width=True):
+        st.session_state.pop("nema_agora_aoi_report", None)
+        if aoi_file is None:
+            st.error("Choose a GeoJSON file first.")
+        else:
+            try:
+                aoi_document = json.loads(aoi_file.getvalue().decode("utf-8"))
+                aoi_report = validate_geojson_aoi(aoi_document)
+            except (UnicodeDecodeError, json.JSONDecodeError):
+                aoi_report = {"valid": False, "findings": [{"code": "INVALID_JSON_OR_UTF8"}]}
+            st.session_state["nema_agora_aoi_report"] = {
+                "filename": aoi_file.name,
+                "report": aoi_report,
+            }
+    aoi_result = st.session_state.get("nema_agora_aoi_report")
+    if isinstance(aoi_result, dict):
+        aoi_report = aoi_result["report"]
+        st.write(f"**AOI validation:** {'BASIC STRUCTURE VALID' if aoi_report['valid'] else 'CONTROL REQUIRED'}")
+        st.caption(f"File: {aoi_result['filename']}")
+        if aoi_report.get("bounds"):
+            st.json(aoi_report["bounds"])
+        if aoi_report.get("findings"):
+            st.dataframe(pd.DataFrame(aoi_report["findings"]), use_container_width=True, hide_index=True)
+        st.warning("Basic GeoJSON validation is not proof that this AOI matches an official wetland or protected-area boundary.")
+        st.download_button(
+            "Download AOI validation report",
+            data=json.dumps(aoi_result, ensure_ascii=False, sort_keys=True, indent=2),
+            file_name="nema-agora-aoi-validation.json",
+            mime="application/json",
+            key="nema_agora_download_aoi_report",
+            use_container_width=True,
+        )
+
     st.markdown("### Create a manual asset receipt")
     st.caption(
         "Use this for a file you already have permission to use. The receipt records metadata and checksums, "
