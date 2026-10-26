@@ -18,6 +18,7 @@ def test_catalogue_covers_uganda_policy_research_wetlands_and_satellite_sources(
     assert {
         "UG-NEMA-ACT-CAP181",
         "UG-NEMA-NERA-2024-2029",
+        "UG-NEMA-STRATEGIC-PLAN-2025-2030",
         "UG-NEMA-NSOER-2024",
         "UG-MWE-WEIS-WETLANDS",
         "COPERNICUS-SENTINEL-2",
