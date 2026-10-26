@@ -41,6 +41,7 @@ cryptography>=42.0
 
 # HTTP / system
 requests>=2.32
+rasterio>=1.4.3
 psutil>=6.0
 joblib>=1.4
 
