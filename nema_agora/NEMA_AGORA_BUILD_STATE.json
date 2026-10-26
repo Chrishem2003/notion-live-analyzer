@@ -2,9 +2,9 @@
   "project": "NEMA-AGORA",
   "mode": "AUTONOMOUS_BUILD",
   "status": "INTEGRATION_VALIDATION",
-  "current_phase": 215,
-  "next_phase": 216,
-  "completed_through": 213,
+  "current_phase": 216,
+  "next_phase": 217,
+  "completed_through": 215,
   "pr_number": 115,
   "branch": "integration/nema-agora-mainline-20261026",
   "base_branch": "main",
@@ -14,8 +14,8 @@
   "last_verified_head": "a0710c81cd422bb36ace0de51b4cb56f89ea4d60",
   "last_verified_phase": 213,
   "architecture_checkpoint_after": 174,
-  "last_action": "Phases 214–215 add PostgreSQL regression coverage for duplicate measurement-ID rollback and direct table-write privileges, and harden migration 006 by granting schema CREATE only during SECURITY DEFINER function ownership transfer. Latest changes await final-head CI; disposable PostgreSQL execution and staging approval remain mandatory. The measurement HTTP API remains read-only.",
-  "validation_status": "PHASE_215_IMPLEMENTED_CI_PENDING_DISPOSABLE_POSTGRES_AND_STAGING_BLOCKED",
+  "last_action": "Phase 216 adds focused tests for the measurement submission HMAC identity boundary: valid signed identity, disallowed roles, actor/role tampering, missing platform key, and unsafe signing-secret configuration. No write route is exposed. Final-head CI and isolated PostgreSQL execution remain required.",
+  "validation_status": "PHASE_216_IMPLEMENTED_CI_PENDING_POSTGRES_AND_STAGING_BLOCKED",
   "stop_conditions": [
     "destructive_or_irreversible_action",
     "missing_credentials",
@@ -46,12 +46,12 @@
     "phase_190_search_path_migration_review_and_staging_approval",
     "indicator_evidence_artifact_authenticity_integration_pending",
     "phase_192_ci_verification",
-    "phase_tracker_reconciled_through_phase_213",
     "phase_214_215_final_head_ci_pending",
     "disposable_postgres_suite_must_run_not_skip",
     "migration_006_not_applied_and_requires_isolated_validation",
     "measurement_http_write_route_disabled",
-    "evidence_bytes_persistence_and_provenance_not_integrated"
+    "evidence_bytes_persistence_and_provenance_not_integrated",
+    "phase_216_auth_boundary_tests_final_head_ci_pending"
   ],
   "validation_evidence": {
     "candidate_sha": "6416723d338b13d7a5db05ba822630cc11c0c273",
@@ -120,7 +120,10 @@
     "phase_215_migration_hardening_commit": "20669196ca04c7d52824360fe3d11977c6411e21",
     "phase_214_postgres_regression_commit": "886ff5bfb5d622ae2681dc9d74b46136bddf7d3d",
     "phase_215_test_commit": "aa71d9e5af58ecece71adc357be6c0ea13680e8a",
-    "phase_215_checkpoint_doc_commit": "6e4c6201c27a0482efa6289b749f8d02b89a69e6"
+    "phase_215_checkpoint_doc_commit": "6e4c6201c27a0482efa6289b749f8d02b89a69e6",
+    "phase_216_auth_boundary_tests": "ADDED_CI_PENDING",
+    "phase_216_test_commit": "848c3afa19ec0ea21b5ef84fb8a09ff6eee5434c",
+    "phase_216_doc_commit": "2bee6c4bdf66f68a7693a6625ce127276f7a6e20"
   },
   "safety_boundary": "Independent student-led prototype; not an official NEMA service or endorsement. No official ELMIS/SWIMS integration, autonomous enforcement, or production approval is claimed."
 }
