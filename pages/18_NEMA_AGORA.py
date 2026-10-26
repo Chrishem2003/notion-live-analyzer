@@ -1205,7 +1205,16 @@ if active_section == "Maps & metrics" and map_tool == "Data sources & asset rece
         if isinstance(geo_result, dict):
             if geo_result.get("state") == "PIXEL_ANALYSIS_COMPLETE" and validate_paired_array_analysis(geo_result)["valid"]:
                 st.success("GeoTIFF pair processed and analysis integrity validated.")
-                st.json({key: value for key, value in geo_result.items() if key != "pixel_arrays"})
+                display_result = {key: value for key, value in geo_result.items() if key != "pixel_arrays"}
+                display_ingestion = display_result.get("ingestion")
+                if isinstance(display_ingestion, dict):
+                    display_result["ingestion"] = {
+                        scene_name: {
+                            key: value for key, value in scene_meta.items() if key != "aoi_geometry"
+                        } if isinstance(scene_meta, dict) else scene_meta
+                        for scene_name, scene_meta in display_ingestion.items()
+                    }
+                st.json(display_result)
                 st.download_button(
                     "Download GeoTIFF analysis evidence JSON",
                     data=json.dumps(geo_result, sort_keys=True, ensure_ascii=False, indent=2),
