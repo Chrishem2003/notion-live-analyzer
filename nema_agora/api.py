@@ -212,7 +212,7 @@ def storage_readiness(_auth: dict[str, str] = Depends(_require_nema_read_access)
 
 
 @router.get("/{case_id}")
-def get_case(case_id: str, _auth: bool = Depends(_require_nema_read_access)):
+def get_case(case_id: str, _auth: dict[str, str] = Depends(_require_nema_read_access)):
     """Read one persisted case and its audit history."""
     from nema_agora.supabase_repository import NemaStorageUnavailableError
 
@@ -234,7 +234,7 @@ def get_case(case_id: str, _auth: bool = Depends(_require_nema_read_access)):
         repository.close()
 
 @router.get("/{case_id}/review-packet")
-def review_packet(case_id: str, _auth: bool = Depends(_require_nema_read_access)):
+def review_packet(case_id: str, _auth: dict[str, str] = Depends(_require_nema_read_access)):
     """Build a deterministic read-only preview; this does not submit an automation job."""
     from nema_agora.supabase_repository import NemaStorageUnavailableError
     from nema_agora.workflows import build_case_review_packet
