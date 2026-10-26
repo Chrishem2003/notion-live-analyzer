@@ -31,8 +31,10 @@ def run(a, b, **kwargs):
         a, b,
         earlier_acquired_at="2026-01-01T10:00:00Z",
         later_acquired_at="2026-02-01T10:00:00Z",
-        reflectance_scale_id="L2A-reflectance-1e-4",
-        processing_baseline="04.00",
+        earlier_reflectance_scale_id=kwargs.pop("earlier_reflectance_scale_id", "L2A-reflectance-1e-4"),
+        later_reflectance_scale_id=kwargs.pop("later_reflectance_scale_id", "L2A-reflectance-1e-4"),
+        earlier_processing_baseline=kwargs.pop("earlier_processing_baseline", "04.00"),
+        later_processing_baseline=kwargs.pop("later_processing_baseline", "04.00"),
         **kwargs,
     )
 
@@ -57,7 +59,8 @@ def test_pair_blocks_invalid_dates():
             make_raster(), make_raster(),
             earlier_acquired_at="2026-02-01T10:00:00Z",
             later_acquired_at="2026-01-01T10:00:00Z",
-            reflectance_scale_id="scale", processing_baseline="04.00",
+            earlier_reflectance_scale_id="scale", later_reflectance_scale_id="scale",
+            earlier_processing_baseline="04.00", later_processing_baseline="04.00",
         )
 
 
@@ -78,3 +81,10 @@ def test_pair_requires_aoi_crs_attestation_and_rejects_bad_bytes():
         run(make_raster(), make_raster(), aoi_geojson_bytes=aoi)
     with pytest.raises(PairedRasterError, match="could not be opened"):
         run(b"not a GeoTIFF", make_raster())
+
+
+def test_pair_blocks_different_operator_declared_scaling_or_baseline():
+    with pytest.raises(PairedRasterError, match="scale/product identifiers differ"):
+        run(make_raster(), make_raster(offset=100), later_reflectance_scale_id="L2A-reflectance-1e-3")
+    with pytest.raises(PairedRasterError, match="baseline identifiers differ"):
+        run(make_raster(), make_raster(offset=100), later_processing_baseline="05.00")
