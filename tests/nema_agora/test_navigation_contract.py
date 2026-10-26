@@ -3,6 +3,9 @@ from pathlib import Path
 
 
 def test_single_page_case_management_exposes_explicit_workflow_run_action():
+    pages_dir = Path(__file__).resolve().parents[2] / "pages"
+    visible_nema_pages = sorted(p.name for p in pages_dir.glob("*NEMA_AGORA*.py"))
+    assert visible_nema_pages == ["19_NEMA_AGORA_Workspace.py"]
     page = (
         Path(__file__).resolve().parents[2] / "pages" / "19_NEMA_AGORA_Workspace.py"
     ).read_text(encoding="utf-8")
