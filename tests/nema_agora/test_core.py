@@ -116,3 +116,26 @@ def test_evidence_reference_length_is_limited():
             created_at="2026-10-03T12:00:00+03:00",
             evidence_reference="e" * 301,
         )
+
+
+
+def test_evidence_reference_is_explicitly_unverified_provenance():
+    common = dict(
+        observation_date=date(2026, 10, 3),
+        category=CATEGORIES[0],
+        severity="Moderate",
+        site="Pilot A",
+        description="Test observation",
+        latitude=2.5,
+        longitude=32.1,
+        consent_confirmed=True,
+        created_at="2026-10-03T12:00:00+03:00",
+    )
+    referenced = make_observation(**common, evidence_reference="  sample.png  ")
+    assert referenced["evidence_reference"] == "sample.png"
+    assert referenced["evidence_provenance"] == "user_supplied_reference"
+    assert referenced["evidence_verification_status"] == "unverified"
+
+    no_reference = make_observation(**common)
+    assert no_reference["evidence_provenance"] == "not_provided"
+    assert no_reference["evidence_verification_status"] == "unverified"
