@@ -61,3 +61,12 @@ def test_rpc_normalizes_invalid_reporting_date_errors():
     sql = MIGRATION.read_text(encoding="utf-8").lower()
     assert "reporting period dates must be valid iso dates" in sql
     assert "using errcode = '22023'" in sql
+
+
+def test_rpc_computes_digest_from_record_in_database_not_caller_argument():
+    sql = MIGRATION.read_text(encoding="utf-8").lower()
+    assert "v_payload_sha256 := " in sql
+    assert "extensions.digest(" in sql
+    assert "jsonb_build_object('measurement_id', p_measurement_id, 'record', p_record)" in sql
+    assert "p_payload_sha256" not in sql
+    assert "submit_nema_indicator_measurement(text, text, text, text, jsonb)" in sql
