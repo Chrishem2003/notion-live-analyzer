@@ -94,3 +94,10 @@ A further SQL three-valued-logic review found that the RPC's source-reference ch
 The proposed migration now uses IS DISTINCT FROM 'array' and checks array length in a separate branch, avoiding evaluation of jsonb_array_length on malformed input. PostgreSQL integration coverage now checks absent, JSON null, wrong-type object, and empty-array values all fail with the expected validation error.
 
 **Status:** proposed migration only; CI will verify this change against disposable PostgreSQL. No staging or production database has been changed.
+
+
+## Phase 211 — validate reference contents inside the RPC
+
+The SQL boundary now validates more than the outer JSON shapes. `source_refs` must contain unique, non-empty strings. `evidence_refs` is required to be a non-empty array of objects, each with a non-empty `reference` and a 64-character hexadecimal SHA-256 digest. Optional `caveats`, like `exclusions`, must be arrays when supplied. These checks are repeated at the database boundary so malformed payloads cannot rely solely on upstream Python validation.
+
+PostgreSQL regression tests now cover duplicate, blank, non-string source references and empty/malformed evidence references. Artifact-byte matching remains an application-layer check and does not prove evidence authenticity. This migration remains proposed and unapplied.
