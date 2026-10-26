@@ -47,6 +47,12 @@ def build_measurement_rpc_request(
         raise MeasurementWriteContractError("Authenticated actor role is not allowed to submit measurements.")
     if not isinstance(evidence_bytes, bytes):
         raise MeasurementWriteContractError("Evidence artifact bytes are required.")
+    if not isinstance(record, Mapping):
+        raise MeasurementWriteContractError("Measurement record must be an object.")
+    for field in ("definition_version", "reporting_timezone"):
+        value = record.get(field)
+        if not isinstance(value, str) or not value.strip():
+            raise MeasurementWriteContractError(f"{field} is required and must be non-empty text.")
 
     try:
         validated = validate_measurement_record(record, indicator, evidence_bytes=evidence_bytes)
