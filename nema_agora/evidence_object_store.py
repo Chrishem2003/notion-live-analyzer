@@ -7,6 +7,7 @@ The object key is derived from a validated digest so retries are deterministic.
 from __future__ import annotations
 
 import hashlib
+import hmac
 import os
 import re
 from typing import Any
@@ -63,7 +64,7 @@ class SupabaseEvidenceObjectStore:
         if not isinstance(expected_sha256, str) or not _SHA256_RE.fullmatch(expected_sha256):
             raise EvidenceStorageError("Evidence SHA-256 must be a lowercase 64-character digest.")
         actual = hashlib.sha256(content).hexdigest()
-        if not hashlib.compare_digest(actual, expected_sha256):
+        if not hmac.compare_digest(actual, expected_sha256):
             raise EvidenceStorageError("Evidence content does not match the declared SHA-256 digest.")
         object_key = f"sha256/{actual[:2]}/{actual}"
         url = (
