@@ -36,6 +36,11 @@ class MeasurementWriteContractTests(unittest.TestCase):
             record=self.record,
             indicator=self.indicator,
             evidence_bytes=self.artifact,
+            verified_evidence_object={
+                "bucket": "nema-evidence",
+                "object_key": f"sha256/{hashlib.sha256(self.artifact).hexdigest()[:2]}/{hashlib.sha256(self.artifact).hexdigest()}",
+                "sha256": hashlib.sha256(self.artifact).hexdigest(),
+            },
             authenticated_actor_id="user-123",
             authenticated_actor_role="submitter",
         )
@@ -46,9 +51,18 @@ class MeasurementWriteContractTests(unittest.TestCase):
         result = self.build()
         self.assertEqual(result["p_record"]["reporting_period_start"], "2026-10-01")
         self.assertEqual(result["p_record"]["source_refs"], ["field-log-001"])
+        self.assertEqual(result["p_record"]["evidence_refs"][0]["reference"], "nema-evidence/sha256/" + hashlib.sha256(self.artifact).hexdigest()[:2] + "/" + hashlib.sha256(self.artifact).hexdigest())
         self.assertNotIn("p_payload_sha256", result)
         self.assertTrue(result["evidence_artifact_bytes_verified"])
         self.assertFalse(result["evidence_authenticity_verified"])
+
+    def test_rejects_client_controlled_or_mismatched_storage_reference(self):
+        with self.assertRaisesRegex(MeasurementWriteContractError, "bucket, key, and digest"):
+            self.build(verified_evidence_object={
+                "bucket": "nema-evidence",
+                "object_key": "user-supplied/path.txt",
+                "sha256": hashlib.sha256(self.artifact).hexdigest(),
+            })
 
     def test_rejects_mismatched_evidence_bytes(self):
         with self.assertRaisesRegex(MeasurementWriteContractError, "SHA-256"):
