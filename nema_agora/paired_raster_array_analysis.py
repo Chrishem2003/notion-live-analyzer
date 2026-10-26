@@ -13,6 +13,8 @@ from collections.abc import Mapping, Sequence
 from datetime import datetime
 from typing import Any
 
+from nema_agora.scene_comparability import assess_scene_comparability
+
 POLICY_VERSION = "paired-array-analysis-v1"
 MAX_PIXELS = 250_000
 _REQUIRED_BANDS = ("B03", "B04", "B08")
@@ -173,6 +175,21 @@ def analyze_paired_raster_arrays(
         findings.append("RASTER_SHAPE_MISMATCH")
     if baseline["acquired_at"] >= comparison["acquired_at"]:
         findings.append("BASELINE_MUST_PRECEDE_COMPARISON")
+    comparability_report = None
+    # Real GeoTIFF ingestion provides acquisition and quality provenance. Apply
+    # stricter comparability gates when either scene carries that metadata; raw
+    # synthetic arrays remain usable for isolated numeric unit tests.
+    if isinstance(baseline_scene, Mapping) and isinstance(comparison_scene, Mapping):
+        has_ingestion = "ingestion" in baseline_scene or "ingestion" in comparison_scene
+        if has_ingestion:
+            comparability_report = assess_scene_comparability(
+                baseline_scene,
+                comparison_scene,
+                min_valid_fraction=float(min_valid_fraction),
+            )
+            findings.extend(
+                item["code"] for item in comparability_report.get("blocking_findings", [])
+            )
     if baseline["valid_fraction"] < float(min_valid_fraction):
         findings.append("BASELINE_VALID_FRACTION_BELOW_THRESHOLD")
     if comparison["valid_fraction"] < float(min_valid_fraction):
@@ -245,6 +262,11 @@ def analyze_paired_raster_arrays(
         "grid": {"aoi_id": baseline["aoi_id"], "grid_id": baseline["grid_id"], "crs": baseline["crs"], "rows": baseline["shape"][0], "columns": baseline["shape"][1]},
         "quality": {"joint_valid_pixels": valid_pixels, "total_pixels": total_pixels, "joint_valid_fraction": round(valid_pixels / total_pixels, 8), "raster_pixels": baseline["shape"][0] * baseline["shape"][1], "aoi_domain_pixels": total_pixels, "mask_policy": "pixel must be valid in both scenes; zero-denominator index pixels excluded"},
         "thresholds": {"min_valid_fraction": float(min_valid_fraction), "min_abs_ndvi_delta": float(min_abs_ndvi_delta), "min_abs_ndwi_delta": float(min_abs_ndwi_delta), "min_domain_pixels": min_domain_pixels},
+        "scene_comparability": comparability_report or {
+            "state": "PROVENANCE_NOT_AVAILABLE",
+            "warnings": [{"code": "SCENE_COMPARABILITY_METADATA_NOT_SUPPLIED"}],
+            "review_boundary": "Numeric array compatibility passed, but acquisition provenance, seasonal comparability, and scaling consistency were not assessed.",
+        },
         "summary": summaries,
         "pixel_arrays": index_values,
         "interpretation": {
