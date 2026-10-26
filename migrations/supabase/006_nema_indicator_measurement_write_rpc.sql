@@ -270,15 +270,13 @@ begin
         p_record->>'calculation_method', null, null, coalesce(p_record->'caveats', '[]'::jsonb)
     );
 
-    -- Bind each already read-back-verified storage reference to this measurement
-    -- inside the same transaction as the measurement and audit event. The trusted API
-    -- must construct reference as "<bucket>/sha256/<first-two>/<sha256>" only after
-    -- Supabase Storage read-back verification has succeeded.
+    -- Register storage provenance in this same transaction. The trusted API must
+    -- construct each reference only after Supabase Storage read-back digest verification.
     insert into public.nema_evidence_artifacts (
         evidence_id, measurement_id, bucket_name, object_key, sha256, registered_by
     )
     select
-        p_measurement_id || ':' || (evidence_ref.item->>'sha256'),
+        p_measurement_id || ':' || pg_catalog.lower(evidence_ref.item->>'sha256'),
         p_measurement_id,
         split_part(evidence_ref.item->>'reference', '/', 1),
         substr(evidence_ref.item->>'reference', length(split_part(evidence_ref.item->>'reference', '/', 1)) + 2),
@@ -379,8 +377,7 @@ commit;
 -- * Verify writer-role table grants and command-specific SELECT/INSERT RLS policies match this migration.
 -- * Confirm RLS/grants and fixed search_path; verify no anon/authenticated execution.
 -- * This RPC does not authenticate p_actor_id/p_actor_role; API must derive these from OIDC/session.
--- * Evidence bytes and reviewer independence require separate authenticated workflows.
-),
+-- * Evidence bytes and reviewer independence require separate authenticated workflows.),
     object_key text not null,
     sha256 text not null check (sha256 ~ '^[a-fA-F0-9]{64}
     measurement_id text not null
@@ -624,7 +621,6 @@ $function$;
 
 revoke all on table public.nema_measurement_idempotency from anon, authenticated, service_role;
 revoke all on table public.nema_measurement_audit from anon, authenticated, service_role;
-revoke all on table public.nema_evidence_artifacts from anon, authenticated, service_role;
 revoke all on table public.nema_indicator_measurements from anon, authenticated, service_role;
 
 -- The function owner has only the table rights the RPC needs. RLS remains enabled;
@@ -689,8 +685,7 @@ commit;
 -- * Verify writer-role table grants and command-specific SELECT/INSERT RLS policies match this migration.
 -- * Confirm RLS/grants and fixed search_path; verify no anon/authenticated execution.
 -- * This RPC does not authenticate p_actor_id/p_actor_role; API must derive these from OIDC/session.
--- * Evidence bytes and reviewer independence require separate authenticated workflows.
-),
+-- * Evidence bytes and reviewer independence require separate authenticated workflows.),
     registered_by text not null,
     created_at timestamptz not null default pg_catalog.now(),
     constraint nema_evidence_bucket_object_unique unique (bucket_name, object_key),
@@ -1002,8 +997,8 @@ commit;
 -- * Confirm RLS/grants and fixed search_path; verify no anon/authenticated execution.
 -- * This RPC does not authenticate p_actor_id/p_actor_role; API must derive these from OIDC/session.
 -- * Evidence bytes and reviewer independence require separate authenticated workflows.
-
         and split_part(object_key, '/', 2) = substr(split_part(object_key, '/', 3), 1, 2)
+        and split_part(object_key, '/', 3) = pg_catalog.lower(sha256)
     ),
     constraint nema_evidence_id_nonblank check (length(pg_catalog.btrim(evidence_id)) > 0),
     constraint nema_evidence_actor_nonblank check (length(pg_catalog.btrim(registered_by)) > 0)
@@ -1317,7 +1312,6 @@ commit;
 -- * Confirm RLS/grants and fixed search_path; verify no anon/authenticated execution.
 -- * This RPC does not authenticate p_actor_id/p_actor_role; API must derive these from OIDC/session.
 -- * Evidence bytes and reviewer independence require separate authenticated workflows.
-
             or (evidence_ref.item->>'reference') !~ '^[a-z0-9][a-z0-9._-]{1,62}/sha256/[0-9a-f]{2}/[0-9a-f]{64}
         raise exception 'evidence_refs require a reference and a valid SHA-256 digest' using errcode = '22023';
     end if;
@@ -1407,22 +1401,6 @@ commit;
         p_record->>'calculation_method', null, null, coalesce(p_record->'caveats', '[]'::jsonb)
     );
 
-    -- Bind each already read-back-verified storage reference to this measurement
-    -- inside the same transaction as the measurement and audit event. The trusted API
-    -- must construct reference as "<bucket>/sha256/<first-two>/<sha256>" only after
-    -- Supabase Storage read-back verification has succeeded.
-    insert into public.nema_evidence_artifacts (
-        evidence_id, measurement_id, bucket_name, object_key, sha256, registered_by
-    )
-    select
-        p_measurement_id || ':' || (evidence_ref.item->>'sha256'),
-        p_measurement_id,
-        split_part(evidence_ref.item->>'reference', '/', 1),
-        substr(evidence_ref.item->>'reference', length(split_part(evidence_ref.item->>'reference', '/', 1)) + 2),
-        pg_catalog.lower(evidence_ref.item->>'sha256'),
-        p_actor_id
-    from pg_catalog.jsonb_array_elements(p_record->'evidence_refs') as evidence_ref(item);
-
     insert into public.nema_measurement_idempotency (
         idempotency_key, payload_sha256, measurement_id
     ) values (p_idempotency_key, v_payload_sha256, p_measurement_id);
@@ -1445,7 +1423,6 @@ $function$;
 
 revoke all on table public.nema_measurement_idempotency from anon, authenticated, service_role;
 revoke all on table public.nema_measurement_audit from anon, authenticated, service_role;
-revoke all on table public.nema_evidence_artifacts from anon, authenticated, service_role;
 revoke all on table public.nema_indicator_measurements from anon, authenticated, service_role;
 
 -- The function owner has only the table rights the RPC needs. RLS remains enabled;
@@ -1510,8 +1487,7 @@ commit;
 -- * Verify writer-role table grants and command-specific SELECT/INSERT RLS policies match this migration.
 -- * Confirm RLS/grants and fixed search_path; verify no anon/authenticated execution.
 -- * This RPC does not authenticate p_actor_id/p_actor_role; API must derive these from OIDC/session.
--- * Evidence bytes and reviewer independence require separate authenticated workflows.
-),
+-- * Evidence bytes and reviewer independence require separate authenticated workflows.),
     object_key text not null,
     sha256 text not null check (sha256 ~ '^[a-fA-F0-9]{64}
     measurement_id text not null
@@ -1819,14 +1795,9 @@ commit;
 -- * Verify writer-role table grants and command-specific SELECT/INSERT RLS policies match this migration.
 -- * Confirm RLS/grants and fixed search_path; verify no anon/authenticated execution.
 -- * This RPC does not authenticate p_actor_id/p_actor_role; API must derive these from OIDC/session.
--- * Evidence bytes and reviewer independence require separate authenticated workflows.
-),
+-- * Evidence bytes and reviewer independence require separate authenticated workflows.),
     registered_by text not null,
     created_at timestamptz not null default pg_catalog.now(),
-    constraint nema_evidence_object_key_matches_digest check (
-        object_key = 'sha256/' || pg_catalog.lower(sha256) ||
-        object_key = 'sha256/' || pg_catalog.lower(sha256)
-    ),
     constraint nema_evidence_bucket_object_unique unique (bucket_name, object_key),
     constraint nema_evidence_object_key_shape check (
         object_key ~ '^sha256/[0-9a-f]{2}/[0-9a-f]{64}
@@ -2136,8 +2107,8 @@ commit;
 -- * Confirm RLS/grants and fixed search_path; verify no anon/authenticated execution.
 -- * This RPC does not authenticate p_actor_id/p_actor_role; API must derive these from OIDC/session.
 -- * Evidence bytes and reviewer independence require separate authenticated workflows.
-
         and split_part(object_key, '/', 2) = substr(split_part(object_key, '/', 3), 1, 2)
+        and split_part(object_key, '/', 3) = pg_catalog.lower(sha256)
     ),
     constraint nema_evidence_id_nonblank check (length(pg_catalog.btrim(evidence_id)) > 0),
     constraint nema_evidence_actor_nonblank check (length(pg_catalog.btrim(registered_by)) > 0)
@@ -2451,7 +2422,6 @@ commit;
 -- * Confirm RLS/grants and fixed search_path; verify no anon/authenticated execution.
 -- * This RPC does not authenticate p_actor_id/p_actor_role; API must derive these from OIDC/session.
 -- * Evidence bytes and reviewer independence require separate authenticated workflows.
-
             or split_part(evidence_ref.item->>'reference', '/', 3) <> substr(pg_catalog.lower(evidence_ref.item->>'sha256'), 1, 2)
             or split_part(evidence_ref.item->>'reference', '/', 4) <> pg_catalog.lower(evidence_ref.item->>'sha256')
     ) then
@@ -2543,22 +2513,6 @@ commit;
         p_record->>'calculation_method', null, null, coalesce(p_record->'caveats', '[]'::jsonb)
     );
 
-    -- Bind each already read-back-verified storage reference to this measurement
-    -- inside the same transaction as the measurement and audit event. The trusted API
-    -- must construct reference as "<bucket>/sha256/<first-two>/<sha256>" only after
-    -- Supabase Storage read-back verification has succeeded.
-    insert into public.nema_evidence_artifacts (
-        evidence_id, measurement_id, bucket_name, object_key, sha256, registered_by
-    )
-    select
-        p_measurement_id || ':' || (evidence_ref.item->>'sha256'),
-        p_measurement_id,
-        split_part(evidence_ref.item->>'reference', '/', 1),
-        substr(evidence_ref.item->>'reference', length(split_part(evidence_ref.item->>'reference', '/', 1)) + 2),
-        pg_catalog.lower(evidence_ref.item->>'sha256'),
-        p_actor_id
-    from pg_catalog.jsonb_array_elements(p_record->'evidence_refs') as evidence_ref(item);
-
     insert into public.nema_measurement_idempotency (
         idempotency_key, payload_sha256, measurement_id
     ) values (p_idempotency_key, v_payload_sha256, p_measurement_id);
@@ -2581,7 +2535,6 @@ $function$;
 
 revoke all on table public.nema_measurement_idempotency from anon, authenticated, service_role;
 revoke all on table public.nema_measurement_audit from anon, authenticated, service_role;
-revoke all on table public.nema_evidence_artifacts from anon, authenticated, service_role;
 revoke all on table public.nema_indicator_measurements from anon, authenticated, service_role;
 
 -- The function owner has only the table rights the RPC needs. RLS remains enabled;
@@ -2646,8 +2599,7 @@ commit;
 -- * Verify writer-role table grants and command-specific SELECT/INSERT RLS policies match this migration.
 -- * Confirm RLS/grants and fixed search_path; verify no anon/authenticated execution.
 -- * This RPC does not authenticate p_actor_id/p_actor_role; API must derive these from OIDC/session.
--- * Evidence bytes and reviewer independence require separate authenticated workflows.
-),
+-- * Evidence bytes and reviewer independence require separate authenticated workflows.),
     object_key text not null,
     sha256 text not null check (sha256 ~ '^[a-fA-F0-9]{64}
     measurement_id text not null
@@ -2955,14 +2907,9 @@ commit;
 -- * Verify writer-role table grants and command-specific SELECT/INSERT RLS policies match this migration.
 -- * Confirm RLS/grants and fixed search_path; verify no anon/authenticated execution.
 -- * This RPC does not authenticate p_actor_id/p_actor_role; API must derive these from OIDC/session.
--- * Evidence bytes and reviewer independence require separate authenticated workflows.
-),
+-- * Evidence bytes and reviewer independence require separate authenticated workflows.),
     registered_by text not null,
     created_at timestamptz not null default pg_catalog.now(),
-    constraint nema_evidence_object_key_matches_digest check (
-        object_key = 'sha256/' || pg_catalog.lower(sha256) ||
-        object_key = 'sha256/' || pg_catalog.lower(sha256)
-    ),
     constraint nema_evidence_bucket_object_unique unique (bucket_name, object_key),
     constraint nema_evidence_object_key_shape check (
         object_key ~ '^sha256/[0-9a-f]{2}/[0-9a-f]{64}
@@ -3272,8 +3219,8 @@ commit;
 -- * Confirm RLS/grants and fixed search_path; verify no anon/authenticated execution.
 -- * This RPC does not authenticate p_actor_id/p_actor_role; API must derive these from OIDC/session.
 -- * Evidence bytes and reviewer independence require separate authenticated workflows.
-
         and split_part(object_key, '/', 2) = substr(split_part(object_key, '/', 3), 1, 2)
+        and split_part(object_key, '/', 3) = pg_catalog.lower(sha256)
     ),
     constraint nema_evidence_id_nonblank check (length(pg_catalog.btrim(evidence_id)) > 0),
     constraint nema_evidence_actor_nonblank check (length(pg_catalog.btrim(registered_by)) > 0)
