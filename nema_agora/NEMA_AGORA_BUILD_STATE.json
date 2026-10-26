@@ -2,20 +2,20 @@
   "project": "NEMA-AGORA",
   "mode": "AUTONOMOUS_BUILD",
   "status": "INTEGRATION_VALIDATION",
-  "current_phase": 190,
-  "next_phase": 190,
-  "completed_through": 189,
+  "current_phase": 191,
+  "next_phase": 192,
+  "completed_through": 190,
   "pr_number": 115,
   "branch": "integration/nema-agora-mainline-20261026",
   "base_branch": "main",
   "draft_pr": true,
   "merge_allowed": false,
-  "current_head": "15a1615f7fdb2e7b87ce5ac5857040ceb8fe975d",
+  "current_head": "PENDING_CI_FINAL_HEAD",
   "last_verified_head": "55f61e2ddee29e3f7de7302842cdff7c9493f098",
   "last_verified_phase": 186,
   "architecture_checkpoint_after": 174,
-  "last_action": "Phase 189 client hardening and read-only staging audit verified by passing repository CI/CD, NEMA integration checks, and auth-role security workflows on commit b9f11fa494fb069feae39ca264043e4e30f255f6. Phase 190 adds an additive, unapplied Supabase migration pinning reject_nema_case_audit_mutation search_path to pg_catalog. No secrets changed, no migrations applied, no production writes or deployment.",
-  "validation_status": "PHASE_189_CI_PASSED_PHASE_190_MIGRATION_CANDIDATE_CI_PENDING_STAGING_BLOCKED",
+  "last_action": "Phase 191 adds an evidence-gated indicator measurement validator, unit tests, and a JSON validation surface in the existing one-page Pilot metrics workspace. Records are checked but not persisted and registry statuses are not changed. Phase 190 search_path migration remains unapplied. Phase 189 CI passed; phase 190 workflows passed on commit 5d79c8bb8de12007e7f568b0b1248ce6d9323d36.",
+  "validation_status": "PHASE_190_CI_PASSED_PHASE_191_CI_PENDING_STAGING_BLOCKED",
   "stop_conditions": [
     "destructive_or_irreversible_action",
     "missing_credentials",
@@ -43,8 +43,9 @@
     "staging_authenticated_storage_read_not_verified",
     "supabase_mutable_search_path_warning_review",
     "staging_candidate_branch_mismatch",
-    "phase_190_ci_verification",
-    "phase_190_search_path_migration_review_and_staging_approval"
+    "phase_190_search_path_migration_review_and_staging_approval",
+    "phase_191_ci_verification",
+    "indicator_evidence_artifact_authenticity_integration_pending"
   ],
   "validation_evidence": {
     "candidate_sha": "6416723d338b13d7a5db05ba822630cc11c0c273",
@@ -90,7 +91,12 @@
     "phase_189_focused_nema_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/40403203125",
     "phase_189_auth_role_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/40403203061",
     "phase_190_search_path_migration": "ADDED_NOT_APPLIED",
-    "phase_190_ci": "PENDING"
+    "phase_190_ci": "PASSED_ON_5D79C8BB8DE12007E7F568B0B1248CE6D9323D36",
+    "phase_190_repository_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/40403897728",
+    "phase_190_focused_nema_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/40403897745",
+    "phase_190_auth_role_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/40403897718",
+    "phase_191_indicator_evidence_validator": "ADDED_CI_PENDING_NOT_PERSISTED",
+    "phase_191_ci": "PENDING"
   },
   "safety_boundary": "Independent student-led prototype; not an official NEMA service or endorsement. No official ELMIS/SWIMS integration, autonomous enforcement, or production approval is claimed."
 }
