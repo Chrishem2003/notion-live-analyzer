@@ -24,6 +24,7 @@ class FakeSession:
         self.calls = []
         self.get_calls = []
         self.stored_content = b""
+        self.readback_override = None
         self.closed = False
 
     def post(self, url, **kwargs):
@@ -34,7 +35,8 @@ class FakeSession:
 
     def get(self, url, **kwargs):
         self.get_calls.append((url, kwargs))
-        return FakeResponse(200, self.stored_content)
+        payload = self.stored_content if self.readback_override is None else self.readback_override
+        return FakeResponse(200, payload)
 
     def close(self):
         self.closed = True
@@ -124,7 +126,7 @@ def test_readback_digest_mismatch_fails_closed(monkeypatch):
     session = FakeSession()
     store = SupabaseEvidenceObjectStore(session=session)
     content = b"artifact"
-    session.stored_content = b"tampered bytes"
+    session.readback_override = b"tampered bytes"
 
     with pytest.raises(EvidenceStorageError, match="Stored evidence digest"):
         store.put_verified_artifact(
