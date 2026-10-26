@@ -399,7 +399,7 @@ if active_section == "Case management":
                 )
             ]
             st.caption(f"Showing {len(filtered_records)} of {len(records)} records in the queue below. The case selector includes all records visible to your account.")
-            selected_id = st.selectbox("Select record to review", options=[r["case_id"] for r in reversed(records)])
+            selected_id = st.selectbox("Select record to review (all visible cases)", options=[r["case_id"] for r in reversed(records)])
             selected = next(r for r in records if r["case_id"] == selected_id)
             st.markdown(f"**{selected['category']}** · {selected['severity']} · {selected['district_or_site']}")
             st.write(selected["description"])
@@ -428,9 +428,14 @@ if active_section == "Case management":
                 try:
                     service.update_review(selected_id, principal, new_status=new_status, review_notes=review_notes, changed_at=changed_at)
                 except (ValueError, PermissionError, KeyError) as exc:
-                    st.error(str(exc))
+                    st.error("The review could not be confirmed as saved. Reload the case and verify its current status before retrying.")
+                    st.caption(f"Failure type: {type(exc).__name__}")
+                except Exception as exc:
+                    # Keep storage/driver details out of the user-facing page.
+                    st.error("The review could not be confirmed as saved because the workflow service encountered an unexpected error. Reload the case before retrying.")
+                    st.caption(f"Failure type: {type(exc).__name__}")
                 else:
-                    st.success("Record updated.")
+                    st.success("Record updated and workflow transition confirmed.")
                     st.rerun()
             if can_audit:
                 events = visible_audit(selected_id)
