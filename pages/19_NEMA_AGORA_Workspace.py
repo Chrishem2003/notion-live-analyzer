@@ -37,6 +37,7 @@ from nema_agora.spatial_change_detection import detect_candidate
 from nema_agora.satellite_evaluation import SatelliteEvaluationError, evaluate_change_candidates
 from nema_agora.satellite_manifest import SatelliteManifestError, validate_dataset_manifest
 from nema_agora.stac_discovery import StacDiscoveryError, discover_scenes
+from nema_agora.raster_ingestion import RasterIngestionError, process_uploaded_geotiff
 from nema_agora.spatial_workspace_bundle import build_spatial_evidence_bundle, validate_spatial_evidence_bundle
 
 st.set_page_config(page_title="NEMA-AGORA Pilot", page_icon="🌿", layout="wide")
@@ -1316,6 +1317,90 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
             file_name="nema_stac_scene_discovery_report.json",
             mime="application/json",
             key="nema_stac_discovery_report_download",
+        )
+
+
+if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
+    st.divider()
+    st.subheader("Process supplied Sentinel-2 GeoTIFF")
+    st.caption(
+        "Runs local pixel calculations only after validating a user-supplied multi-band GeoTIFF. "
+        "No remote imagery is fetched. This screening output requires expert review."
+    )
+    st.warning(
+        "Required bands must be named in the file metadata as B03, B04, B08 and SCL. "
+        "All reflectance bands must use compatible scaling. If using an AOI GeoJSON, it must already "
+        "use the raster's CRS; this tool does not reproject or resample."
+    )
+    raster_upload = st.file_uploader(
+        "Multi-band GeoTIFF (max 100 MiB; named B03, B04, B08, SCL)",
+        type=["tif", "tiff"],
+        key="nema_pixel_geotiff_upload",
+    )
+    aoi_upload = st.file_uploader(
+        "Optional AOI GeoJSON (Polygon or MultiPolygon; max 5 MiB)",
+        type=["json", "geojson"],
+        key="nema_pixel_aoi_upload",
+    )
+    aoi_crs_confirmed = False
+    if aoi_upload is not None:
+        aoi_crs_confirmed = st.checkbox(
+            "I have verified that the AOI GeoJSON coordinates already use the exact CRS shown in the raster metadata.",
+            key="nema_pixel_aoi_crs_confirmation",
+        )
+    if st.button("Validate raster and calculate indices", key="nema_pixel_process_button", type="primary"):
+        if raster_upload is None:
+            st.error("Upload a GeoTIFF before processing.")
+            st.session_state.pop("nema_pixel_processing_report", None)
+        elif aoi_upload is not None and not aoi_crs_confirmed:
+            st.error("AOI processing is blocked until the same-CRS confirmation is checked.")
+            st.session_state.pop("nema_pixel_processing_report", None)
+        else:
+            try:
+                with st.spinner("Validating raster metadata and calculating masked indices…"):
+                    report = process_uploaded_geotiff(
+                        raster_upload.getvalue(),
+                        aoi_geojson_bytes=aoi_upload.getvalue() if aoi_upload is not None else None,
+                        aoi_crs_confirmed_same_as_raster=aoi_crs_confirmed,
+                    )
+                st.session_state["nema_pixel_processing_report"] = report
+            except RasterIngestionError as exc:
+                st.session_state.pop("nema_pixel_processing_report", None)
+                st.error(f"Raster processing blocked: {exc}")
+    pixel_report = st.session_state.get("nema_pixel_processing_report")
+    if pixel_report:
+        st.warning("Screening result only — not a verified environmental finding, wetland boundary, or enforcement decision.")
+        st.write(f"**Processing state:** {pixel_report['state']}")
+        st.write(f"**Source SHA-256:** {pixel_report['source']['source_sha256']}")
+        st.write(f"**CRS:** {pixel_report['source']['crs']}")
+        st.write(f"**Grid:** {pixel_report['source']['width_pixels']} × {pixel_report['source']['height_pixels']} pixels")
+        st.write(f"**Valid AOI pixels:** {pixel_report['quality']['aoi_pixel_count']}")
+        st.dataframe([
+            {
+                "Index": name,
+                "Valid pixels": stats["valid_pixel_count"],
+                "Valid fraction": round(stats["valid_pixel_fraction_within_aoi"], 4),
+                "Median": stats["median"],
+                "Mean": stats["mean"],
+                "P05": stats["p05"],
+                "P95": stats["p95"],
+            }
+            for name, stats in pixel_report["indices"].items()
+        ], use_container_width=True, hide_index=True)
+        with st.expander("Source metadata, quality checks and limitations"):
+            st.json({
+                "source": pixel_report["source"],
+                "quality": pixel_report["quality"],
+                "limitations": pixel_report["limitations"],
+                "index_report_sha256": pixel_report["report_sha256"],
+                "processing_report_sha256": pixel_report["processing_report_sha256"],
+            })
+        st.download_button(
+            "Download pixel screening report (JSON)",
+            data=json.dumps(pixel_report, sort_keys=True, indent=2, allow_nan=False),
+            file_name="nema_sentinel2_pixel_screening_report.json",
+            mime="application/json",
+            key="nema_pixel_report_download",
         )
 
 
