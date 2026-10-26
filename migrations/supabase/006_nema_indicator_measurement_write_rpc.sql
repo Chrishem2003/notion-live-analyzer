@@ -93,7 +93,8 @@ begin
        or length(pg_catalog.btrim(p_actor_id)) > 256 then
         raise exception 'invalid trusted actor id' using errcode = '22023';
     end if;
-    if p_actor_role not in ('submitter', 'coordinator', 'admin') then
+    -- NULL must be rejected explicitly: SQL three-valued logic makes `NULL NOT IN (...)` NULL, not TRUE.
+    if p_actor_role is null or p_actor_role not in ('submitter', 'coordinator', 'admin') then
         raise exception 'actor role is not allowed to submit measurements' using errcode = '42501';
     end if;
     if p_record is null or pg_catalog.jsonb_typeof(p_record) <> 'object' then
@@ -105,10 +106,15 @@ begin
     end if;
     if p_record->>'indicator_id' is null or length(pg_catalog.btrim(p_record->>'indicator_id')) = 0
        or p_record->>'definition_version' is null
+       or length(pg_catalog.btrim(p_record->>'definition_version')) = 0
        or p_record->>'reporting_timezone' is null
+       or length(pg_catalog.btrim(p_record->>'reporting_timezone')) = 0
        or p_record->>'unit' is null
+       or length(pg_catalog.btrim(p_record->>'unit')) = 0
        or p_record->>'calculation_method' is null
-       or length(pg_catalog.btrim(p_record->>'calculation_method')) = 0 then
+       or length(pg_catalog.btrim(p_record->>'calculation_method')) = 0
+       or p_record->>'reporting_period_start' is null
+       or p_record->>'reporting_period_end' is null then
         raise exception 'required measurement fields are missing' using errcode = '22023';
     end if;
     if pg_catalog.jsonb_typeof(p_record->'source_refs') <> 'array'
@@ -144,9 +150,15 @@ begin
     if v_numerator is not null and v_denominator is not null and v_numerator > v_denominator then
         raise exception 'numerator cannot exceed denominator' using errcode = '22023';
     end if;
-    if (p_record->>'reporting_period_start')::date > (p_record->>'reporting_period_end')::date then
-        raise exception 'reporting period end precedes start' using errcode = '22023';
-    end if;
+    begin
+        if (p_record->>'reporting_period_start')::date > (p_record->>'reporting_period_end')::date then
+            raise exception 'reporting period end precedes start' using errcode = '22023';
+        end if;
+    exception when sqlstate '22023' then
+        raise;
+    when others then
+        raise exception 'reporting period dates must be valid ISO dates' using errcode = '22023';
+    end;
 
     -- Serialize requests using the same key so concurrent retries cannot both create a record.
     perform pg_catalog.pg_advisory_xact_lock(
