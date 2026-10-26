@@ -12,6 +12,8 @@ import math
 from datetime import datetime
 from typing import Any
 
+from nema_agora.geojson_aoi import validate_geojson_aoi
+
 MAX_PIXELS = 250_000
 REQUIRED_BANDS = ("B03", "B04", "B08")
 
@@ -40,6 +42,7 @@ def read_geotiff_scene(
     reflectance_scale: float,
     reflectance_offset: float = 0.0,
     cloud_shadow_mask_applied: bool = False,
+    aoi_geojson: Any | None = None,
 ) -> dict[str, Any]:
     """Decode a 3-band or more multiband GeoTIFF plus a same-grid validity mask.
 
@@ -63,9 +66,13 @@ def read_geotiff_scene(
     if cloud_shadow_mask_applied is not True:
         raise ValueError("CLOUD_SHADOW_MASK_ASSERTION_REQUIRED")
 
+    if aoi_geojson is not None and not validate_geojson_aoi(aoi_geojson).get("valid"):
+        raise ValueError("INVALID_AOI_GEOJSON")
+
     try:
         import numpy as np
         import rasterio
+        from rasterio.features import geometry_mask
         from rasterio.io import MemoryFile
     except ImportError as exc:
         raise RuntimeError("OPTIONAL_RASTERIO_DEPENDENCY_MISSING") from exc
@@ -87,6 +94,8 @@ def read_geotiff_scene(
                     raise ValueError("VALID_MASK_TRANSFORM_MISMATCH")
                 if src.width * src.height > MAX_PIXELS:
                     raise ValueError("GEOTIFF_PIXEL_LIMIT_EXCEEDED")
+                if mask_src.count != 1:
+                    raise ValueError("VALID_MASK_MUST_HAVE_ONE_BAND")
                 if src.width < 1 or src.height < 1:
                     raise ValueError("EMPTY_GEOTIFF")
                 if not src.transform.is_identity and src.transform.a == 0 and src.transform.e == 0:
