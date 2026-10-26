@@ -16,6 +16,26 @@ class PairedRasterError(ValueError):
     """Raised when paired-raster comparison prerequisites are not met."""
 
 
+_METADATA_TAG_ALLOWLIST = {
+    "PRODUCT_URI", "PRODUCT_ID", "PROCESSING_BASELINE", "DATATAKE_SENSING_START",
+    "SENSING_TIME", "SPACECRAFT_NAME", "SENSOR", "PLATFORM", "INSTRUMENT",
+    "AREA_OR_POINT", "TIFFTAG_DATETIME", "GRANULE_ID", "MGRS_TILE",
+}
+
+
+def _safe_metadata_tags(tags: dict[str, Any]) -> dict[str, str]:
+    """Return a small allowlisted subset of untrusted raster metadata."""
+    result = {}
+    for key, value in tags.items():
+        normalized_key = str(key).strip().upper()
+        if normalized_key not in _METADATA_TAG_ALLOWLIST:
+            continue
+        normalized_value = str(value).replace("\\x00", "").strip()
+        if normalized_value:
+            result[normalized_key] = normalized_value[:240]
+    return result
+
+
 def _read_pair_source(raw: bytes, label: str) -> dict[str, Any]:
     if not isinstance(raw, (bytes, bytearray)) or not raw:
         raise PairedRasterError(f"{label}: upload a non-empty GeoTIFF.")
@@ -59,6 +79,11 @@ def _read_pair_source(raw: bytes, label: str) -> dict[str, Any]:
                     "raw_sha256": hashlib.sha256(raw).hexdigest(),
                     "band_scales": band_scales,
                     "band_offsets": band_offsets,
+                    "metadata_tags": _safe_metadata_tags(ds.tags()),
+                    "band_metadata_tags": {
+                        name: _safe_metadata_tags(ds.tags(idx[name]))
+                        for name in ("B03", "B04", "B08", "SCL")
+                    },
                     "crs": str(ds.crs),
                     "width": int(ds.width),
                     "height": int(ds.height),
@@ -191,8 +216,8 @@ def compare_uploaded_geotiff_pair(
     except ChangeComparisonError as exc:
         raise PairedRasterError(str(exc)) from exc
     comparison["source"] = {
-        "earlier": {"sha256": a["raw_sha256"], "crs": a["crs"], "width": a["width"], "height": a["height"], "band_descriptions": a["descriptions"], "nodata": a["nodata"], "spectral_band_scales": a["band_scales"], "spectral_band_offsets": a["band_offsets"]},
-        "later": {"sha256": b["raw_sha256"], "crs": b["crs"], "width": b["width"], "height": b["height"], "band_descriptions": b["descriptions"], "nodata": b["nodata"], "spectral_band_scales": b["band_scales"], "spectral_band_offsets": b["band_offsets"]},
+        "earlier": {"sha256": a["raw_sha256"], "crs": a["crs"], "width": a["width"], "height": a["height"], "band_descriptions": a["descriptions"], "nodata": a["nodata"], "spectral_band_scales": a["band_scales"], "spectral_band_offsets": a["band_offsets"], "metadata_tags": a["metadata_tags"], "band_metadata_tags": a["band_metadata_tags"]},
+        "later": {"sha256": b["raw_sha256"], "crs": b["crs"], "width": b["width"], "height": b["height"], "band_descriptions": b["descriptions"], "nodata": b["nodata"], "spectral_band_scales": b["band_scales"], "spectral_band_offsets": b["band_offsets"], "metadata_tags": b["metadata_tags"], "band_metadata_tags": b["band_metadata_tags"]},
         "aoi_geojson_sha256": aoi_digest,
         "earlier_reflectance_scale_id_operator_supplied": scale_a,
         "later_reflectance_scale_id_operator_supplied": scale_b,
@@ -204,6 +229,7 @@ def compare_uploaded_geotiff_pair(
     comparison["limitations"].extend([
         "Operator-declared reflectance scale/product and processing baseline labels are compared for exact equality but are not independently authenticated.",
         "Embedded GeoTIFF scales and offsets are read and compared exactly for the B03, B04 and B08 bands. Matching values (including default 1.0/0.0 values) do not prove that pixel values are physically scaled reflectance; verify original provider metadata and processing history.",
+        "Only a short allowlist of embedded metadata tags is included in provenance; tags are untrusted file claims and are not authenticated by this workflow.",
         "Both dates use the same AOI and conservative SCL exclusion policy; valid pixels are the intersection of both dates.",
         "This local paired-raster workflow does not independently validate atmospheric correction, acquisition metadata, or the scientific suitability of the chosen threshold.",
     ])
