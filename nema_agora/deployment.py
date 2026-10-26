@@ -81,3 +81,88 @@ def health_summary(checks: Iterable[HealthCheck] | None = None) -> dict:
             "enforcement, or emergency response."
         ),
     }
+
+def deployment_preflight(secrets: object) -> dict:
+    """Check deployment configuration shape without exposing values or opening gates.
+
+    A passing preflight only means the required settings are present and
+    structurally valid. It does not prove credentials work, a provider can be
+    reached, a database is durable, or a deployment is production-approved.
+    """
+    from collections.abc import Mapping
+    from nema_agora.access import ROLE_PERMISSIONS
+    from nema_agora.auth import role_bindings_from_secrets
+    from nema_agora.config import (
+        backup_dir_from_secrets,
+        backup_retention_from_secrets,
+        database_path_from_secrets,
+        mode_from_secrets,
+    )
+
+    checks: list[dict[str, object]] = []
+
+    def record(name: str, ok: bool, detail: str) -> None:
+        checks.append({"name": name, "ok": bool(ok), "detail": detail})
+
+    if not isinstance(secrets, Mapping):
+        record("secrets_mapping", False, "deployment settings are unavailable or malformed")
+        return {
+            "preflight_passed": False,
+            "checks": checks,
+            "release_approved": False,
+            "production_ready": False,
+            "execution_gate": "CLOSED",
+        }
+
+    mode = mode_from_secrets(secrets)
+    record("mode", mode in {"demo", "persistent"}, "mode validated" if mode in {"demo", "persistent"} else "mode is invalid")
+
+    if mode == "persistent":
+        auth = secrets.get("auth", {})
+        if not isinstance(auth, Mapping):
+            auth = {}
+        required_auth_keys = (
+            "client_id",
+            "client_secret",
+            "cookie_secret",
+            "redirect_uri",
+            "server_metadata_url",
+        )
+        missing_auth = [key for key in required_auth_keys if not isinstance(auth.get(key), str) or not auth.get(key, "").strip()]
+        record(
+            "oidc_configuration_shape",
+            not missing_auth,
+            "required OIDC settings are present" if not missing_auth else "required OIDC settings are missing: " + ", ".join(missing_auth),
+        )
+
+        bindings = role_bindings_from_secrets(secrets)
+        invalid_bindings = [key for key, role in bindings.items() if role not in ROLE_PERMISSIONS]
+        record(
+            "server_role_bindings",
+            bool(bindings) and not invalid_bindings,
+            "server-side role bindings are structurally valid" if bindings and not invalid_bindings else "valid explicit role bindings are required",
+        )
+
+        database_path = database_path_from_secrets(secrets)
+        record("persistent_database_path", database_path is not None, "database path is configured" if database_path is not None else "database path is missing")
+
+        backup_dir = backup_dir_from_secrets(secrets)
+        record("backup_directory", backup_dir is not None, "backup directory is configured" if backup_dir is not None else "backup directory is missing")
+
+        retention = backup_retention_from_secrets(secrets)
+        record("backup_retention", retention is not None, "backup retention is within policy" if retention is not None else "backup retention must be an integer from 1 to 3650 days")
+
+    passed = all(item["ok"] for item in checks)
+    return {
+        "preflight_passed": bool(passed),
+        "mode": mode,
+        "checks": checks,
+        "release_approved": False,
+        "production_ready": False,
+        "execution_gate": "CLOSED",
+        "decision_notice": (
+            "Configuration preflight only. Passing does not prove live authentication, "
+            "persistent writes, backup recovery, external data access, or institutional approval."
+        ),
+    }
+
