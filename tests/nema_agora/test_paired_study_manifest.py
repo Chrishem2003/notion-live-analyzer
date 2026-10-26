@@ -26,7 +26,7 @@ def _aoi():
     }
 
 
-def _receipt(role, day, payload):
+def _receipt(role, day, payload, crs="EPSG:32636"):
     return build_manual_asset_receipt(
         receipt_id=f"STUDY-{role.upper()}-001",
         source_id="COPERNICUS-SENTINEL-2",
@@ -34,7 +34,7 @@ def _receipt(role, day, payload):
         recorded_at="2026-10-26T14:00:00+03:00",
         aoi_id="PILOT-AOI-001",
         baseline_or_comparison=role,
-        crs="EPSG:32636",
+        crs=crs,
         spatial_resolution_m=10,
         cloud_cover_pct=8.0,
         valid_pixel_fraction=0.93,
@@ -75,8 +75,7 @@ def test_builds_fingerprinted_paired_scene_manifest():
 
 def test_rejects_receipt_role_or_comparison_metadata_mismatch():
     baseline = _receipt("baseline", "2026-06-01", b"baseline-fixture")
-    comparison = _receipt("comparison", "2026-09-01", b"comparison-fixture")
-    comparison["crs"] = "EPSG:4326"
+    comparison = _receipt("comparison", "2026-09-01", b"comparison-fixture", crs="EPSG:4326")
     with pytest.raises(ValueError, match="CRS_MISMATCH"):
         build_paired_study_manifest(
             study_id="WETLAND-PILOT-001",
