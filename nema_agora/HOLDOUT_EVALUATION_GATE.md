@@ -14,3 +14,12 @@ A failed prerequisite raises `EvaluationGateError` and no metric report is produ
 ## Limits
 
 The gate enforces consistency of declarations, not scientific authenticity. It cannot prove reviewer identity or blinding, inspect evidence, detect aliases/spatial/temporal/asset leakage, or prove the holdout was never used during tuning. The result state deliberately says declarations are not authenticated. Independent review remains mandatory before external claims or decisions.
+
+
+## Source asset and derived-data lineage screening
+
+The gate accepts optional `asset_lineage_records` and, when supplied, runs `nema_agora/asset_lineage_audit.py`. Records declare a unique record ID, split, source-asset SHA-256, satellite tile IDs, and parent record IDs in `derived_from`. Reused source hashes, tile identifiers, or derived parents across different splits block metric generation. Unknown parents and lineage cycles are rejected.
+
+**Important:** this screening is currently opt-in at the function boundary. A caller that omits `asset_lineage_records` receives `asset_lineage_audit: null`; that is not evidence of asset independence. Before a release candidate is accepted, the workspace must collect a verifiable lineage manifest and make this gate mandatory for the evaluation workflow. Hashes should be computed from actual bytes and expected digests should come from a trusted source.
+
+The audit cannot identify undeclared relationships, alternate encodings, shared model weights, derived-feature leakage not represented in the graph, or holdout-informed tuning. A clean result is not proof of complete independence.
