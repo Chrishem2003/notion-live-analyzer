@@ -106,3 +106,28 @@ def test_persistent_workspace_stops_before_rendering_when_identity_is_missing_or
     assert service_guard < workspace_start
     assert 'st.warning("Sign in is required before the persistent NEMA-AGORA workspace can be opened.")' in source
     assert "session-only demo records" in source
+
+
+def test_health_summary_does_not_expose_exception_details_or_internal_paths():
+    from nema_agora.deployment import HealthCheck, health_summary
+
+    summary = health_summary((
+        HealthCheck("import:nema_agora.storage", False, "module import failed; inspect restricted server logs"),
+        HealthCheck("package-path", True, "package path available"),
+    ))
+
+    rendered = str(summary)
+    assert summary["healthy"] is False
+    assert "restricted server logs" in rendered
+    assert "C:\\\\Users" not in rendered
+    assert "/home/" not in rendered
+    assert "password=" not in rendered
+    assert "Traceback" not in rendered
+
+
+def test_health_check_error_details_are_generic():
+    from nema_agora.deployment import HealthCheck, health_summary
+
+    summary = health_summary((HealthCheck("import:example", False, "module import failed; inspect restricted server logs"),))
+    assert summary["checks"][0]["detail"] == "module import failed; inspect restricted server logs"
+    assert summary["healthy"] is False
