@@ -69,6 +69,12 @@ class MeasurementWriteContractTests(unittest.TestCase):
         with self.assertRaisesRegex(MeasurementWriteContractError, "role"):
             self.build(authenticated_actor_role="admin\n")
 
+    def test_rejects_carriage_return_or_line_feed_in_actor_identifier(self):
+        for actor_id in ("user-123" + chr(10) + "admin", "user-123" + chr(13) + "admin"):
+            with self.subTest(actor_id=repr(actor_id)):
+                with self.assertRaisesRegex(MeasurementWriteContractError, "carriage-return or line-feed"):
+                    self.build(authenticated_actor_id=actor_id)
+
     def test_caller_cannot_supply_or_override_database_computed_digest(self):
         result = self.build()
         self.assertNotIn("p_payload_sha256", result)
