@@ -15,6 +15,7 @@ def _scene(scene_id, date, *, red, green, nir, mask=None, grid="GRID-001", aoi="
         "crs": "EPSG:4326",
         "bands": {"B03": green, "B04": red, "B08": nir},
         "valid_mask": mask or [[True for _ in range(shape[1])] for _ in range(shape[0])],
+        "domain_mask": [[True for _ in range(shape[1])] for _ in range(shape[0])],
         "cloud_mask_applied": True,
     }
 
@@ -206,3 +207,23 @@ def test_minimum_domain_pixel_gate_rejects_too_small_aoi():
     )
     assert result["state"] == "CONTROL_REQUIRED"
     assert "AOI_DOMAIN_BELOW_MINIMUM_PIXEL_COUNT" in {x["code"] for x in result["findings"]}
+
+
+
+def test_real_ingestion_metadata_blocks_reflectance_scale_mismatch():
+    baseline, comparison = _pair()
+    metadata = {
+        "reflectance_scale": 0.0001,
+        "reflectance_offset": 0.0,
+        "band_mapping": {"B03": 1, "B04": 2, "B08": 3},
+        "band_mapping_confirmed_by_uploader": True,
+        "cloud_shadow_mask_applied_by_uploader": True,
+        "aoi_valid_pixel_fraction": 1.0,
+        "raster_driver": "GTiff",
+    }
+    baseline["ingestion"] = deepcopy(metadata)
+    comparison["ingestion"] = deepcopy(metadata)
+    comparison["ingestion"]["reflectance_scale"] = 0.001
+    result = analyze_paired_raster_arrays(baseline_scene=baseline, comparison_scene=comparison)
+    assert result["state"] == "CONTROL_REQUIRED"
+    assert "REFLECTANCE_SCALING_MISMATCH" in {item["code"] for item in result["findings"]}
