@@ -17,6 +17,7 @@ def _signature(actor: str, role: str, key: str) -> str:
 
 def test_cross_case_api_requires_signed_server_resolved_identity(monkeypatch):
     monkeypatch.setenv("PLATFORM_API_KEY", "test-platform-key")
+    monkeypatch.setenv("NEMA_PORTAL_SIGNING_SECRET", "test-signing-secret-with-at-least-32-characters")
 
     with pytest.raises(HTTPException) as missing:
         api._require_nema_read_access(
@@ -33,11 +34,11 @@ def test_cross_case_api_requires_signed_server_resolved_identity(monkeypatch):
             x_api_key="test-platform-key",
             x_nema_actor=actor,
             x_nema_role="submitter",
-            x_nema_signature=_signature(actor, "submitter", "test-platform-key"),
+            x_nema_signature=_signature(actor, "submitter", "test-signing-secret-with-at-least-32-characters"),
         )
     assert submitter.value.status_code == 403
 
-    reviewer_signature = _signature(actor, "reviewer", "test-platform-key")
+    reviewer_signature = _signature(actor, "reviewer", "test-signing-secret-with-at-least-32-characters")
     identity = api._require_nema_read_access(
         x_api_key="test-platform-key",
         x_nema_actor=actor,
