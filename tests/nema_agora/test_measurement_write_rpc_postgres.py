@@ -156,6 +156,19 @@ def test_postgres_parallel_same_key_submissions_create_one_measurement(migrated_
     assert scalar("SELECT count(*) FROM public.nema_measurement_audit WHERE measurement_id=%s", (measurement_id,)) == 1
 
 
+
+def test_postgres_rejects_missing_or_null_status(migrated_postgres):
+    for missing_status in (None, "__remove__"):
+        payload = record()
+        if missing_status is None:
+            payload["status"] = None
+        else:
+            payload.pop("status")
+        with pytest.raises(psycopg2.Error, match="submission status must be measured"):
+            call_rpc("pg-status-" + uuid.uuid4().hex, "pg-key-" + uuid.uuid4().hex, payload)
+
+
+
 def test_postgres_rejects_null_role_and_denies_client_execution(migrated_postgres):
     measurement_id = "pg-auth-" + uuid.uuid4().hex
     key = "pg-key-" + uuid.uuid4().hex
