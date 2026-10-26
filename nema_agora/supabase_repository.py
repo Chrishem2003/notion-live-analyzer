@@ -60,17 +60,21 @@ class SupabaseReadOnlyNemaRepository:
             raise NemaStorageUnavailableError("NEMA remote storage returned an invalid response.")
         return payload
 
-    def list_cases(self, *, limit: int = 100) -> list[tuple[dict[str, Any], int]]:
+    def list_cases(
+        self, *, limit: int = 100, owner_id: str | None = None
+    ) -> list[tuple[dict[str, Any], int]]:
         if isinstance(limit, bool) or not isinstance(limit, int) or not 1 <= limit <= 1000:
             raise ValueError("Limit must be an integer between 1 and 1000.")
-        rows = self._get(
-            "nema_cases",
-            {
-                "select": "record_json,version",
-                "order": "created_at.desc,case_id.asc",
-                "limit": str(limit),
-            },
-        )
+        params = {
+            "select": "record_json,version",
+            "order": "created_at.desc,case_id.asc",
+            "limit": str(limit),
+        }
+        if owner_id is not None:
+            if not isinstance(owner_id, str) or not owner_id.strip() or len(owner_id) > 512:
+                raise ValueError("Owner identity must be non-empty and at most 512 characters.")
+            params["owner_id"] = "eq." + owner_id
+        rows = self._get("nema_cases", params)
         result: list[tuple[dict[str, Any], int]] = []
         for row in rows:
             record, version = row.get("record_json"), row.get("version")
@@ -79,17 +83,21 @@ class SupabaseReadOnlyNemaRepository:
             result.append((record, version))
         return result
 
-    def get_case(self, case_id: str) -> tuple[dict[str, Any], int] | None:
+    def get_case(
+        self, case_id: str, *, owner_id: str | None = None
+    ) -> tuple[dict[str, Any], int] | None:
         if not isinstance(case_id, str) or not case_id.strip() or len(case_id) > 80:
             return None
-        rows = self._get(
-            "nema_cases",
-            {
-                "select": "record_json,version",
-                "case_id": f"eq.{case_id}",
-                "limit": "1",
-            },
-        )
+        params = {
+            "select": "record_json,version",
+            "case_id": "eq." + case_id,
+            "limit": "1",
+        }
+        if owner_id is not None:
+            if not isinstance(owner_id, str) or not owner_id.strip() or len(owner_id) > 512:
+                raise ValueError("Owner identity must be non-empty and at most 512 characters.")
+            params["owner_id"] = "eq." + owner_id
+        rows = self._get("nema_cases", params)
         if not rows:
             return None
         record, version = rows[0].get("record_json"), rows[0].get("version")
