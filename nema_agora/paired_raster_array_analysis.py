@@ -14,6 +14,7 @@ from datetime import datetime
 from typing import Any
 
 POLICY_VERSION = "paired-array-analysis-v1"
+MAX_PIXELS = 250_000
 _REQUIRED_BANDS = ("B03", "B04", "B08")
 
 
@@ -81,6 +82,8 @@ def _scene(scene: Mapping[str, Any], name: str) -> dict[str, Any]:
     if not isinstance(bands, Mapping) or not all(key in bands for key in _REQUIRED_BANDS):
         raise ValueError(f"{name}_REQUIRED_BANDS_MISSING")
     shape = _matrix(bands["B03"], f"{name}_B03")
+    if shape[0] * shape[1] > MAX_PIXELS:
+        raise ValueError(f"{name}_PIXEL_LIMIT_EXCEEDED")
     for band in _REQUIRED_BANDS:
         if _matrix(bands[band], f"{name}_{band}") != shape:
             raise ValueError(f"{name}_BAND_SHAPE_MISMATCH")
