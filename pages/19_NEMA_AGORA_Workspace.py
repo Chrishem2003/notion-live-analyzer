@@ -38,6 +38,7 @@ from nema_agora.satellite_evaluation import SatelliteEvaluationError, evaluate_c
 from nema_agora.satellite_manifest import SatelliteManifestError, validate_dataset_manifest
 from nema_agora.reference_review import ReferenceReviewError, validate_reference_review_package
 from nema_agora.split_audit import SplitAuditError, audit_dataset_splits
+from nema_agora.evaluation_gate import EvaluationGateError, evaluate_holdout_package
 from nema_agora.stac_discovery import StacDiscoveryError, discover_scenes
 from nema_agora.raster_ingestion import RasterIngestionError, process_uploaded_geotiff
 from nema_agora.paired_raster_ingestion import PairedRasterError, compare_uploaded_geotiff_pair
@@ -1400,6 +1401,95 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
             file_name="nema_dataset_split_audit_report.json",
             mime="application/json",
             key="nema_split_audit_report_download",
+        )
+
+
+if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
+    st.divider()
+    st.subheader("Gated holdout evaluation")
+    st.caption(
+        "A combined evaluation path that requires a holdout review package, non-overlapping declared splits, "
+        "matching holdout unit IDs, and matching reference labels before computing offline metrics."
+    )
+    st.warning(
+        "This gate checks consistency of supplied declarations only. It does not authenticate reviewers or evidence, "
+        "or prove spatial/temporal independence or that holdout data were never used for tuning."
+    )
+    gated_template = {
+        "reference_review_package": {
+            "reference_set_id": "uganda-wetland-reference",
+            "reference_set_version": "v1",
+            "split": "holdout",
+            "units": [
+                {"unit_id": "holdout-001", "reference_change": True,
+                 "reviewer_ids": ["reviewer-a", "reviewer-b"], "reviewed_at": "2026-02-01T10:30:00Z",
+                 "evidence_refs": ["imagery:product-id", "field-note:record-id"],
+                 "reviewers_blinded_to_candidate": True}
+            ]
+        },
+        "split_manifests": [
+            {"reference_set_id": "uganda-wetland-reference", "reference_set_version": "v1",
+             "split": "development", "unit_ids": ["development-001"]},
+            {"reference_set_id": "uganda-wetland-reference", "reference_set_version": "v1",
+             "split": "validation", "unit_ids": ["validation-001"]},
+            {"reference_set_id": "uganda-wetland-reference", "reference_set_version": "v1",
+             "split": "holdout", "unit_ids": ["holdout-001"]}
+        ],
+        "evaluation_records": [
+            {"unit_id": "holdout-001", "area_ha": 0.5, "detected": True,
+             "reference_change": True, "independently_verified": True, "usable": True}
+        ],
+        "min_area_ha": 0.1
+    }
+    st.download_button(
+        "Download gated-evaluation JSON template",
+        data=json.dumps(gated_template, indent=2),
+        file_name="nema_gated_holdout_evaluation_template.json",
+        mime="application/json",
+        key="nema_gated_evaluation_template",
+    )
+    gated_file = st.file_uploader(
+        "Upload combined holdout evaluation JSON",
+        type=["json"],
+        key="nema_gated_evaluation_json",
+        help="Include reference_review_package, split_manifests, evaluation_records and optional min_area_ha.",
+    )
+    if st.button(
+        "Run gated holdout evaluation",
+        key="nema_run_gated_holdout_evaluation",
+        disabled=gated_file is None,
+    ):
+        try:
+            payload = json.loads(gated_file.getvalue().decode("utf-8"))
+            if not isinstance(payload, dict):
+                raise EvaluationGateError("upload must be a JSON object.")
+            report = evaluate_holdout_package(
+                reference_review_package=payload.get("reference_review_package"),
+                split_manifests=payload.get("split_manifests"),
+                evaluation_records=payload.get("evaluation_records"),
+                min_area_ha=payload.get("min_area_ha", 0.1),
+            )
+            st.session_state["nema_gated_holdout_evaluation"] = report
+        except (UnicodeDecodeError, json.JSONDecodeError, EvaluationGateError) as exc:
+            st.session_state.pop("nema_gated_holdout_evaluation", None)
+            st.error(f"Holdout evaluation blocked: {exc}")
+    gated_report = st.session_state.get("nema_gated_holdout_evaluation")
+    if gated_report:
+        st.success("Declared gates passed; offline fixture metrics were computed.")
+        st.write(f"**State:** {gated_report['state']}")
+        st.write(f"**Reference set:** {gated_report['reference_set_id']} · **Version:** {gated_report['reference_set_version']}")
+        st.write(f"**Holdout units:** {gated_report['holdout_unit_count']}")
+        st.write(f"**Review package SHA-256:** {gated_report['reference_review_sha256']}")
+        st.write(f"**Split manifest SHA-256:** {gated_report['split_manifest_sha256']}")
+        st.json(gated_report["evaluation"])
+        for limitation in gated_report["limitations"]:
+            st.caption("• " + limitation)
+        st.download_button(
+            "Download gated holdout evaluation report",
+            data=json.dumps(gated_report, indent=2, allow_nan=False),
+            file_name="nema_gated_holdout_evaluation_report.json",
+            mime="application/json",
+            key="nema_gated_evaluation_report_download",
         )
 
 
