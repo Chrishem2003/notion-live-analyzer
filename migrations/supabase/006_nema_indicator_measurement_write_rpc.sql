@@ -328,8 +328,14 @@ grant select on table public.nema_measurement_audit to service_role;
 
 revoke all on function public.submit_nema_indicator_measurement(text, text, text, text, jsonb)
     from public, anon, authenticated, service_role;
+
+-- PostgreSQL requires the target owner to have CREATE on the containing schema
+-- during ALTER FUNCTION OWNER. Grant it only for this ownership transfer, then
+-- immediately revoke it so the SECURITY DEFINER owner cannot create schema objects.
+grant create on schema public to nema_measurement_writer;
 alter function public.submit_nema_indicator_measurement(text, text, text, text, jsonb)
     owner to nema_measurement_writer;
+revoke create on schema public from nema_measurement_writer;
 
 grant execute on function public.submit_nema_indicator_measurement(text, text, text, text, jsonb)
     to service_role;
