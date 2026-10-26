@@ -1036,6 +1036,11 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
             type=["json"],
             key="nema_indicator_evidence_upload",
         )
+        artifact_upload = st.file_uploader(
+            "Original evidence artifact (must match the record SHA-256)",
+            key="nema_indicator_artifact_upload",
+            help="Upload the exact bytes referenced by evidence_sha256. The artifact is checked in memory only.",
+        )
         if evidence_upload is not None:
             try:
                 measurement_record = json.loads(evidence_upload.getvalue().decode("utf-8"))
@@ -1047,12 +1052,20 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
                 )
                 if selected_indicator is None:
                     raise IndicatorEvidenceError("indicator_id does not match an indicator in the current registry.")
-                validation_summary = validate_measurement_record(measurement_record, selected_indicator)
+                validation_summary = validate_measurement_record(
+                    measurement_record,
+                    selected_indicator,
+                    evidence_bytes=artifact_upload.getvalue() if artifact_upload is not None else None,
+                )
                 st.success("Measurement record passed structural and calculation checks.")
+                if artifact_upload is None:
+                    st.info("Artifact bytes were not supplied; digest consistency has not been checked.")
+                elif validation_summary.get("evidence_artifact_bytes_verified"):
+                    st.success("Uploaded artifact bytes match the declared SHA-256 digest.")
                 st.json(validation_summary)
                 st.warning(
-                    "This is a structural validation result only. Evidence authenticity, reviewer identity, "
-                    "and institutional acceptance still require independent verification."
+                    "A digest match proves byte consistency only. It does not authenticate who created the artifact, "
+                    "prove its contents are true, authenticate reviewer identity, or constitute institutional acceptance."
                 )
             except (UnicodeDecodeError, json.JSONDecodeError, IndicatorEvidenceError, TypeError, ValueError) as exc:
                 st.error(f"Measurement record rejected: {exc}")
