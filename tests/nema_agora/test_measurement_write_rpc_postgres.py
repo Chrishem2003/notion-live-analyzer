@@ -168,6 +168,26 @@ def test_postgres_rejects_missing_or_null_status(migrated_postgres):
             call_rpc("pg-status-" + uuid.uuid4().hex, "pg-key-" + uuid.uuid4().hex, payload)
 
 
+def test_postgres_rejects_missing_null_wrong_type_or_empty_source_refs(migrated_postgres):
+    payloads = []
+    missing = record()
+    missing.pop("source_refs")
+    payloads.append(missing)
+    null_value = record()
+    null_value["source_refs"] = None
+    payloads.append(null_value)
+    wrong_type = record()
+    wrong_type["source_refs"] = {"source": "field-log-001"}
+    payloads.append(wrong_type)
+    empty = record()
+    empty["source_refs"] = []
+    payloads.append(empty)
+
+    for payload in payloads:
+        with pytest.raises(psycopg2.Error, match="measured records require source_refs array"):
+            call_rpc("pg-sources-" + uuid.uuid4().hex, "pg-key-" + uuid.uuid4().hex, payload)
+
+
 
 def test_postgres_rejects_null_role_and_denies_client_execution(migrated_postgres):
     measurement_id = "pg-auth-" + uuid.uuid4().hex
