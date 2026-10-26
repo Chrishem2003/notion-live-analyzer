@@ -257,6 +257,7 @@ create policy nema_measurement_writer_access on public.nema_measurement_audit
     for insert to nema_measurement_writer with check (true);
 
 grant usage on schema public to service_role;
+grant select on table public.nema_indicator_measurements to service_role;
 grant execute on function extensions.digest(bytea, text) to nema_measurement_writer;
 grant select on table public.nema_measurement_idempotency to service_role;
 grant select on table public.nema_measurement_audit to service_role;
