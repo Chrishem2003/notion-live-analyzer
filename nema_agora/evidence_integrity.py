@@ -71,3 +71,105 @@ def audit_evidence_integrity(*, provenance_records:Iterable[Mapping[str,Any]],
         "computed_graph_fingerprint":computed_graph_fp,"report_fingerprint":report_fp,
         "publication_decision_present":bool(decision_data),"policy_version":POLICY_VERSION,
         "decision_notice":"Artifact integrity only; not environmental truth/impact, NEMA authorization, regulatory status, or production approval."}
+
+
+# Local file verification extension. Kept separate from the phase-33 artifact graph
+# audit above because byte-level evidence verification needs an actual local root.
+from pathlib import Path
+import re
+
+class EvidenceIntegrityError(ValueError):
+    """Raised when local evidence manifest or asset checks fail."""
+
+_EVIDENCE_SHA256 = re.compile(r"^[a-fA-F0-9]{64}$")
+_EVIDENCE_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
+DEFAULT_EVIDENCE_MAX_BYTES = 100 * 1024 * 1024
+
+
+def verify_evidence_assets(*, root_directory: str | Path,
+                           evidence_assets: Iterable[Mapping[str, Any]],
+                           max_asset_bytes: int = DEFAULT_EVIDENCE_MAX_BYTES) -> dict[str, Any]:
+    """Hash actual local evidence files and compare them with declared SHA-256.
+
+    Rejects path traversal, absolute paths, symlink components, duplicate IDs
+    and paths, missing/non-regular files and files above the configured limit.
+    No remote URLs are fetched. A matching digest does not authenticate source.
+    """
+    if not isinstance(evidence_assets, Iterable) or isinstance(evidence_assets, (str, bytes, Mapping)):
+        raise EvidenceIntegrityError("evidence_assets must be a non-empty array.")
+    assets = list(evidence_assets)
+    if not assets:
+        raise EvidenceIntegrityError("evidence_assets must be a non-empty array.")
+    if isinstance(max_asset_bytes, bool) or not isinstance(max_asset_bytes, int) or max_asset_bytes <= 0:
+        raise EvidenceIntegrityError("max_asset_bytes must be a positive integer.")
+    try:
+        root = Path(root_directory).expanduser().resolve(strict=True)
+    except (OSError, TypeError) as exc:
+        raise EvidenceIntegrityError("root_directory must be an existing directory.") from exc
+    if not root.is_dir():
+        raise EvidenceIntegrityError("root_directory must be an existing directory.")
+    seen_ids, seen_paths, results = set(), set(), []
+    total_bytes = 0
+    for index, item in enumerate(assets):
+        if not isinstance(item, Mapping):
+            raise EvidenceIntegrityError(f"evidence_assets[{index}] must be an object.")
+        evidence_id = item.get("evidence_id")
+        relative_path = item.get("relative_path")
+        expected = item.get("sha256")
+        if not isinstance(evidence_id, str) or not _EVIDENCE_ID_PATTERN.fullmatch(evidence_id.strip()):
+            raise EvidenceIntegrityError(f"evidence_assets[{index}].evidence_id is invalid.")
+        evidence_id = evidence_id.strip()
+        if evidence_id in seen_ids:
+            raise EvidenceIntegrityError(f"duplicate evidence_id: {evidence_id}.")
+        seen_ids.add(evidence_id)
+        if not isinstance(relative_path, str) or not relative_path.strip():
+            raise EvidenceIntegrityError(f"evidence_assets[{index}].relative_path is required.")
+        rel = Path(relative_path)
+        if rel.is_absolute() or ".." in rel.parts or "\\\\" in relative_path or relative_path.strip() in {".", "./"}:
+            raise EvidenceIntegrityError(f"unsafe relative_path for evidence {evidence_id}.")
+        normalized = rel.as_posix()
+        if normalized in seen_paths:
+            raise EvidenceIntegrityError(f"duplicate evidence path: {normalized}.")
+        seen_paths.add(normalized)
+        if not isinstance(expected, str) or not _EVIDENCE_SHA256.fullmatch(expected):
+            raise EvidenceIntegrityError(f"evidence_assets[{index}].sha256 must be a 64-character hex digest.")
+        candidate = root
+        for part in rel.parts:
+            candidate = candidate / part
+            if candidate.is_symlink():
+                raise EvidenceIntegrityError(f"symlink path component rejected for evidence {evidence_id}.")
+        try:
+            resolved = candidate.resolve(strict=True)
+        except (FileNotFoundError, OSError) as exc:
+            raise EvidenceIntegrityError(f"evidence file missing or inaccessible: {evidence_id}.") from exc
+        if not resolved.is_relative_to(root) or not resolved.is_file():
+            raise EvidenceIntegrityError(f"evidence path escapes root or is not a regular file: {evidence_id}.")
+        if resolved.stat().st_size > max_asset_bytes:
+            raise EvidenceIntegrityError(f"evidence file exceeds size limit: {evidence_id}.")
+        digest, byte_count = hashlib.sha256(), 0
+        with resolved.open("rb") as handle:
+            while True:
+                chunk = handle.read(1024 * 1024)
+                if not chunk:
+                    break
+                byte_count += len(chunk)
+                if byte_count > max_asset_bytes:
+                    raise EvidenceIntegrityError(f"evidence file grew beyond size limit: {evidence_id}.")
+                digest.update(chunk)
+        actual = digest.hexdigest()
+        matches = actual.lower() == expected.lower()
+        total_bytes += byte_count
+        results.append({"evidence_id": evidence_id, "relative_path": normalized,
+                        "size_bytes": byte_count, "expected_sha256": expected.lower(),
+                        "actual_sha256": actual, "matches": matches,
+                        "state": "HASH_MATCH" if matches else "HASH_MISMATCH"})
+    all_match = all(item["matches"] for item in results)
+    return {"schema_version": "nema-evidence-integrity-v1",
+            "state": "LOCAL_BYTES_MATCH_DECLARED_HASHES_NOT_AUTHENTICATED" if all_match else "BLOCKED_EVIDENCE_HASH_MISMATCH",
+            "decision": "HASHES_MATCH" if all_match else "BLOCK_EVIDENCE_USE",
+            "asset_count": len(results), "total_bytes_hashed": total_bytes, "assets": results,
+            "limitations": [
+                "A matching digest proves only that inspected bytes match the supplied digest; it does not authenticate creator, capture time, provenance, or truth.",
+                "The expected digest must come from a trusted independently recorded source to provide meaningful tamper evidence.",
+                "Only local files under the selected root are read; remote URLs are never fetched and scientific validity is not inferred."
+            ]}
