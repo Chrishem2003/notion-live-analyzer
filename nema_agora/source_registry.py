@@ -38,6 +38,18 @@ SOURCES: tuple[dict[str, Any], ...] = (
         "limitations": ["Public page reference only", "No structured API confirmed"],
     },
     {
+        "source_id": "UG-NEMA-STRATEGIC-PLAN-2025-2030",
+        "title": "NEMA Strategic Plan 2025/26–2029/30",
+        "publisher": "National Environment Management Authority",
+        "url": "https://www.nema.go.ug/en/nema-launches-its-strategic-plan-2025-26-2029-30-with-environment-donor-groups/",
+        "source_type": "institutional_strategy_reference",
+        "intended_use": "Align pilot indicators with published environmental governance, ecological integrity, compliance, education and institutional-capacity priorities.",
+        "integration_status": "reference_only",
+        "machine_endpoint_verified": False,
+        "automated_ingestion_enabled": False,
+        "limitations": ["Strategy summary page is a reference, not a performance feed", "Targets require validation against the full approved plan"],
+    },
+    {
         "source_id": "UG-NEMA-NSOER-2024",
         "title": "National State of the Environment Report 2024",
         "publisher": "National Environment Management Authority",
