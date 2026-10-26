@@ -81,7 +81,7 @@ def _require_measurement_submission_access(
     actor = x_nema_actor.strip() if isinstance(x_nema_actor, str) else ""
     role = x_nema_role.strip().lower() if isinstance(x_nema_role, str) else ""
     signature = x_nema_signature.strip() if isinstance(x_nema_signature, str) else ""
-    if not actor or len(actor) > 512 or not signature:
+    if not actor or len(actor) > 512 or "\n" in actor or "\r" in actor or not signature:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="A signed portal identity is required for measurement submission.",
