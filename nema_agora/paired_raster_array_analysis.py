@@ -99,8 +99,19 @@ def _scene(scene: Mapping[str, Any], name: str) -> dict[str, Any]:
             rows.append(vals)
         clean_bands[band] = rows
     mask = _valid_mask(scene["valid_mask"], shape, f"{name}_VALID_MASK")
+    supplied_domain = scene.get("domain_mask")
+    if supplied_domain is None:
+        domain = [[True for _ in range(shape[1])] for _ in range(shape[0])]
+    else:
+        domain = _valid_mask(supplied_domain, shape, f"{name}_DOMAIN_MASK")
+    # Enforce the AOI/domain at analysis time too, even if an upstream caller
+    # accidentally leaves valid pixels marked outside it.
+    mask = [[mask[r][c] and domain[r][c] for c in range(shape[1])] for r in range(shape[0])]
+    domain_count = sum(sum(1 for v in row if v) for row in domain)
+    if domain_count == 0:
+        raise ValueError(f"{name}_EMPTY_ANALYSIS_DOMAIN")
     valid_count = sum(sum(1 for v in row if v) for row in mask)
-    fraction = valid_count / (shape[0] * shape[1])
+    fraction = valid_count / domain_count
     if valid_count == 0:
         raise ValueError(f"{name}_NO_VALID_PIXELS")
     return {
@@ -111,12 +122,14 @@ def _scene(scene: Mapping[str, Any], name: str) -> dict[str, Any]:
         "crs": scene["crs"],
         "bands": clean_bands,
         "valid_mask": mask,
+        "domain_mask": domain,
+        "domain_pixels": domain_count,
         "shape": shape,
         "valid_fraction": fraction,
         "source_fingerprint": _digest({
             "scene_id": scene["scene_id"], "acquired_at": scene["acquired_at"],
             "aoi_id": scene["aoi_id"], "grid_id": scene["grid_id"], "crs": scene["crs"],
-            "bands": clean_bands, "valid_mask": mask, "cloud_mask_applied": True,
+            "bands": clean_bands, "valid_mask": mask, "domain_mask": domain, "cloud_mask_applied": True,
         }),
     }
 
@@ -147,6 +160,8 @@ def analyze_paired_raster_arrays(
         findings.append("AOI_ID_MISMATCH")
     if baseline["grid_id"] != comparison["grid_id"]:
         findings.append("GRID_ID_MISMATCH")
+    if baseline["domain_mask"] != comparison["domain_mask"]:
+        findings.append("AOI_DOMAIN_MASK_MISMATCH")
     if baseline["crs"] != comparison["crs"]:
         findings.append("CRS_MISMATCH")
     if baseline["shape"] != comparison["shape"]:
@@ -203,7 +218,8 @@ def analyze_paired_raster_arrays(
             index_values[key].append(rows[key])
     if valid_pixels == 0:
         return {"policy_version": POLICY_VERSION, "state": "CONTROL_REQUIRED", "findings": [{"code": "NO_COMPARABLE_VALID_PIXELS"}]}
-    if valid_pixels / (baseline["shape"][0] * baseline["shape"][1]) < float(min_valid_fraction):
+    domain_pixels = baseline["domain_pixels"]
+    if valid_pixels / domain_pixels < float(min_valid_fraction):
         return {"policy_version": POLICY_VERSION, "state": "CONTROL_REQUIRED", "findings": [{"code": "JOINT_VALID_FRACTION_BELOW_THRESHOLD"}]}
 
     def stats(name: str, values: list[float]) -> dict[str, float]:
@@ -215,14 +231,14 @@ def analyze_paired_raster_arrays(
             "threshold_hit_pixels": sum(abs(v) >= (float(min_abs_ndvi_delta) if name == "NDVI" else float(min_abs_ndwi_delta)) for v in values),
         }
     summaries = {name: stats(name, values) for name, values in deltas.items()}
-    total_pixels = baseline["shape"][0] * baseline["shape"][1]
+    total_pixels = baseline["domain_pixels"]
     payload = {
         "policy_version": POLICY_VERSION,
         "state": "PIXEL_ANALYSIS_COMPLETE",
         "baseline": {"scene_id": baseline["scene_id"], "acquired_at": baseline_scene["acquired_at"], "source_fingerprint": baseline["source_fingerprint"], "valid_fraction": round(baseline["valid_fraction"], 8)},
         "comparison": {"scene_id": comparison["scene_id"], "acquired_at": comparison_scene["acquired_at"], "source_fingerprint": comparison["source_fingerprint"], "valid_fraction": round(comparison["valid_fraction"], 8)},
         "grid": {"aoi_id": baseline["aoi_id"], "grid_id": baseline["grid_id"], "crs": baseline["crs"], "rows": baseline["shape"][0], "columns": baseline["shape"][1]},
-        "quality": {"joint_valid_pixels": valid_pixels, "total_pixels": total_pixels, "joint_valid_fraction": round(valid_pixels / total_pixels, 8), "mask_policy": "pixel must be valid in both scenes; zero-denominator index pixels excluded"},
+        "quality": {"joint_valid_pixels": valid_pixels, "total_pixels": total_pixels, "joint_valid_fraction": round(valid_pixels / total_pixels, 8), "raster_pixels": baseline["shape"][0] * baseline["shape"][1], "aoi_domain_pixels": total_pixels, "mask_policy": "pixel must be valid in both scenes; zero-denominator index pixels excluded"},
         "thresholds": {"min_valid_fraction": float(min_valid_fraction), "min_abs_ndvi_delta": float(min_abs_ndvi_delta), "min_abs_ndwi_delta": float(min_abs_ndwi_delta)},
         "summary": summaries,
         "pixel_arrays": index_values,
