@@ -222,8 +222,6 @@ class NemaAgoraRepository:
 
                 CREATE INDEX IF NOT EXISTS idx_observations_status
                     ON observations(status);
-                CREATE INDEX IF NOT EXISTS idx_observations_owner
-                    ON observations(owner_id);
                 CREATE INDEX IF NOT EXISTS idx_operation_time
                     ON operation_events(occurred_at, event_id);
                 CREATE INDEX IF NOT EXISTS idx_audit_case_time
