@@ -132,6 +132,9 @@ def _scene(scene: Mapping[str, Any], name: str) -> dict[str, Any]:
             "scene_id": scene["scene_id"], "acquired_at": scene["acquired_at"],
             "aoi_id": scene["aoi_id"], "grid_id": scene["grid_id"], "crs": scene["crs"],
             "bands": clean_bands, "valid_mask": mask, "domain_mask": domain, "cloud_mask_applied": True,
+            # Bind provenance metadata (asset checksums, AOI fingerprint, scaling and
+            # uploader assertions) to the scene fingerprint when supplied.
+            "ingestion": scene.get("ingestion"),
         }),
     }
 
@@ -195,7 +198,14 @@ def analyze_paired_raster_arrays(
     if comparison["valid_fraction"] < float(min_valid_fraction):
         findings.append("COMPARISON_VALID_FRACTION_BELOW_THRESHOLD")
     if findings:
-        return {"policy_version": POLICY_VERSION, "state": "CONTROL_REQUIRED", "findings": [{"code": code} for code in findings]}
+        blocked = {
+            "policy_version": POLICY_VERSION,
+            "state": "CONTROL_REQUIRED",
+            "findings": [{"code": code} for code in findings],
+        }
+        if comparability_report is not None:
+            blocked["scene_comparability"] = comparability_report
+        return blocked
 
     valid_pixels = 0
     index_values: dict[str, list[list[float | None]]] = {
