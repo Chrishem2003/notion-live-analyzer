@@ -40,7 +40,7 @@ def test_rejects_unclosed_ring_and_out_of_range_coordinates():
     report = validate_geojson_aoi(doc)
     codes = {f["code"] for f in report["findings"]}
     assert "GEOMETRY_0_RING_0_INVALID_POSITION" in codes
-    assert "GEOMETRY_0_RING_0_RING_NOT_CLOSED" not in codes
+    assert "GEOMETRY_0_RING_0_RING_NOT_CLOSED" in codes
 
 
 def test_rejects_unsupported_geometry_and_invalid_json():
