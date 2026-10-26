@@ -2,9 +2,9 @@
   "project": "NEMA-AGORA",
   "mode": "AUTONOMOUS_BUILD",
   "status": "INTEGRATION_VALIDATION",
-  "current_phase": 217,
-  "next_phase": 218,
-  "completed_through": 216,
+  "current_phase": 218,
+  "next_phase": 219,
+  "completed_through": 217,
   "pr_number": 115,
   "branch": "integration/nema-agora-mainline-20261026",
   "base_branch": "main",
@@ -14,8 +14,8 @@
   "last_verified_head": "a0710c81cd422bb36ace0de51b4cb56f89ea4d60",
   "last_verified_phase": 213,
   "architecture_checkpoint_after": 174,
-  "last_action": "Phase 217 rejects carriage-return and line-feed characters in signed measurement actor identifiers at the API boundary and adds regression tests. Phase 216 authentication tests and Phases 214–215 database hardening remain subject to final-head CI; isolated PostgreSQL execution and staging gates remain required.",
-  "validation_status": "PHASE_217_IMPLEMENTED_CI_PENDING_POSTGRES_AND_STAGING_BLOCKED",
+  "last_action": "Phase 218 adds an isolated content-addressed Supabase evidence object storage adapter and mocked regression tests. It is not wired to the write route; real bucket validation, object read-back digest verification, DB provenance transaction, final-head CI and isolated PostgreSQL validation remain pending.",
+  "validation_status": "PHASE_218_IMPLEMENTED_CI_PENDING_STORAGE_READBACK_DB_PROVENANCE_AND_STAGING_BLOCKED",
   "stop_conditions": [
     "destructive_or_irreversible_action",
     "missing_credentials",
@@ -52,7 +52,10 @@
     "measurement_http_write_route_disabled",
     "evidence_bytes_persistence_and_provenance_not_integrated",
     "phase_216_auth_boundary_tests_final_head_ci_pending",
-    "phase_217_actor_newline_regression_tests_final_head_ci_pending"
+    "phase_217_actor_newline_regression_tests_final_head_ci_pending",
+    "phase_218_evidence_storage_tests_final_head_ci_pending",
+    "evidence_object_storage_live_bucket_and_readback_not_verified",
+    "evidence_database_provenance_transaction_not_integrated"
   ],
   "validation_evidence": {
     "candidate_sha": "6416723d338b13d7a5db05ba822630cc11c0c273",
@@ -128,7 +131,11 @@
     "phase_217_actor_newline_rejection": "IMPLEMENTED_CI_PENDING",
     "phase_217_code_commit": "06e34a2d93ac4599e1e560a0aa073f0967b3f5e7",
     "phase_217_test_commit": "9c627e145caf96b48f0d91554592ecfb1747e611",
-    "phase_217_doc_commit": "19a4cc168571b25b5aac305f97af8eac45e7f788"
+    "phase_217_doc_commit": "19a4cc168571b25b5aac305f97af8eac45e7f788",
+    "phase_218_evidence_object_store": "IMPLEMENTED_MOCKED_TESTS_ADDED_CI_PENDING_NO_LIVE_BUCKET",
+    "phase_218_adapter_commit": "9753fbcac74f45dd28f086bb4f1de4b882684d61",
+    "phase_218_test_commit": "c9220d686f4bbf1a5df1e96a0ad2e5a851b07525",
+    "phase_218_doc_commit": "6e9744fc7d910d6f7b3377329e1d2ca1974c4b43"
   },
   "safety_boundary": "Independent student-led prototype; not an official NEMA service or endorsement. No official ELMIS/SWIMS integration, autonomous enforcement, or production approval is claimed."
 }
