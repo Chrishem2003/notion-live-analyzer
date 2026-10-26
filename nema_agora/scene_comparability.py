@@ -71,6 +71,21 @@ def assess_scene_comparability(
     if baseline["domain_mask"] != comparison["domain_mask"]:
         blocking.append({"code": "AOI_DOMAIN_MASK_MISMATCH"})
 
+    baseline_ingestion = baseline.get("ingestion")
+    comparison_ingestion = comparison.get("ingestion")
+    if isinstance(baseline_ingestion, Mapping) and isinstance(comparison_ingestion, Mapping):
+        baseline_aoi_hash = baseline_ingestion.get("aoi_sha256")
+        comparison_aoi_hash = comparison_ingestion.get("aoi_sha256")
+        if baseline_aoi_hash != comparison_aoi_hash:
+            blocking.append({"code": "AOI_GEOMETRY_FINGERPRINT_MISMATCH"})
+        for label, metadata in (("BASELINE", baseline_ingestion), ("COMPARISON", comparison_ingestion)):
+            if metadata.get("aoi_clipping_applied") is not True:
+                blocking.append({"code": f"{label}_AOI_CLIPPING_NOT_CONFIRMED"})
+            if not isinstance(metadata.get("raster_sha256"), str) or len(metadata["raster_sha256"]) != 64:
+                blocking.append({"code": f"{label}_RASTER_CHECKSUM_REQUIRED"})
+            if not isinstance(metadata.get("valid_mask_sha256"), str) or len(metadata["valid_mask_sha256"]) != 64:
+                blocking.append({"code": f"{label}_MASK_CHECKSUM_REQUIRED"})
+
     for name, scene in (("BASELINE", baseline), ("COMPARISON", comparison)):
         ingestion = scene.get("ingestion")
         if not isinstance(ingestion, Mapping):
