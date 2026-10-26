@@ -188,6 +188,31 @@ def test_postgres_rejects_missing_null_wrong_type_or_empty_source_refs(migrated_
             call_rpc("pg-sources-" + uuid.uuid4().hex, "pg-key-" + uuid.uuid4().hex, payload)
 
 
+def test_postgres_rejects_malformed_source_and_evidence_references(migrated_postgres):
+    source_cases = [
+        (["field-log-001", "field-log-001"], "source_refs entries must be unique"),
+        (["field-log-001", "   "], "source_refs entries must be non-empty strings"),
+        (["field-log-001", 7], "source_refs entries must be non-empty strings"),
+    ]
+    for refs, message in source_cases:
+        payload = record()
+        payload["source_refs"] = refs
+        with pytest.raises(psycopg2.Error, match=message):
+            call_rpc("pg-sources-shape-" + uuid.uuid4().hex, "pg-key-" + uuid.uuid4().hex, payload)
+
+    evidence_cases = [
+        ([], "measured records require evidence_refs array"),
+        ([{"reference": "evidence.txt", "sha256": "bad"}], "evidence_refs require a reference and a valid SHA-256 digest"),
+        ([{"reference": " ", "sha256": "a" * 64}], "evidence_refs require a reference and a valid SHA-256 digest"),
+        ([{"reference": "evidence.txt", "sha256": "a" * 64}, None], "evidence_refs require a reference and a valid SHA-256 digest"),
+    ]
+    for refs, message in evidence_cases:
+        payload = record()
+        payload["evidence_refs"] = refs
+        with pytest.raises(psycopg2.Error, match=message):
+            call_rpc("pg-evidence-shape-" + uuid.uuid4().hex, "pg-key-" + uuid.uuid4().hex, payload)
+
+
 
 def test_postgres_rejects_null_role_and_denies_client_execution(migrated_postgres):
     measurement_id = "pg-auth-" + uuid.uuid4().hex
