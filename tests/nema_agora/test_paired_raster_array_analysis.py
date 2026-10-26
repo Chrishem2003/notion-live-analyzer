@@ -157,3 +157,13 @@ def test_pixel_limit_and_recomputed_fingerprint_guardrails():
     report = validate_paired_array_analysis(tampered)
     assert report["valid"] is False
     assert {"code": "ENVIRONMENTAL_CONCLUSION_MUST_REMAIN_UNSET"} in report["findings"]
+
+
+def test_invalid_threshold_types_fail_closed_without_exception():
+    baseline, comparison = _pair()
+    result = analyze_paired_raster_arrays(
+        baseline_scene=baseline, comparison_scene=comparison,
+        min_valid_fraction="not-a-number",
+    )
+    assert result["state"] == "CONTROL_REQUIRED"
+    assert "INVALID_MIN_VALID_FRACTION" in {x["code"] for x in result["findings"]}
