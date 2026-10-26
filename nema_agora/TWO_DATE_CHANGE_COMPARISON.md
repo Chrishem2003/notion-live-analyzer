@@ -10,11 +10,12 @@ The `nema_agora.paired_raster_ingestion.compare_uploaded_geotiff_pair` workflow 
 - Every index array and shared valid mask must match the declared raster grid.
 - A configurable minimum shared-valid fraction is enforced (default 70%); low coverage blocks the comparison.
 - Embedded GeoTIFF scale and offset values for B03, B04 and B08 must be finite and match exactly between dates; the values are recorded in provenance.
+- A short allowlist of dataset and band metadata tags is captured for review, with values bounded to 240 characters. Tags are untrusted claims, not authenticated evidence.
 - Outputs include index deltas, robust summary statistics, threshold-exceedance pixel counts, compatibility checks and a report SHA-256 digest.
 - Does not calculate area, infer causation, authenticate source imagery or make environmental/legal findings.
 
 ## Important caveat
-The scale and processing-baseline identifiers are separately entered operator assertions, checked for exact equality. The workflow does not independently authenticate those labels against provider metadata; reviewers must verify them from original product documentation. Embedded GeoTIFF scales and offsets are read for B03/B04/B08 and compared exactly, but matching defaults (often 1.0 and 0.0) do not prove the pixel values are physically scaled reflectance. The grid/CRS/transform and dimensions are derived from the raster files themselves. Exact grid or band-metadata equality does not prove source authenticity or scientific suitability.
+The scale and processing-baseline identifiers are separately entered operator assertions, checked for exact equality. The workflow does not independently authenticate those labels against provider metadata; reviewers must verify them from original product documentation. Embedded GeoTIFF scales and offsets are read for B03/B04/B08 and compared exactly, but matching defaults (often 1.0 and 0.0) do not prove the pixel values are physically scaled reflectance. A bounded allowlist of source tags is included in the report to help reviewers locate product identifiers and processing metadata; those tags may be missing, edited or forged and are not authenticated. The grid/CRS/transform and dimensions are derived from the raster files themselves. Exact grid or band-metadata equality does not prove source authenticity or scientific suitability.
 
 ## Next integration gate
 Build a paired GeoTIFF loader and UI flow that:
