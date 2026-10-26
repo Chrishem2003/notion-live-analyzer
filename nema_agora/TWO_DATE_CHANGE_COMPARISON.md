@@ -2,7 +2,7 @@
 
 Status: **paired local GeoTIFF workflow implemented in the single-page workspace; automated verification is in progress and no independently validated imagery has been analysed**.
 
-The `nema_agora.satellite_change.compare_two_dates` function accepts paired NDVI and McFeeters NDWI arrays, explicit acquisition timestamps, grid/CRS/transform identity, reflectance-scale identity, processing-baseline identity, and a shared boolean validity mask.
+The `nema_agora.paired_raster_ingestion.compare_uploaded_geotiff_pair` workflow accepts two local multi-band GeoTIFFs, explicit acquisition timestamps, separately declared reflectance-scale/product identifiers and processing baselines for each date, and an optional AOI. It validates both files, blocks mismatched grids, checks the per-date metadata declarations for exact equality, applies the same AOI and conservative SCL policy, and compares only the intersection of valid pixels. The lower-level `nema_agora.satellite_change.compare_two_dates` function enforces array-level prerequisites.
 
 ## Required safeguards
 - Both acquisition timestamps must include timezone information and later date must be strictly later.
@@ -13,7 +13,7 @@ The `nema_agora.satellite_change.compare_two_dates` function accepts paired NDVI
 - Does not calculate area, infer causation, authenticate source imagery or make environmental/legal findings.
 
 ## Important caveat
-The grid/scale/baseline IDs are caller-supplied assertions. The function cannot independently prove that two rasters are co-registered or radiometrically comparable. A trusted ingestion workflow must derive these identifiers from validated source metadata and verified processing configuration, not from user guesses.
+The scale and processing-baseline identifiers are separately entered operator assertions, checked for exact equality. The workflow does not independently authenticate those labels against provider metadata; reviewers must verify them from original product documentation. The grid/CRS/transform and dimensions are derived from the raster files themselves. Exact grid metadata equality does not prove source authenticity or scientific suitability.
 
 ## Next integration gate
 Build a paired GeoTIFF loader and UI flow that:
