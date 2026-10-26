@@ -167,3 +167,29 @@ def test_invalid_threshold_types_fail_closed_without_exception():
     )
     assert result["state"] == "CONTROL_REQUIRED"
     assert "INVALID_MIN_VALID_FRACTION" in {x["code"] for x in result["findings"]}
+
+
+
+def test_domain_mask_excludes_outside_pixels_and_sets_aoi_denominator():
+    baseline, comparison = _pair()
+    domain = [[True, False], [False, False]]
+    baseline["domain_mask"] = domain
+    comparison["domain_mask"] = domain
+    # Deliberately mark all pixels valid to ensure the analyzer enforces domain itself.
+    baseline["valid_mask"] = [[True, True], [True, True]]
+    comparison["valid_mask"] = [[True, True], [True, True]]
+    result = analyze_paired_raster_arrays(baseline_scene=baseline, comparison_scene=comparison)
+    assert result["state"] == "PIXEL_ANALYSIS_COMPLETE"
+    assert result["quality"]["aoi_domain_pixels"] == 1
+    assert result["quality"]["joint_valid_pixels"] == 1
+    assert result["pixel_arrays"]["ndvi_delta"][0][1] is None
+    assert result["pixel_arrays"]["ndvi_delta"][1][0] is None
+
+
+def test_mismatched_domain_masks_fail_closed():
+    baseline, comparison = _pair()
+    baseline["domain_mask"] = [[True, False], [False, False]]
+    comparison["domain_mask"] = [[False, True], [False, False]]
+    result = analyze_paired_raster_arrays(baseline_scene=baseline, comparison_scene=comparison)
+    assert result["state"] == "CONTROL_REQUIRED"
+    assert "AOI_DOMAIN_MASK_MISMATCH" in {x["code"] for x in result["findings"]}
