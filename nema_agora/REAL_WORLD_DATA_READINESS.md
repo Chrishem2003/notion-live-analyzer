@@ -89,3 +89,12 @@ The manual GeoTIFF path now accepts a validated GeoJSON Polygon/MultiPolygon and
 The Streamlit GeoTIFF pair workflow requires the AOI file and passes the same parsed boundary to both scenes. Regression tests cover an AOI containing only one pixel and verify that outside pixels are excluded, while the quality denominator remains the in-AOI pixel count.
 
 Remaining limitations: GeoJSON validation checks basic structure and coordinate bounds, not full polygon topology or authoritative boundary status. Pixel-center clipping is not fractional-area weighting. This is still a manually supplied-data path; no provider acquisition, automatic reprojection, product-metadata band identification, or independent QA-mask validation is implemented.
+
+
+## Paired-scene comparability gates
+
+`scene_comparability.py` adds a deterministic pre-analysis report for paired scenes. It blocks mismatched AOI identifiers, grid identifiers, CRS, analysis-domain masks, reflectance scaling/offsets, band mapping, missing uploader assertions for band order/cloud masking, invalid acquisition timestamps, reversed time order, and insufficient valid-pixel coverage. When the acquisition interval or day-of-year separation exceeds configurable screening thresholds, it emits review warnings rather than silently declaring the scenes comparable.
+
+The paired-array analyzer now runs these checks whenever either scene includes GeoTIFF ingestion metadata, includes the report in the fingerprinted analysis output, and blocks analysis on comparability failures. Synthetic arrays without ingestion metadata remain available for numeric unit tests, but their output explicitly labels scene-comparability provenance as unavailable.
+
+The default 180-day interval, 45-day day-of-year gap, and valid-pixel threshold are screening defaults—not universal scientific rules. Passing checks do not establish sensor/product equivalence, atmospheric correction quality, registration accuracy, true cloud-mask lineage, seasonal comparability, or environmental cause. A qualified reviewer must assess those factors and local conditions before interpreting a candidate signal.
