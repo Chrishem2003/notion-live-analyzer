@@ -45,3 +45,19 @@ def test_measurement_and_audit_writes_are_in_one_function_transaction():
     assert "insert into public.nema_measurement_idempotency" in sql
     assert "insert into public.nema_measurement_audit" in sql
     assert sql.index("insert into public.nema_indicator_measurements") < sql.index("insert into public.nema_measurement_idempotency") < sql.index("insert into public.nema_measurement_audit")
+
+
+def test_rpc_rejects_null_actor_role_and_missing_or_blank_required_fields():
+    sql = MIGRATION.read_text(encoding="utf-8").lower()
+    assert "if p_actor_role is null or p_actor_role not in" in sql
+    assert "p_record->>'definition_version' is null" in sql
+    assert "length(pg_catalog.btrim(p_record->>'definition_version')) = 0" in sql
+    assert "length(pg_catalog.btrim(p_record->>'reporting_timezone')) = 0" in sql
+    assert "p_record->>'reporting_period_start' is null" in sql
+    assert "p_record->>'reporting_period_end' is null" in sql
+
+
+def test_rpc_normalizes_invalid_reporting_date_errors():
+    sql = MIGRATION.read_text(encoding="utf-8").lower()
+    assert "reporting period dates must be valid iso dates" in sql
+    assert "using errcode = '22023'" in sql
