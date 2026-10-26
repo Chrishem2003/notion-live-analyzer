@@ -1,6 +1,8 @@
 from copy import deepcopy
+import hashlib
+import json
 
-from nema_agora.paired_raster_array_analysis import analyze_paired_raster_arrays
+from nema_agora.paired_raster_array_analysis import analyze_paired_raster_arrays, validate_paired_array_analysis
 
 
 def _scene(scene_id, date, *, red, green, nir, mask=None, grid="GRID-001", aoi="AOI-001"):
@@ -112,6 +114,7 @@ def test_no_comparable_pixels_and_low_quality_are_rejected():
     assert "NO_COMPARABLE_VALID_PIXELS" in {x["code"] for x in result["findings"]}
 
     baseline, comparison = _pair()
+    baseline["valid_mask"] = [[True, False], [True, True]]
     result = analyze_paired_raster_arrays(
         baseline_scene=baseline, comparison_scene=comparison, min_valid_fraction=0.95
     )
@@ -123,6 +126,34 @@ def test_fingerprint_is_deterministic_and_output_tampering_is_detectable():
     first = analyze_paired_raster_arrays(baseline_scene=baseline, comparison_scene=comparison)
     second = analyze_paired_raster_arrays(baseline_scene=baseline, comparison_scene=comparison)
     assert first["fingerprint"] == second["fingerprint"]
+    assert validate_paired_array_analysis(first)["valid"] is True
     tampered = deepcopy(first)
     tampered["pixel_arrays"]["ndvi_delta"][0][0] = 0.9
-    assert tampered["fingerprint"] != first["fingerprint"]
+    assert validate_paired_array_analysis(tampered)["valid"] is False
+    assert {"code": "ANALYSIS_FINGERPRINT_MISMATCH"} in validate_paired_array_analysis(tampered)["findings"]
+
+
+def test_joint_valid_fraction_must_meet_threshold():
+    baseline, comparison = _pair()
+    baseline["valid_mask"] = [[True, True], [False, False]]
+    comparison["valid_mask"] = [[True, False], [True, False]]
+    result = analyze_paired_raster_arrays(
+        baseline_scene=baseline, comparison_scene=comparison, min_valid_fraction=0.75
+    )
+    assert result["state"] == "CONTROL_REQUIRED"
+    assert "JOINT_VALID_FRACTION_BELOW_THRESHOLD" in {x["code"] for x in result["findings"]}
+
+
+def test_pixel_limit_and_recomputed_fingerprint_guardrails():
+    baseline, comparison = _pair()
+    result = analyze_paired_raster_arrays(baseline_scene=baseline, comparison_scene=comparison)
+    tampered = deepcopy(result)
+    tampered["interpretation"]["environmental_conclusion"] = "confirmed wetland loss"
+    payload = dict(tampered)
+    payload.pop("fingerprint")
+    tampered["fingerprint"] = hashlib.sha256(
+        json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode("utf-8")
+    ).hexdigest()
+    report = validate_paired_array_analysis(tampered)
+    assert report["valid"] is False
+    assert {"code": "ENVIRONMENTAL_CONCLUSION_MUST_REMAIN_UNSET"} in report["findings"]
