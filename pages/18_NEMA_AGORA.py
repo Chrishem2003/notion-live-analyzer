@@ -362,9 +362,44 @@ if active_section == "Case management":
     else:
         records = records_for_current_user()
         if not records:
-            st.info("No records available.")
+            st.info("No records available. Submit a pilot observation first, or switch to an account with authorised case access.")
         else:
-            selected_id = st.selectbox("Select record", options=[r["case_id"] for r in reversed(records)])
+            status_counts = {status: sum(1 for item in records if item.get("status") == status) for status in STATUSES}
+            queue_cols = st.columns(min(4, max(1, len(STATUSES))))
+            for idx, status in enumerate(STATUSES[:len(queue_cols)]):
+                queue_cols[idx].metric(status, status_counts.get(status, 0))
+
+            st.markdown("### Find a case")
+            filter_cols = st.columns([2, 1, 1])
+            with filter_cols[0]:
+                case_query = st.text_input(
+                    "Search cases",
+                    placeholder="Case ID, site, category, or description",
+                    key="nema_case_search",
+                ).strip().casefold()
+            with filter_cols[1]:
+                status_filter = st.selectbox(
+                    "Status filter", ["All statuses", *STATUSES], key="nema_case_status_filter"
+                )
+            with filter_cols[2]:
+                category_filter = st.selectbox(
+                    "Category filter", ["All categories", *CATEGORIES], key="nema_case_category_filter"
+                )
+
+            filtered_records = [
+                item for item in records
+                if (status_filter == "All statuses" or item.get("status") == status_filter)
+                and (category_filter == "All categories" or item.get("category") == category_filter)
+                and (
+                    not case_query
+                    or case_query in " ".join(
+                        str(item.get(field, "")) for field in
+                        ("case_id", "district_or_site", "category", "description", "severity")
+                    ).casefold()
+                )
+            ]
+            st.caption(f"Showing {len(filtered_records)} of {len(records)} records in the queue below. The case selector includes all records visible to your account.")
+            selected_id = st.selectbox("Select record to review", options=[r["case_id"] for r in reversed(records)])
             selected = next(r for r in records if r["case_id"] == selected_id)
             st.markdown(f"**{selected['category']}** · {selected['severity']} · {selected['district_or_site']}")
             st.write(selected["description"])
@@ -403,10 +438,20 @@ if active_section == "Case management":
                     st.markdown("**Audit history**")
                     st.dataframe(pd.DataFrame(events), use_container_width=True, hide_index=True)
             st.divider()
-            st.dataframe(
-                pd.DataFrame(records)[["case_id", "observation_date", "category", "severity", "district_or_site", "status"]],
-                use_container_width=True, hide_index=True
-            )
+            if filtered_records:
+                queue_frame = pd.DataFrame(filtered_records)[
+                    ["case_id", "observation_date", "category", "severity", "district_or_site", "status"]
+                ].rename(columns={
+                    "case_id": "Case ID",
+                    "observation_date": "Observed",
+                    "category": "Category",
+                    "severity": "Priority (unverified)",
+                    "district_or_site": "Site",
+                    "status": "Workflow status",
+                })
+                st.dataframe(queue_frame, use_container_width=True, hide_index=True)
+            else:
+                st.info("No cases match these filters. Clear the search or choose 'All statuses' and 'All categories'.")
             if can_export:
                 st.download_button(
                     "Download authorised records as CSV",
