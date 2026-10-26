@@ -10,6 +10,7 @@ from typing import Any, Mapping, Sequence
 from nema_agora.reference_review import ReferenceReviewError, validate_reference_review_package
 from nema_agora.satellite_evaluation import SatelliteEvaluationError, evaluate_change_candidates
 from nema_agora.split_audit import SplitAuditError, audit_dataset_splits
+from nema_agora.spatiotemporal_audit import SpatiotemporalAuditError, audit_spatiotemporal_separation
 
 
 class EvaluationGateError(ValueError):
@@ -21,17 +22,25 @@ def evaluate_holdout_package(
     reference_review_package: Mapping[str, Any],
     split_manifests: Sequence[Mapping[str, Any]],
     evaluation_records: Sequence[Mapping[str, Any]],
+    spatiotemporal_units: Sequence[Mapping[str, Any]],
     min_area_ha: float = 0.1,
 ) -> dict[str, Any]:
     """Audit declared holdout prerequisites and compute metrics only if all pass."""
     try:
         review = validate_reference_review_package(reference_review_package)
         split_audit = audit_dataset_splits(split_manifests)
-    except (ReferenceReviewError, SplitAuditError) as exc:
+        spatial_audit = audit_spatiotemporal_separation(spatiotemporal_units)
+    except (ReferenceReviewError, SplitAuditError, SpatiotemporalAuditError) as exc:
         raise EvaluationGateError(f"evaluation prerequisites rejected: {exc}") from exc
 
     if split_audit["decision"] != "NO_DECLARED_UNIT_ID_OVERLAP":
         raise EvaluationGateError("evaluation blocked: declared unit IDs overlap across splits.")
+    if spatial_audit["finding_count"]:
+        raise EvaluationGateError("evaluation blocked: potential spatial/temporal overlap across splits requires review.")
+    declared_split_pairs = {(unit_id, split) for item in split_audit["canonical_manifests"] for unit_id in item["unit_ids"] for split in [item["split"]]}
+    spatial_split_pairs = {(item["unit_id"], item["split"]) for item in spatiotemporal_units}
+    if declared_split_pairs != spatial_split_pairs:
+        raise EvaluationGateError("evaluation blocked: spatial/temporal unit IDs and split labels must exactly match split manifests.")
     canonical_review = review["canonical_package"]
     if canonical_review["split"] != "holdout":
         raise EvaluationGateError("evaluation blocked: reference-review package must declare split='holdout'.")
@@ -85,6 +94,7 @@ def evaluate_holdout_package(
         "reference_set_version": canonical_review["reference_set_version"],
         "holdout_unit_count": len(holdout_ids),
         "split_audit": split_audit,
+        "spatiotemporal_audit": spatial_audit,
         "evaluation": metrics,
         "limitations": [
             "The gate enforces declared ID matching only; it cannot detect aliases, spatial or temporal leakage, shared imagery, duplicate evidence, or holdout use during tuning.",
