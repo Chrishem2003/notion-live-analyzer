@@ -29,6 +29,16 @@ def test_cross_case_api_requires_signed_server_resolved_identity(monkeypatch):
     assert missing.value.status_code == 401
 
     actor = "https://issuer.example|subject-123"
+    monkeypatch.delenv("NEMA_PORTAL_SIGNING_SECRET")
+    with pytest.raises(HTTPException) as unconfigured:
+        api._require_nema_read_access(
+            x_api_key="test-platform-key",
+            x_nema_actor=actor,
+            x_nema_role="reviewer",
+            x_nema_signature="not-a-valid-signature",
+        )
+    assert unconfigured.value.status_code == 503
+    monkeypatch.setenv("NEMA_PORTAL_SIGNING_SECRET", "test-signing-secret-with-at-least-32-characters")
     with pytest.raises(HTTPException) as submitter:
         api._require_nema_read_access(
             x_api_key="test-platform-key",
