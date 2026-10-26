@@ -7,6 +7,7 @@ This remains an independent student-led prototype, not an official NEMA service.
 from __future__ import annotations
 
 from datetime import date, datetime, timezone
+import hashlib
 import json
 import pandas as pd
 import streamlit as st
@@ -32,6 +33,8 @@ from nema_agora.spatial_temporal_change import spatial_temporal_change_evidence
 from nema_agora.spatial_temporal_quality import spatial_temporal_quality_evidence
 from nema_agora.spatial_change_detection import detect_candidate
 from nema_agora.spatial_workspace_bundle import build_spatial_evidence_bundle, validate_spatial_evidence_bundle
+from nema_agora.source_registry import list_sources
+from nema_agora.asset_receipt import build_manual_asset_receipt, validate_asset_receipt
 
 st.set_page_config(page_title="NEMA-AGORA | Environmental Workspace", page_icon="🌿", layout="wide")
 
@@ -311,7 +314,7 @@ if active_section == "Intelligence workspace":
 elif active_section == "Maps & metrics":
     map_tool = st.radio(
         "View",
-        ["Map", "Pilot metrics", "Spatial evidence"],
+        ["Map", "Pilot metrics", "Spatial evidence", "Data sources & asset receipts"],
         horizontal=True,
         key="nema_agora_map_tool",
     )
@@ -1049,6 +1052,123 @@ if active_section == "Maps & metrics" and map_tool == "Spatial evidence":
             if st.button("Clear result", key="nema_agora_clear_spatial_result", use_container_width=True):
                 st.session_state.pop("nema_agora_spatial_evidence_bundle", None)
                 st.rerun()
+
+
+if active_section == "Maps & metrics" and map_tool == "Data sources & asset receipts":
+    st.subheader("Data source register & asset provenance")
+    st.caption("A practical bridge between public source references and reproducible evidence handling.")
+    st.info(
+        "The catalogue below is reference-only. This workspace does not fetch Sentinel-2 scenes or connect to government portals. "
+        "Uploaded files are hashed in this Streamlit session; this tool does not persist the file bytes or verify their authenticity."
+    )
+    sources = list_sources()
+    source_frame = pd.DataFrame([
+        {
+            "Source ID": item["source_id"],
+            "Publisher": item["publisher"],
+            "Reference": item["title"],
+            "Type": item["source_type"],
+            "Integration": item["integration_status"],
+            "Machine endpoint verified": item["machine_endpoint_verified"],
+            "Automated ingestion": item["automated_ingestion_enabled"],
+        }
+        for item in sources
+    ])
+    st.dataframe(source_frame, use_container_width=True, hide_index=True)
+    with st.expander("Source limitations and official references"):
+        for item in sources:
+            st.markdown(f"**{item['title']}** — [{item['publisher']}]({item['url']})")
+            st.caption(item["intended_use"])
+            st.caption("Limitations: " + "; ".join(item["limitations"]))
+    st.markdown("### Create a manual asset receipt")
+    st.caption(
+        "Use this for a file you already have permission to use. The receipt records metadata and checksums, "
+        "not proof that the file is authentic or scientifically suitable."
+    )
+    uploaded_assets = st.file_uploader(
+        "Choose source assets to fingerprint",
+        type=["tif", "tiff", "jp2", "geojson", "json", "zip", "csv"],
+        accept_multiple_files=True,
+        key="nema_agora_receipt_uploads",
+        help="Files are read in the current session to calculate SHA-256 checksums. This feature does not upload them to a permanent store.",
+    )
+    source_options = {item["source_id"]: item for item in sources}
+    source_id = st.selectbox(
+        "Source reference",
+        options=list(source_options),
+        format_func=lambda value: f"{value} — {source_options[value]['title']}",
+        key="nema_agora_receipt_source",
+    )
+    receipt_a, receipt_b = st.columns(2)
+    with receipt_a:
+        receipt_id = st.text_input("Receipt ID", value="PILOT-ASSET-001", key="nema_agora_receipt_id")
+        receipt_aoi = st.text_input("AOI ID", value="PILOT-AOI-001", key="nema_agora_receipt_aoi")
+        acquired_date = st.date_input("Asset acquisition date", value=date.today(), key="nema_agora_receipt_acquired")
+        asset_role = st.selectbox("Scene role", ["baseline", "comparison", "context"], key="nema_agora_receipt_role")
+    with receipt_b:
+        receipt_crs = st.text_input("Coordinate reference system (CRS)", value="EPSG:32636", key="nema_agora_receipt_crs")
+        receipt_resolution = st.number_input("Spatial resolution (metres)", min_value=0.1, max_value=10000.0, value=10.0, key="nema_agora_receipt_resolution")
+        receipt_cloud = st.number_input("Cloud cover (%)", min_value=0.0, max_value=100.0, value=0.0, key="nema_agora_receipt_cloud")
+        receipt_valid = st.number_input("Valid-pixel fraction (0–1)", min_value=0.0, max_value=1.0, value=1.0, step=0.01, key="nema_agora_receipt_valid")
+    receipt_limitations = st.text_area(
+        "Limitations and verification still needed",
+        value="Source authenticity, licence, scene metadata and scientific suitability require independent verification.",
+        max_chars=1500,
+        key="nema_agora_receipt_limitations",
+    )
+    if st.button("Build and validate manual receipt", type="primary", use_container_width=True, key="nema_agora_build_receipt"):
+        st.session_state.pop("nema_agora_manual_asset_receipt", None)
+        if not uploaded_assets:
+            st.error("Upload at least one asset before building a receipt.")
+        else:
+            asset_records = []
+            for index, uploaded in enumerate(uploaded_assets, start=1):
+                raw = uploaded.getvalue()
+                safe_name = "".join(ch if ch.isalnum() or ch in "._-" else "_" for ch in uploaded.name)[:100]
+                asset_records.append({
+                    "asset_id": f"ASSET-{index:03d}-{safe_name}",
+                    "sha256": hashlib.sha256(raw).hexdigest(),
+                    "storage_ref": f"session-upload://{index:03d}/{safe_name}",
+                    "media_type": uploaded.type or "application/octet-stream",
+                })
+            try:
+                receipt = build_manual_asset_receipt(
+                    receipt_id=receipt_id.strip(),
+                    source_id=source_id,
+                    acquired_at=f"{acquired_date.isoformat()}T00:00:00+00:00",
+                    recorded_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                    aoi_id=receipt_aoi.strip(),
+                    baseline_or_comparison=asset_role,
+                    crs=receipt_crs.strip(),
+                    spatial_resolution_m=receipt_resolution,
+                    cloud_cover_pct=receipt_cloud,
+                    valid_pixel_fraction=receipt_valid,
+                    assets=asset_records,
+                    limitations=[line.strip() for line in receipt_limitations.splitlines() if line.strip()],
+                )
+            except (ValueError, TypeError) as exc:
+                st.error("Receipt validation failed. Correct the metadata and retry.")
+                st.caption(str(exc))
+            else:
+                st.session_state["nema_agora_manual_asset_receipt"] = receipt
+                st.success("Manual asset receipt created and validated in this session.")
+    receipt = st.session_state.get("nema_agora_manual_asset_receipt")
+    if isinstance(receipt, dict):
+        report = validate_asset_receipt(receipt)
+        st.write(f"**Receipt integrity:** {'VALID' if report['valid'] else 'INVALID'}")
+        st.write(f"**Fingerprint:** {receipt['fingerprint']}")
+        st.caption("A valid fingerprint detects later metadata changes; it does not independently verify source authenticity.")
+        if report["valid"]:
+            st.download_button(
+                "Download manual asset receipt (JSON)",
+                data=json.dumps(receipt, sort_keys=True, ensure_ascii=False, indent=2),
+                file_name=f"{receipt['receipt_id']}.json",
+                mime="application/json",
+                use_container_width=True,
+            )
+        else:
+            st.error("Receipt integrity check failed; export is disabled.")
+            st.json(report["findings"])
 
 if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
     st.subheader("Pilot monitoring snapshot")
