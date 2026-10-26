@@ -7,6 +7,8 @@ This remains an independent student-led prototype, not an official NEMA service.
 from __future__ import annotations
 
 from datetime import date, datetime, timezone
+import hashlib
+import io
 import json
 import pandas as pd
 import streamlit as st
@@ -1064,13 +1066,17 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
                     {"unit_id": "SYN-TN", "area_ha": 0.30, "detected": False, "reference_change": False, "independently_verified": True, "usable": True},
                     {"unit_id": "SYN-EXCLUDED", "area_ha": 0.10, "detected": True, "reference_change": True, "independently_verified": True, "usable": True},
                 ]
+                source_bytes = json.dumps(fixture, sort_keys=True, separators=(",", ":")).encode("utf-8")
+                source_name = "built-in-synthetic-fixture"
                 result_label = "SYNTHETIC EXAMPLE — NOT REAL SATELLITE RESULTS"
             else:
                 required_columns = {
                     "unit_id", "area_ha", "detected", "reference_change",
                     "independently_verified", "usable",
                 }
-                frame = pd.read_csv(evaluation_file)
+                source_bytes = evaluation_file.getvalue()
+                source_name = str(evaluation_file.name)
+                frame = pd.read_csv(io.BytesIO(source_bytes))
                 missing = sorted(required_columns - set(frame.columns))
                 if missing:
                     raise SatelliteEvaluationError("Missing required CSV columns: " + ", ".join(missing))
@@ -1098,9 +1104,19 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
             st.error("Evaluation could not be completed. Check the CSV format and required values.")
             st.caption(str(exc))
         else:
+            provenance = {
+                "source_name": source_name,
+                "source_sha256": hashlib.sha256(source_bytes).hexdigest(),
+                "created_at_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                "input_record_count": len(fixture),
+                "area_threshold_ha": float(area_threshold),
+                "evaluation_version": result["evaluation_version"],
+                "interpretation": result["interpretation"],
+            }
             st.session_state["nema_satellite_evaluation_result"] = {
                 "label": result_label,
                 "result": result,
+                "provenance": provenance,
             }
     saved_evaluation = st.session_state.get("nema_satellite_evaluation_result")
     if saved_evaluation:
@@ -1114,6 +1130,13 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
         stat_cols[2].metric("Recall", "N/A" if metrics["recall"] is None else f'{metrics["recall"]:.1%}')
         stat_cols[3].metric("False-positive rate", "N/A" if metrics["false_positive_rate"] is None else f'{metrics["false_positive_rate"]:.1%}')
         st.write(f"**Evaluation state:** {result['state']} · **Version:** {result['evaluation_version']}")
+        provenance = saved_evaluation["provenance"]
+        with st.expander("Evaluation provenance & reproducibility", expanded=True):
+            st.write(f"**Source:** {provenance['source_name']}")
+            st.write(f"**Source SHA-256:** {provenance['source_sha256']}")
+            st.write(f"**Evaluated at (UTC):** {provenance['created_at_utc']}")
+            st.write(f"**Input records:** {provenance['input_record_count']}")
+            st.caption("The SHA-256 digest identifies the exact uploaded bytes (or canonical synthetic fixture); it does not prove reference-label accuracy or dataset representativeness.")
         st.dataframe(
             pd.DataFrame([
                 {"Measure": "True positives", "Count": counts["true_positive"]},
@@ -1134,7 +1157,7 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
             st.caption("• " + limitation)
         st.download_button(
             "Download evaluation report (JSON)",
-            data=json.dumps({"label": saved_evaluation["label"], **result}, indent=2, allow_nan=False),
+            data=json.dumps({"label": saved_evaluation["label"], "provenance": saved_evaluation["provenance"], "evaluation": result}, indent=2, allow_nan=False),
             file_name="nema_satellite_evaluation_report.json",
             mime="application/json",
             key="nema_download_satellite_eval_json",
