@@ -66,6 +66,8 @@ def read_geotiff_scene(
         raise ValueError("INVALID_REFLECTANCE_OFFSET")
     if cloud_shadow_mask_applied is not True:
         raise ValueError("CLOUD_SHADOW_MASK_ASSERTION_REQUIRED")
+    if band_mapping_confirmed is not True:
+        raise ValueError("BAND_MAPPING_CONFIRMATION_REQUIRED")
 
     if aoi_geojson is not None and not validate_geojson_aoi(aoi_geojson).get("valid"):
         raise ValueError("INVALID_AOI_GEOJSON")
@@ -162,6 +164,7 @@ def read_geotiff_scene(
                         "valid_mask_sha256": _digest(valid_mask_bytes),
                         "raster_driver": src.driver,
                         "band_mapping": {"B03": 1, "B04": 2, "B08": 3},
+                        "band_mapping_confirmed_by_uploader": True,
                         "reflectance_scale": float(reflectance_scale),
                         "reflectance_offset": float(reflectance_offset),
                         "cloud_shadow_mask_applied_by_uploader": True,
@@ -183,7 +186,7 @@ def read_geotiff_scene(
                             "north": float(src.bounds.top),
                         },
                         "limitations": [
-                            "Band mapping assumes input order B03, B04, B08 and must be verified by uploader.",
+                            "Band mapping assumes input order B03, B04, B08; uploader confirmation is an assertion, not product-metadata verification.",
                             "Reflectance scale and offset are user-supplied and not inferred from metadata.",
                             "Cloud/shadow mask provenance is user asserted; not independently verified.",
                             "No reprojection, resampling, or provider authenticity verification is performed.",
