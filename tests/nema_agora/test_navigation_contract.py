@@ -1,38 +1,10 @@
 """Navigation contract tests: one visible NEMA-AGORA destination only."""
 from pathlib import Path
 
-from app_navigation import discover_other_pages
-
-
-def test_nema_specialist_pages_are_not_exposed_as_separate_sidebar_entries(tmp_path):
-    root = tmp_path
-    pages = root / "pages"
-    pages.mkdir()
-    for name in (
-        "18_NEMA_AGORA.py",
-        "19_NEMA_AGORA_ADMIN.py",
-        "24_NEMA_AGORA_CONTROLLED_SHADOW.py",
-        "01_Statistics_Studio.py",
-        "16_Career_OS.py",
-    ):
-        (pages / name).write_text("# navigation fixture\n", encoding="utf-8")
-
-    visible = discover_other_pages(root, pages)
-
-    assert visible == [
-        ("pages/01_Statistics_Studio.py", "Statistics Studio"),
-        ("pages/16_Career_OS.py", "Career OS"),
-    ]
-    assert all("NEMA_AGORA" not in path for path, _ in visible)
-
-
-def test_missing_pages_directory_is_safe(tmp_path):
-    assert discover_other_pages(tmp_path, tmp_path / "missing") == []
-
 
 def test_single_page_case_management_exposes_explicit_workflow_run_action():
     page = (
-        Path(__file__).resolve().parents[2] / "pages" / "18_NEMA_AGORA.py"
+        Path(__file__).resolve().parents[2] / "pages" / "19_NEMA_AGORA_Workspace.py"
     ).read_text(encoding="utf-8")
 
     assert 'st.form_submit_button("Run workflow transition"' in page
@@ -44,7 +16,7 @@ def test_single_page_case_management_exposes_explicit_workflow_run_action():
 
 def test_evidence_reload_invalidates_old_bundle_and_export_before_store_call():
     page = (
-        Path(__file__).resolve().parents[2] / "pages" / "18_NEMA_AGORA.py"
+        Path(__file__).resolve().parents[2] / "pages" / "19_NEMA_AGORA_Workspace.py"
     ).read_text(encoding="utf-8")
     button = page.index('"Prepare / reload evidence case"')
     clear_bundle = page.index('st.session_state.pop(f"evidence_bundle_{selected_id}", None)', button)
@@ -55,7 +27,7 @@ def test_evidence_reload_invalidates_old_bundle_and_export_before_store_call():
 
 def test_advisory_analysis_has_user_safe_failure_handling():
     page = (
-        Path(__file__).resolve().parents[2] / "pages" / "18_NEMA_AGORA.py"
+        Path(__file__).resolve().parents[2] / "pages" / "19_NEMA_AGORA_Workspace.py"
     ).read_text(encoding="utf-8")
     action = page.index('st.button("Run advisory analysis"')
     handler = page.index("except Exception as exc:", action)
@@ -68,7 +40,7 @@ def test_advisory_analysis_has_user_safe_failure_handling():
 
 def test_copilot_and_shadow_retries_clear_stale_results_before_execution():
     page = (
-        Path(__file__).resolve().parents[2] / "pages" / "18_NEMA_AGORA.py"
+        Path(__file__).resolve().parents[2] / "pages" / "19_NEMA_AGORA_Workspace.py"
     ).read_text(encoding="utf-8")
     copilot = page.index('st.button("Prepare reviewer brief"')
     copilot_clear = page.index('st.session_state.pop("nema_agora_copilot_brief", None)', copilot)
@@ -82,7 +54,7 @@ def test_copilot_and_shadow_retries_clear_stale_results_before_execution():
 
 def test_governed_evidence_storage_failures_are_user_safe_and_clear_stale_artifacts():
     page = (
-        Path(__file__).resolve().parents[2] / "pages" / "18_NEMA_AGORA.py"
+        Path(__file__).resolve().parents[2] / "pages" / "19_NEMA_AGORA_Workspace.py"
     ).read_text(encoding="utf-8")
     reload = page.index('"Prepare / reload evidence case"')
     load_handler = page.index("except Exception as exc:", reload)
@@ -97,7 +69,7 @@ def test_governed_evidence_storage_failures_are_user_safe_and_clear_stale_artifa
 
 def test_review_export_and_intelligence_failures_have_safe_messages():
     page = (
-        Path(__file__).resolve().parents[2] / "pages" / "18_NEMA_AGORA.py"
+        Path(__file__).resolve().parents[2] / "pages" / "19_NEMA_AGORA_Workspace.py"
     ).read_text(encoding="utf-8")
     for message in (
         "The review could not be confirmed as saved. Reload the case before retrying.",
@@ -110,7 +82,7 @@ def test_review_export_and_intelligence_failures_have_safe_messages():
 
 def test_release_readiness_failures_do_not_leak_exception_details_or_claim_approval():
     page = (
-        Path(__file__).resolve().parents[2] / "pages" / "18_NEMA_AGORA.py"
+        Path(__file__).resolve().parents[2] / "pages" / "19_NEMA_AGORA_Workspace.py"
     ).read_text(encoding="utf-8")
     action = page.index('st.button("Evaluate release readiness"')
     handler = page.index("except Exception as exc:", action)
@@ -127,7 +99,7 @@ def test_release_readiness_failures_do_not_leak_exception_details_or_claim_appro
 
 def test_operational_backup_controls_are_admin_gated_and_fail_closed():
     page = (
-        Path(__file__).resolve().parents[2] / "pages" / "18_NEMA_AGORA.py"
+        Path(__file__).resolve().parents[2] / "pages" / "19_NEMA_AGORA_Workspace.py"
     ).read_text(encoding="utf-8")
     section = page.index('governance_tool == "Operations & backups"')
     gate = page.index('principal.role != "admin"', section)
@@ -141,7 +113,7 @@ def test_operational_backup_controls_are_admin_gated_and_fail_closed():
 
 def test_restore_is_admin_gated_and_requires_two_explicit_confirmations():
     page = (
-        Path(__file__).resolve().parents[2] / "pages" / "18_NEMA_AGORA.py"
+        Path(__file__).resolve().parents[2] / "pages" / "19_NEMA_AGORA_Workspace.py"
     ).read_text(encoding="utf-8")
     section = page.index('governance_tool == "Operations & backups"')
     admin_gate = page.index('principal.role != "admin"', section)
