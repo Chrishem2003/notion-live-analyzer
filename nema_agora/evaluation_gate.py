@@ -5,6 +5,7 @@ before calculating metrics. It is not an authenticity or independence proof.
 """
 from __future__ import annotations
 
+import hashlib
 from typing import Any, Mapping, Sequence
 
 from nema_agora.asset_lineage_audit import AssetLineageAuditError, audit_asset_lineage
@@ -25,6 +26,7 @@ def evaluate_holdout_package(
     evaluation_records: Sequence[Mapping[str, Any]],
     spatiotemporal_units: Sequence[Mapping[str, Any]],
     asset_lineage_records: Sequence[Mapping[str, Any]] | None = None,
+    asset_source_bytes: Mapping[str, bytes] | None = None,
     min_area_ha: float = 0.1,
 ) -> dict[str, Any]:
     """Audit declared holdout prerequisites and compute metrics only if all pass."""
@@ -46,6 +48,37 @@ def evaluate_holdout_package(
         raise EvaluationGateError("evaluation blocked: asset_lineage_records must contain at least one declared asset record.")
     if asset_lineage_audit is None:
         raise EvaluationGateError("evaluation blocked: asset-lineage audit did not produce a report.")
+    if not isinstance(asset_source_bytes, Mapping) or not asset_source_bytes:
+        raise EvaluationGateError("evaluation blocked: asset_source_bytes is required; actual source-file bytes must be uploaded and verified.")
+    normalized_source_bytes: dict[str, bytes] = {}
+    for filename, source_bytes in asset_source_bytes.items():
+        if (not isinstance(filename, str) or not filename.strip() or filename != filename.strip()
+                or filename in {".", ".."} or "/" in filename or "\\" in filename or ":" in filename):
+            raise EvaluationGateError("evaluation blocked: source asset filenames must be unique simple filenames.")
+        if not isinstance(source_bytes, bytes):
+            raise EvaluationGateError(f"evaluation blocked: uploaded source asset {filename} must be raw bytes.")
+        normalized_source_bytes[filename] = source_bytes
+    referenced_filenames: set[str] = set()
+    for index, record in enumerate(asset_lineage_records or []):
+        if not isinstance(record, Mapping):
+            raise EvaluationGateError(f"evaluation blocked: asset_lineage_records[{index}] must be an object.")
+        filename = record.get("source_asset_filename")
+        if not isinstance(filename, str) or not filename.strip() or filename != filename.strip():
+            raise EvaluationGateError(f"evaluation blocked: asset_lineage_records[{index}].source_asset_filename is required.")
+        if filename not in normalized_source_bytes:
+            raise EvaluationGateError(f"evaluation blocked: source asset file {filename} was not uploaded.")
+        expected_digest = record.get("source_asset_sha256")
+        actual_digest = hashlib.sha256(normalized_source_bytes[filename]).hexdigest()
+        if not isinstance(expected_digest, str) or actual_digest.lower() != expected_digest.lower():
+            raise EvaluationGateError(f"evaluation blocked: uploaded source asset hash does not match manifest for {filename}.")
+        referenced_filenames.add(filename)
+    if referenced_filenames != set(normalized_source_bytes):
+        raise EvaluationGateError("evaluation blocked: every uploaded source asset must be referenced by the lineage manifest; remove unused uploads.")
+    asset_source_integrity = {
+        "state": "UPLOADED_SOURCE_BYTES_MATCH_DECLARED_SHA256",
+        "verified_file_count": len(referenced_filenames),
+        "verified_filenames": sorted(referenced_filenames),
+    }
     if asset_lineage_audit["finding_count"]:
         raise EvaluationGateError("evaluation blocked: source assets, satellite tiles, or derived lineage are reused across splits.")
     declared_split_pairs = {(unit_id, split) for item in split_audit["canonical_manifests"] for unit_id in item["unit_ids"] for split in [item["split"]]}
@@ -107,9 +140,10 @@ def evaluate_holdout_package(
         "split_audit": split_audit,
         "spatiotemporal_audit": spatial_audit,
         "asset_lineage_audit": asset_lineage_audit,
+        "asset_source_integrity": asset_source_integrity,
         "evaluation": metrics,
         "limitations": [
-            "Asset-lineage screening is required, but it checks only declared hashes, tile IDs, and lineage links; it does not prove evidence authenticity or independence.",
+            "Uploaded source bytes are checked against declared SHA-256 values, while split leakage is checked using declared tile IDs and lineage links; this does not prove evidence authenticity or scientific independence.",
             "The gate enforces declared ID matching only; it cannot detect aliases, spatial or temporal leakage, duplicate evidence, or holdout use during tuning.",
             "Reviewer identities, evidence references, labels, and blinding are not authenticated by this code.",
             "Metrics describe only the submitted holdout records and configured area threshold; they are not live operational performance.",
