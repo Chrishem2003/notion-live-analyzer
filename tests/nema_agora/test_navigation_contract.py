@@ -156,6 +156,20 @@ def test_restore_is_admin_gated_and_requires_two_explicit_confirmations():
 
 
 
+def test_spatial_evidence_explains_delta_direction_and_limits_of_inference():
+    page = (
+        Path(__file__).resolve().parents[2] / "pages" / "18_NEMA_AGORA.py"
+    ).read_text(encoding="utf-8")
+    assert "Delta = comparison value minus baseline value." in page
+    assert "These are index differences, not percentages" in page
+    assert "NDVI decreased:" in page
+    assert "NDVI increased:" in page
+    assert "NDWI decreased:" in page
+    assert "NDWI increased:" in page
+    assert "Index direction alone does not establish the cause" in page
+    assert "The values entered above are not fetched from satellite imagery." in page
+
+
 def test_review_transition_failures_use_safe_messages_and_success_confirms_transition():
     page = (
         Path(__file__).resolve().parents[2] / "pages" / "18_NEMA_AGORA.py"
