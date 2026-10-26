@@ -102,8 +102,24 @@ service, principal, mode = _persistent_context()
 if mode == "invalid":
     st.error("NEMA-AGORA mode configuration is invalid. Set nema_agora.mode explicitly to \"demo\" or \"persistent\"; no workspace mode was started.")
     st.stop()
-if mode == "persistent" and principal is not None and principal.is_authorised and service is None:
-    st.stop()
+
+# Persistent mode must never fall through to session-only demo records. Require
+# an authenticated, provisioned principal and a working persistent service
+# before rendering any workspace workflows or data.
+if mode == "persistent":
+    if principal is None:
+        st.warning("Sign in is required before the persistent NEMA-AGORA workspace can be opened.")
+        if hasattr(st, "login") and st.button("Sign in", type="primary", use_container_width=True):
+            st.login()
+        st.stop()
+    if not principal.is_authorised:
+        st.error("This account is authenticated but is not provisioned for the NEMA-AGORA pilot.")
+        if hasattr(st, "logout") and st.button("Sign out", use_container_width=True):
+            st.logout()
+        st.stop()
+    if service is None:
+        st.stop()
+
 governance_policy = policy_from_secrets(st.secrets)
 governance_errors = validate_governance(governance_policy)
 if governance_errors:
