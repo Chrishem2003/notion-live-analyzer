@@ -45,3 +45,13 @@ def test_case_id_is_validated_before_request():
 def test_client_fails_closed_without_separate_identity_signing_secret():
     with pytest.raises(NemaApiError, match="signing is not configured"):
         list_cases("https://issuer.example|reviewer-1", "reviewer")
+
+
+@patch.dict("os.environ", {
+    "NEMA_CASE_API_BASE_URL": "https://api.example.test",
+    "PLATFORM_API_KEY": "reused-secret",
+    "NEMA_PORTAL_SIGNING_SECRET": "reused-secret",
+}, clear=True)
+def test_client_rejects_reused_api_and_signing_secret():
+    with pytest.raises(NemaApiError, match="separate secret"):
+        list_cases("https://issuer.example|reviewer-1", "reviewer")
