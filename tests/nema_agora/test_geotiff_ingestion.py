@@ -57,6 +57,8 @@ def test_ingests_pair_and_runs_index_analysis():
     result = analyze_paired_raster_arrays(baseline_scene=baseline, comparison_scene=comparison)
     assert result["state"] == "PIXEL_ANALYSIS_COMPLETE"
     assert baseline["ingestion"]["raster_sha256"]
+    assert len(baseline["ingestion"]["transform"]) == 9
+    assert baseline["ingestion"]["pixel_size_degrees"]["x"] > 0
     assert baseline["ingestion"]["valid_mask_pixels"] == 4
 
 
