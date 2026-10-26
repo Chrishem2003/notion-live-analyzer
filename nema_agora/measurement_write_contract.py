@@ -10,7 +10,6 @@ from collections.abc import Mapping
 from typing import Any
 
 from nema_agora.indicator_evidence import IndicatorEvidenceError, validate_measurement_record
-from nema_agora.measurement_idempotency import canonical_payload_sha256
 
 
 class MeasurementWriteContractError(ValueError):
@@ -85,11 +84,9 @@ def build_measurement_rpc_request(
         "verified_at": None,
         "caveats": record.get("caveats", []),
     }
-    digest = canonical_payload_sha256(rpc_record)
     return {
         "p_measurement_id": measurement_id,
         "p_idempotency_key": idempotency_key,
-        "p_payload_sha256": digest,
         "p_actor_id": authenticated_actor_id,
         "p_actor_role": authenticated_actor_role,
         "p_record": rpc_record,
