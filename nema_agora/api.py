@@ -47,7 +47,7 @@ def _require_nema_read_access(
     signature = x_nema_signature.strip() if isinstance(x_nema_signature, str) else ""
     if not actor or len(actor) > 512 or not signature:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="A signed portal identity is required.")
-    if role not in {"submitter", "reviewer", "coordinator", "admin"}:
+    if role not in {"reviewer", "coordinator", "admin"}:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="This role cannot access cross-case records.")
     signing_secret = os.environ.get("NEMA_PORTAL_SIGNING_SECRET", "").strip()
     if len(signing_secret) < 32 or hmac.compare_digest(signing_secret, os.environ.get("PLATFORM_API_KEY", "")):
