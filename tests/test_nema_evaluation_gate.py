@@ -1,4 +1,5 @@
 """Tests for the fail-closed NEMA-AGORA holdout evaluation gate."""
+import hashlib
 import pytest
 
 from nema_agora.evaluation_gate import EvaluationGateError, evaluate_holdout_package
@@ -40,13 +41,25 @@ def spatial_units(overlap=False):
     ]
 
 
+def clean_source_bytes():
+    return {
+        "development.tif": b"development-source-bytes",
+        "validation.tif": b"validation-source-bytes",
+        "holdout.tif": b"holdout-source-bytes",
+    }
+
+
 def clean_lineage():
+    source_bytes = clean_source_bytes()
     return [
-        {"record_id": "dev-asset", "split": "development", "source_asset_sha256": "a" * 64,
+        {"record_id": "dev-asset", "split": "development", "source_asset_filename": "development.tif",
+         "source_asset_sha256": hashlib.sha256(source_bytes["development.tif"]).hexdigest(),
          "tile_ids": ["tile-dev"], "derived_from": []},
-        {"record_id": "val-asset", "split": "validation", "source_asset_sha256": "b" * 64,
+        {"record_id": "val-asset", "split": "validation", "source_asset_filename": "validation.tif",
+         "source_asset_sha256": hashlib.sha256(source_bytes["validation.tif"]).hexdigest(),
          "tile_ids": ["tile-val"], "derived_from": []},
-        {"record_id": "hold-asset", "split": "holdout", "source_asset_sha256": "c" * 64,
+        {"record_id": "hold-asset", "split": "holdout", "source_asset_filename": "holdout.tif",
+         "source_asset_sha256": hashlib.sha256(source_bytes["holdout.tif"]).hexdigest(),
          "tile_ids": ["tile-hold"], "derived_from": []},
     ]
 
@@ -62,7 +75,7 @@ def records():
 
 def test_holdout_gate_computes_metrics_only_for_exactly_matching_declared_units():
     result = evaluate_holdout_package(reference_review_package=review(), split_manifests=manifests(),
-                                      evaluation_records=records(), spatiotemporal_units=spatial_units(), asset_lineage_records=clean_lineage())
+                                      evaluation_records=records(), spatiotemporal_units=spatial_units(), asset_lineage_records=clean_lineage(), asset_source_bytes=clean_source_bytes())
     assert result["decision"] == "METRICS_COMPUTED_WITH_DECLARED_GATES"
     assert result["holdout_unit_count"] == 2
     assert result["evaluation"]["counts"]["true_positive"] == 1
@@ -82,7 +95,7 @@ def test_holdout_gate_computes_metrics_only_for_exactly_matching_declared_units(
 def test_holdout_gate_fails_closed(review_package, split_data, eval_data, message):
     with pytest.raises(EvaluationGateError, match=message):
         evaluate_holdout_package(reference_review_package=review_package, split_manifests=split_data,
-                                 evaluation_records=eval_data, spatiotemporal_units=spatial_units(), asset_lineage_records=clean_lineage())
+                                 evaluation_records=eval_data, spatiotemporal_units=spatial_units(), asset_lineage_records=clean_lineage(), asset_source_bytes=clean_source_bytes())
 
 
 def test_holdout_gate_blocks_spatial_or_temporal_overlap():
@@ -106,14 +119,22 @@ def test_holdout_gate_blocks_missing_asset_lineage_manifest():
                                  evaluation_records=records(), spatiotemporal_units=spatial_units())
 
 
+def test_holdout_gate_blocks_missing_source_asset_bytes():
+    with pytest.raises(EvaluationGateError, match="asset_source_bytes is required"):
+        evaluate_holdout_package(reference_review_package=review(), split_manifests=manifests(),
+                                 evaluation_records=records(), spatiotemporal_units=spatial_units(),
+                                 asset_lineage_records=clean_lineage())
+
+
 def test_holdout_gate_blocks_shared_source_asset_across_splits():
     from nema_agora.asset_lineage_audit import audit_asset_lineage
 
-    shared = "a" * 64
+    shared_bytes = b"same-source-asset"
+    shared = hashlib.sha256(shared_bytes).hexdigest()
     lineage = [
-        {"record_id": "dev-asset", "split": "development", "source_asset_sha256": shared,
+        {"record_id": "dev-asset", "split": "development", "source_asset_filename": "dev.tif", "source_asset_sha256": shared,
          "tile_ids": ["tile-01"], "derived_from": []},
-        {"record_id": "hold-asset", "split": "holdout", "source_asset_sha256": shared,
+        {"record_id": "hold-asset", "split": "holdout", "source_asset_filename": "hold.tif", "source_asset_sha256": shared,
          "tile_ids": ["tile-02"], "derived_from": []},
     ]
     with pytest.raises(EvaluationGateError, match="source assets"):
@@ -123,23 +144,19 @@ def test_holdout_gate_blocks_shared_source_asset_across_splits():
             evaluation_records=records(),
             spatiotemporal_units=spatial_units(),
             asset_lineage_records=lineage,
+            asset_source_bytes={"dev.tif": shared_bytes, "hold.tif": shared_bytes},
         )
 
 
 def test_holdout_gate_returns_asset_lineage_report_when_supplied():
-    lineage = [
-        {"record_id": "dev-asset", "split": "development", "source_asset_sha256": "a" * 64,
-         "tile_ids": ["tile-dev"], "derived_from": []},
-        {"record_id": "val-asset", "split": "validation", "source_asset_sha256": "b" * 64,
-         "tile_ids": ["tile-val"], "derived_from": []},
-        {"record_id": "hold-asset", "split": "holdout", "source_asset_sha256": "c" * 64,
-         "tile_ids": ["tile-hold"], "derived_from": []},
-    ]
+    lineage = clean_lineage()
     result = evaluate_holdout_package(
         reference_review_package=review(),
         split_manifests=manifests(),
         evaluation_records=records(),
         spatiotemporal_units=spatial_units(),
         asset_lineage_records=lineage,
+        asset_source_bytes=clean_source_bytes(),
     )
     assert result["asset_lineage_audit"]["decision"] == "NO_DECLARED_REUSE_FOUND"
+    assert result["asset_source_integrity"]["state"] == "UPLOADED_SOURCE_BYTES_MATCH_DECLARED_SHA256"
