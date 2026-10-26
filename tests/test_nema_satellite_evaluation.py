@@ -61,7 +61,7 @@ def test_empty_denominators_are_null_not_zero():
     result = evaluate_change_candidates([row("only-negative", False, False)])
     assert result["metrics"]["precision"] is None
     assert result["metrics"]["recall"] is None
-    assert result["metrics"]["f1_score"] == 0.0
+    assert result["metrics"]["f1_score"] is None
     assert result["metrics"]["false_positive_rate"] == 0.0
 
 
