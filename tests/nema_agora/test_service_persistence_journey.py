@@ -97,7 +97,9 @@ def test_submitter_cannot_spoof_owner_or_read_another_users_case(tmp_path):
 
     # Another submitter cannot retrieve the case by guessing its identifier or
     # make it appear in their personal queue.
-    assert service.get_observation(created["case_id"], other_submitter) is None
+    import pytest
+    with pytest.raises(PermissionError, match="not permitted to read"):
+        service.get_observation(created["case_id"], other_submitter)
     assert all(
         item["case_id"] != created["case_id"]
         for item in service.list_observations(other_submitter)
