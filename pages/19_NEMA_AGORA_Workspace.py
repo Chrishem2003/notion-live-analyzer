@@ -1028,6 +1028,14 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
         "independently_verified, usable. Boolean columns must contain true/false values. "
         "Use independently reviewed reference labels; never upload confidential or personal data."
     )
+    template_columns = ["unit_id", "area_ha", "detected", "reference_change", "independently_verified", "usable"]
+    st.download_button(
+        "Download CSV template",
+        data=",".join(template_columns) + "\\n",
+        file_name="nema_satellite_evaluation_template.csv",
+        mime="text/csv",
+        key="nema_satellite_eval_template",
+    )
     evaluation_file = st.file_uploader(
         "Upload evaluation fixture CSV",
         type=["csv"],
@@ -1113,6 +1121,11 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
                 "evaluation_version": result["evaluation_version"],
                 "interpretation": result["interpretation"],
             }
+            report_digest_input = json.dumps(
+                {"provenance": provenance, "evaluation": result},
+                sort_keys=True, separators=(",", ":"), allow_nan=False,
+            ).encode("utf-8")
+            provenance["report_sha256"] = hashlib.sha256(report_digest_input).hexdigest()
             st.session_state["nema_satellite_evaluation_result"] = {
                 "label": result_label,
                 "result": result,
@@ -1134,9 +1147,10 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
         with st.expander("Evaluation provenance & reproducibility", expanded=True):
             st.write(f"**Source:** {provenance['source_name']}")
             st.write(f"**Source SHA-256:** {provenance['source_sha256']}")
+            st.write(f"**Report SHA-256:** {provenance['report_sha256']}")
             st.write(f"**Evaluated at (UTC):** {provenance['created_at_utc']}")
             st.write(f"**Input records:** {provenance['input_record_count']}")
-            st.caption("The SHA-256 digest identifies the exact uploaded bytes (or canonical synthetic fixture); it does not prove reference-label accuracy or dataset representativeness.")
+            st.caption("The source digest identifies the exact uploaded bytes (or canonical synthetic fixture); the report digest detects changes to the evaluated output. Neither proves reference-label accuracy or dataset representativeness.")
         st.dataframe(
             pd.DataFrame([
                 {"Measure": "True positives", "Count": counts["true_positive"]},
