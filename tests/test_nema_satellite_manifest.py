@@ -52,3 +52,13 @@ def test_missing_quality_metadata_is_rejected():
 def test_manifest_does_not_claim_holdout_independence():
     result = validate_dataset_manifest(valid_manifest(split="holdout"))
     assert any("not proof" in warning for warning in result["warnings"])
+
+
+@pytest.mark.parametrize("overrides", [
+    {"spatial_resolution_m": float("inf")},
+    {"cloud_cover_pct": float("nan")},
+    {"valid_pixel_fraction": float("inf")},
+])
+def test_non_finite_quality_values_are_rejected(overrides):
+    with pytest.raises(SatelliteManifestError):
+        validate_dataset_manifest(valid_manifest(**overrides))
