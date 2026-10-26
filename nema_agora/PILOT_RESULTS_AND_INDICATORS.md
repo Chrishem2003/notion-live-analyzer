@@ -158,3 +158,10 @@ The validator requires the record to match a registry indicator and checks:
 - independent reviewer metadata and an accepted review outcome for records labelled `verified`.
 
 A passing result is explicitly structural only. It does not authenticate the evidence bytes, validate source ownership, authenticate a reviewer, or establish institutional acceptance. Registry statuses remain unchanged; evidence validation is not evidence ingestion or persistence.
+
+
+## Phase 192 — evidence artifact byte-integrity check
+
+The in-memory measurement validator now optionally accepts the exact evidence artifact bytes and computes SHA-256 itself. When bytes are supplied, the upload is rejected if its digest differs from the measurement record's declared `evidence_sha256`. The single-page workspace exposes a second uploader for the artifact; it never claims a digest check when the artifact is absent. Tests cover matching bytes, mismatch rejection, and the missing-artifact case.
+
+A digest match establishes byte consistency against the declared digest, not truth, source authenticity, authorship, legal status, or reviewer identity. Both uploads remain session-only; there is still no durable ledger write path, and indicator registry statuses are not promoted automatically.
