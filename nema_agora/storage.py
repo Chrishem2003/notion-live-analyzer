@@ -49,6 +49,24 @@ def _actor(value: str) -> str:
     return actor
 
 
+def _decode_observation_row(row: sqlite3.Row) -> dict[str, Any]:
+    """Fail closed if the JSON payload disagrees with authoritative indexed columns."""
+    try:
+        record = json.loads(row["record_json"])
+    except (TypeError, ValueError, json.JSONDecodeError) as exc:
+        raise ValueError("Stored observation integrity check failed.") from exc
+    if (
+        not isinstance(record, dict)
+        or record.get("case_id") != row["case_id"]
+        or record.get("owner_id") != row["owner_id"]
+        or record.get("status") != row["status"]
+        or record.get("created_at") != row["created_at"]
+        or record.get("updated_at") != row["updated_at"]
+    ):
+        raise ValueError("Stored observation integrity check failed.")
+    return record
+
+
 class NemaAgoraRepository:
     """Small SQLite repository with transactional status changes and audit events."""
 
@@ -284,25 +302,27 @@ class NemaAgoraRepository:
         actor = _actor(actor_id)
         with self._session() as connection:
             row = connection.execute(
-                "SELECT record_json, owner_id FROM observations WHERE case_id = ?",
+                """SELECT case_id, owner_id, status, created_at, updated_at, record_json
+                   FROM observations WHERE case_id = ?""",
                 (case_id,),
             ).fetchone()
         if not row:
             return None
         if not can_read_observation(role, actor, row["owner_id"]):
             raise PermissionError("You are not permitted to read this observation.")
-        return json.loads(row["record_json"])
+        return _decode_observation_row(row)
 
     def list_observations(self, *, actor_id: str, role: str, status: str | None = None) -> list[dict[str, Any]]:
         actor = _actor(actor_id)
         if status is not None and status not in STATUSES:
             raise ValueError("Unknown case status.")
+        columns = "case_id, owner_id, status, created_at, updated_at, record_json"
         if has_permission(role, "observation:read_all"):
-            query = "SELECT record_json FROM observations"
+            query = f"SELECT {columns} FROM observations"
             parameters: tuple[str, ...] = ()
         else:
             require_permission(role, "observation:read_own")
-            query = "SELECT record_json FROM observations WHERE owner_id = ?"
+            query = f"SELECT {columns} FROM observations WHERE owner_id = ?"
             parameters = (actor,)
         if status is not None:
             query += " AND status = ?" if " WHERE " in query else " WHERE status = ?"
@@ -310,7 +330,7 @@ class NemaAgoraRepository:
         query += " ORDER BY created_at, case_id"
         with self._session() as connection:
             rows = connection.execute(query, parameters).fetchall()
-        return [json.loads(row["record_json"]) for row in rows]
+        return [_decode_observation_row(row) for row in rows]
 
     def update_review(
         self,
