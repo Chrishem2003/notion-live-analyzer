@@ -1,0 +1,166 @@
+{
+  "schema_version": "1.0.0",
+  "program": "NEMA-AGORA pilot",
+  "status": "planned",
+  "reporting_timezone": "Africa/Kampala",
+  "status_values": [
+    "not_started",
+    "in_progress",
+    "measured",
+    "verified",
+    "blocked"
+  ],
+  "rules": {
+    "missing_is_not_zero": true,
+    "targets_are_not_achievements": true,
+    "publish_denominator_and_exclusions": true,
+    "require_evidence_reference_for_verified": true,
+    "satellite_candidates_are_not_legal_findings": true
+  },
+  "indicators": [
+    {
+      "id": "ENV-ALERT-001",
+      "result_id": "ER1",
+      "name": "Spatial change alert tickets generated per calendar month",
+      "unit": "distinct alert tickets/month",
+      "target": null,
+      "target_note": "Establish baseline from the pilot; alert volume alone is not a quality measure.",
+      "status": "not_started",
+      "calculation": "Count distinct alert IDs created during the reporting month; separate raw candidates, deduplicated alerts, review-accepted alerts, and verified closures.",
+      "required_evidence": [
+        "alert registry export",
+        "processing logs",
+        "deduplication rules",
+        "reporting period"
+      ],
+      "quality_companions": [
+        "precision",
+        "recall",
+        "duplicate rate",
+        "false-positive rate"
+      ]
+    },
+    {
+      "id": "ENV-DETECT-002",
+      "result_id": "ER1",
+      "name": "Recall for independently verified changes larger than 0.1 hectares",
+      "unit": "percent",
+      "target": 100,
+      "target_type": "stretch_target_on_declared_evaluation_set",
+      "status": "not_started",
+      "calculation": "Detected eligible reference changes divided by all eligible independently verified reference changes in the evaluation set, multiplied by 100.",
+      "required_evidence": [
+        "versioned evaluation set",
+        "ground-truth inspection records",
+        "processing version and parameters",
+        "sample size and exclusions"
+      ],
+      "quality_companions": [
+        "precision",
+        "confidence interval",
+        "usable-area coverage",
+        "missed-change analysis"
+      ],
+      "caveat": "Never present this as a universal guarantee; disclose dataset, time window, exclusions, cloud and sensor limitations."
+    },
+    {
+      "id": "COM-ONBOARD-001",
+      "result_id": "ER2",
+      "name": "Unique community members and local council leaders successfully onboarded",
+      "unit": "unique consented users",
+      "target": 500,
+      "status": "not_started",
+      "calculation": "Count deduplicated user records that completed the defined consent and onboarding flow in the declared pilot zone.",
+      "required_evidence": [
+        "privacy-minimized onboarding events",
+        "consent version",
+        "deduplication method",
+        "pilot-zone definition"
+      ],
+      "quality_companions": [
+        "active reporters",
+        "valid reports",
+        "report-to-case linkage rate"
+      ]
+    },
+    {
+      "id": "COM-GATEWAY-002",
+      "result_id": "ER2",
+      "name": "USSD/SMS gateway transaction outcomes",
+      "unit": "transactions by status",
+      "target": null,
+      "status": "not_started",
+      "calculation": "Report submitted, provider-accepted, delivered, failed, timed-out, and unknown transactions separately.",
+      "required_evidence": [
+        "provider transaction IDs",
+        "timestamped callback/log events",
+        "sandbox or end-to-end test report"
+      ],
+      "caveat": "Provider acceptance is not proof of handset delivery or user receipt; no live messaging without pilot authorization."
+    },
+    {
+      "id": "DASH-LATENCY-001",
+      "result_id": "ER3",
+      "name": "Officer dashboard spatial query and visualization latency",
+      "unit": "seconds",
+      "target": 2,
+      "target_type": "less_than_p95",
+      "status": "not_started",
+      "calculation": "Measure p50, p95, and p99 for a predeclared query set and workload; target p95 below 2 seconds.",
+      "required_evidence": [
+        "versioned benchmark workload",
+        "dataset size and extent",
+        "concurrency and cache conditions",
+        "timestamped test output"
+      ],
+      "quality_companions": [
+        "error rate",
+        "timeout rate",
+        "data freshness",
+        "task completion rate"
+      ]
+    },
+    {
+      "id": "EVAL-REPORT-001",
+      "result_id": "ER4",
+      "name": "Comprehensive technical report completed",
+      "unit": "report",
+      "target": 1,
+      "status": "not_started",
+      "required_evidence": [
+        "versioned final report",
+        "reproducibility instructions",
+        "evaluation results and limitations"
+      ]
+    },
+    {
+      "id": "EVAL-POLICY-002",
+      "result_id": "ER4",
+      "name": "Policy brief submitted to NEMA",
+      "unit": "submission",
+      "target": 1,
+      "status": "not_started",
+      "required_evidence": [
+        "versioned policy brief",
+        "submission date and channel",
+        "formal receipt or acknowledgement if supplied"
+      ],
+      "caveat": "Submission or institutional endorsement must not be inferred from draft creation."
+    },
+    {
+      "id": "EVAL-WORKSHOP-003",
+      "result_id": "ER4",
+      "name": "Dissemination workshop held at Muni University",
+      "unit": "workshop",
+      "target": 1,
+      "status": "not_started",
+      "required_evidence": [
+        "agenda",
+        "proceedings/materials",
+        "appropriately protected attendance evidence",
+        "feedback summary"
+      ],
+      "caveat": "Count only after the event occurs; do not imply partnership or endorsement without documentation."
+    }
+  ]
+}
