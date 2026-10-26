@@ -37,7 +37,7 @@ def _get(
         raise NemaApiError("An authenticated portal identity is required for persisted case access.")
     if trusted_role not in {"reviewer", "coordinator", "admin"}:
         raise NemaApiError("This account role is not allowed to access cross-case records.")
-    message = f"{actor}\ntrusted_role".encode("utf-8")
+    message = f"{actor}\n{trusted_role}".encode("utf-8")
     signature = hmac.new(signing_secret.encode("utf-8"), message, hashlib.sha256).hexdigest()
     headers = {
         "X-API-Key": api_key,
