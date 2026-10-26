@@ -37,6 +37,7 @@ from nema_agora.spatial_change_detection import detect_candidate
 from nema_agora.satellite_evaluation import SatelliteEvaluationError, evaluate_change_candidates
 from nema_agora.satellite_manifest import SatelliteManifestError, validate_dataset_manifest
 from nema_agora.reference_review import ReferenceReviewError, validate_reference_review_package
+from nema_agora.split_audit import SplitAuditError, audit_dataset_splits
 from nema_agora.stac_discovery import StacDiscoveryError, discover_scenes
 from nema_agora.raster_ingestion import RasterIngestionError, process_uploaded_geotiff
 from nema_agora.paired_raster_ingestion import PairedRasterError, compare_uploaded_geotiff_pair
@@ -1324,6 +1325,81 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
             file_name="nema_reference_review_validation_report.json",
             mime="application/json",
             key="nema_reference_review_validation_report",
+        )
+
+
+if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
+    st.divider()
+    st.subheader("Dataset split leakage audit")
+    st.caption(
+        "Compare declared unit IDs across development, validation and holdout manifests before calculating metrics. "
+        "This catches exact-ID overlap only; it is not proof of complete spatial, temporal, or evidence independence."
+    )
+    split_template = {
+        "manifests": [
+            {"reference_set_id": "uganda-wetland-reference", "reference_set_version": "v1",
+             "split": "development", "unit_ids": ["unit-001", "unit-002"]},
+            {"reference_set_id": "uganda-wetland-reference", "reference_set_version": "v1",
+             "split": "validation", "unit_ids": ["unit-003"]},
+            {"reference_set_id": "uganda-wetland-reference", "reference_set_version": "v1",
+             "split": "holdout", "unit_ids": ["unit-004"]}
+        ]
+    }
+    st.download_button(
+        "Download split-audit JSON template",
+        data=json.dumps(split_template, indent=2),
+        file_name="nema_dataset_split_audit_template.json",
+        mime="application/json",
+        key="nema_split_audit_template_download",
+    )
+    split_manifest_file = st.file_uploader(
+        "Upload dataset split manifests JSON",
+        type=["json"],
+        key="nema_split_audit_json",
+        help="Expected shape: an object with a non-empty 'manifests' array. Each entry requires reference_set_id, reference_set_version, split and unit_ids.",
+    )
+    if st.button(
+        "Audit dataset split overlap",
+        key="nema_audit_dataset_splits",
+        disabled=split_manifest_file is None,
+    ):
+        try:
+            split_payload = json.loads(split_manifest_file.getvalue().decode("utf-8"))
+            if not isinstance(split_payload, dict) or "manifests" not in split_payload:
+                raise SplitAuditError("upload must be an object containing a 'manifests' array.")
+            split_report = audit_dataset_splits(split_payload["manifests"])
+            st.session_state["nema_split_audit_report"] = split_report
+        except (UnicodeDecodeError, json.JSONDecodeError, SplitAuditError) as exc:
+            st.session_state.pop("nema_split_audit_report", None)
+            st.error(f"Dataset split audit rejected: {exc}")
+    split_report = st.session_state.get("nema_split_audit_report")
+    if split_report:
+        if split_report["decision"] == "NO_DECLARED_UNIT_ID_OVERLAP":
+            st.success("No exact unit-ID overlap was found in the supplied declarations.")
+        else:
+            st.error("Declared split overlap found. Block evaluation until the split design is corrected.")
+        st.write(f"**State:** {split_report['state']}")
+        st.write(f"**Manifest SHA-256:** {split_report['manifest_sha256']}")
+        st.dataframe(
+            [
+                {"Reference set": set_id, "Split": split, "Declared units": count}
+                for set_id, counts in split_report["split_unit_counts"].items()
+                for split, count in counts.items()
+            ],
+            use_container_width=True,
+            hide_index=True,
+        )
+        if split_report["overlaps"]:
+            st.subheader("Overlaps requiring resolution")
+            st.dataframe(split_report["overlaps"], use_container_width=True, hide_index=True)
+        for limitation in split_report["limitations"]:
+            st.caption("• " + limitation)
+        st.download_button(
+            "Download dataset split audit report",
+            data=json.dumps(split_report, indent=2, allow_nan=False),
+            file_name="nema_dataset_split_audit_report.json",
+            mime="application/json",
+            key="nema_split_audit_report_download",
         )
 
 
