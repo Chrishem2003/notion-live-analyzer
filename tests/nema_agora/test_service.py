@@ -616,3 +616,29 @@ def test_evidence_history_verifier_detects_non_monotonic_event_timestamps(tmp_pa
     assert result["valid"] is False
     assert "non_monotonic_timestamp_at_event_2" in result["issues"]
 
+
+
+def test_service_list_isolates_submitters_and_allows_authorized_reviewers(tmp_path):
+    service = NemaAgoraService(NemaAgoraRepository(tmp_path / "list-isolation.sqlite3"))
+    first = principal("list-owner-1", "submitter")
+    second = principal("list-owner-2", "submitter")
+    first_record = service.create_observation(record(), first)
+    second_record = service.create_observation(record(), second)
+
+    first_rows = service.list_observations(first)
+    second_rows = service.list_observations(second)
+    reviewer_rows = service.list_observations(principal("list-reviewer", "reviewer"))
+
+    assert [row["case_id"] for row in first_rows] == [first_record["case_id"]]
+    assert [row["case_id"] for row in second_rows] == [second_record["case_id"]]
+    assert {row["case_id"] for row in reviewer_rows} == {
+        first_record["case_id"], second_record["case_id"]
+    }
+    assert first_record["case_id"] not in {row["case_id"] for row in second_rows}
+    assert second_record["case_id"] not in {row["case_id"] for row in first_rows}
+
+
+def test_service_list_rejects_unprovisioned_principal(tmp_path):
+    service = NemaAgoraService(NemaAgoraRepository(tmp_path / "list-deny.sqlite3"))
+    with pytest.raises(PermissionError):
+        service.list_observations(principal("list-unprovisioned", None))
