@@ -4,8 +4,9 @@
 
 - Integration PR: [#23 — clean main-based integration](https://github.com/Chrishem2003/notion-live-analyzer/pull/23)
 - Branch: `feature/nema-agora-clean-integration`
-- Current tracker commit: `ba3c60fecf72d4b74223e4e84d8726e7f42d9887`
-- Status: CI passed for the tracker commit; release remains blocked on deployment and governance evidence.
+- Last previously verified candidate: `707c94c1dff787279257845c4e57df18b64ebf1f`
+- Latest Phase 187 implementation commit: `56231f374fc4ffc532ea1940e62fbfe156100d62`
+- Status: Phase 186 CI passed. Phase 187 deployment-preflight code and regression tests are committed; confirmation of CI for the latest commit is still pending. Release remains blocked on deployment and governance evidence.
 
 ## Verified automated checks
 
@@ -43,6 +44,18 @@ The focused workflow runs the NEMA test suite, compiles the NEMA package and cur
 
 NEMA-AGORA is an independent student-led prototype, not an official NEMA service or endorsement. No ELMIS/SWIMS integration, official report submission, autonomous enforcement, or production approval is claimed. Use synthetic or appropriately consented test records until all deployment and governance gates are closed.
 
-## Current next step — Phase 186
+## Phase 186 — verified
 
-Reconcile release evidence against the exact candidate, verify the consolidated user journey and direct authorization boundaries, then run deployment-backed operational checks. Do not merge or describe the system as production-ready while any required gate remains open.
+The focused NEMA-AGORA Pilot Checks and repository CI/CD Pipeline both completed successfully for candidate `707c94c1dff787279257845c4e57df18b64ebf1f`. This verifies the recorded automated test/compile/startup checks for that candidate only; it does not establish live deployment readiness.
+
+## Current next step — Phase 187: deployment preflight
+
+A fail-closed `deployment_preflight()` now checks persistent-mode OIDC setting shape, explicit server-side role bindings, database path, backup directory, and retention configuration without returning secret values. It always keeps production approval false and the execution gate closed. Regression tests cover malformed settings, demo-mode boundaries, missing persistent requirements, invalid roles, invalid retention, and secret redaction.
+
+- [ ] Verify CI for the latest Phase 187 implementation commit.
+- [ ] Run the preflight against the actual deployment secret configuration without exposing secret values.
+- [ ] Test deployed login/logout and role boundaries for provisioned and unprovisioned users.
+- [ ] Verify persistent write/read/audit, restart durability, backup/restore, and retention in the target environment.
+- [ ] Complete accessibility, data-governance, and institutional review.
+
+Do not merge or describe the system as production-ready while any required gate remains open.
