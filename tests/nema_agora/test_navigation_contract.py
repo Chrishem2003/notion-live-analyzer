@@ -154,3 +154,27 @@ def test_restore_is_admin_gated_and_requires_two_explicit_confirmations():
     assert section < admin_gate < restore_section < checkbox < typed_phrase < disabled_guard < pre_backup < destructive_restore
     assert "Coordinate a maintenance window" in page[restore_section:]
 
+
+
+def test_workspace_overview_has_task_shortcuts_and_safe_record_scope():
+    page = (
+        Path(__file__).resolve().parents[2] / "pages" / "18_NEMA_AGORA.py"
+    ).read_text(encoding="utf-8")
+    assert '"Workspace overview"' in page
+    assert 'st.button("Open observation form"' in page
+    assert 'st.button("Open case management"' in page
+    assert 'st.button("Open intelligence"' in page
+    assert "records_for_current_user()" in page
+    assert "not verified environmental outcomes" in page
+    assert "Governance & operations" in page
+
+
+def test_navigation_uses_one_curated_page_with_grouped_work_areas():
+    app = (Path(__file__).resolve().parents[2] / "app.py").read_text(encoding="utf-8")
+    page = (
+        Path(__file__).resolve().parents[2] / "pages" / "18_NEMA_AGORA.py"
+    ).read_text(encoding="utf-8")
+    assert 'st.Page("pages/18_NEMA_AGORA.py", title="NEMA-AGORA")' in app
+    assert '"Intelligence workspace": "🧠  Intelligence & AI"' in page
+    assert '"Maps & metrics": "🗺️  Maps & monitoring"' in page
+    assert '"Governance & help": "🛡️  Governance & operations"' in page
