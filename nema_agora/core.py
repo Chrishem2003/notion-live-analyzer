@@ -90,6 +90,13 @@ def make_observation(
         "status": "Received",
         "review_notes": "",
         "evidence_reference": (evidence_reference or "").strip(),
+        # A submitted reference is a pointer, not verified evidence. Promotion
+        # to verified evidence requires a separate governed verification step.
+        "evidence_provenance": (
+            "user_supplied_reference" if (evidence_reference or "").strip()
+            else "not_provided"
+        ),
+        "evidence_verification_status": "unverified",
         "consent_confirmed": True,
     }
 
