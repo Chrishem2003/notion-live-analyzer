@@ -70,3 +70,18 @@ def can_read_observation(role: str | None, actor_id: str | None, owner_id: str |
         and bool(actor_id.strip()) and bool(owner_id.strip())
         and actor_id == owner_id
     )
+
+
+
+def has_authenticated_portal_session(state) -> bool:
+    """Compatibility guard for the existing read-only portal case console."""
+    from collections.abc import Mapping
+    if not isinstance(state, Mapping):
+        return False
+    if state.get("portal_unlocked") is not True:
+        return False
+    identity = state.get("user_identity")
+    if not isinstance(identity, Mapping):
+        return False
+    email = identity.get("email")
+    return isinstance(email, str) and bool(email.strip())
