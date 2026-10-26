@@ -57,8 +57,33 @@ class SupabaseEvidenceObjectStore:
         if callable(close):
             close()
 
+    def _object_url(self, object_key: str) -> str:
+        return (
+            f"{self._base_url}/storage/v1/object/"
+            f"{quote(self._bucket, safe='')}/{quote(object_key, safe='/')}"
+        )
+
+    def get_verified_artifact(self, *, object_key: str, expected_sha256: str) -> bytes:
+        """Read a stored artifact and return bytes only when the digest matches."""
+        if not isinstance(expected_sha256, str) or not _SHA256_RE.fullmatch(expected_sha256):
+            raise EvidenceStorageError("Evidence SHA-256 must be a lowercase 64-character digest.")
+        if not isinstance(object_key, str) or object_key != f"sha256/{expected_sha256[:2]}/{expected_sha256}":
+            raise EvidenceStorageError("Evidence object key must match its content digest.")
+        try:
+            response = self._session.get(self._object_url(object_key), timeout=self._timeout)
+            response.raise_for_status()
+            stored_content = response.content
+        except (requests.RequestException, ValueError, TypeError, AttributeError) as exc:
+            raise EvidenceStorageError("Evidence artifact read-back failed.") from exc
+        if not isinstance(stored_content, bytes):
+            raise EvidenceStorageError("Evidence storage returned a non-byte artifact.")
+        actual = hashlib.sha256(stored_content).hexdigest()
+        if not hmac.compare_digest(actual, expected_sha256):
+            raise EvidenceStorageError("Stored evidence digest does not match the expected SHA-256.")
+        return stored_content
+
     def put_verified_artifact(self, *, content: bytes, expected_sha256: str) -> dict[str, str]:
-        """Persist exact bytes at a content-addressed key; never accept a client path."""
+        """Persist bytes and verify read-back before returning a usable reference."""
         if not isinstance(content, bytes) or not content:
             raise EvidenceStorageError("Evidence content must be non-empty bytes.")
         if not isinstance(expected_sha256, str) or not _SHA256_RE.fullmatch(expected_sha256):
@@ -67,10 +92,7 @@ class SupabaseEvidenceObjectStore:
         if not hmac.compare_digest(actual, expected_sha256):
             raise EvidenceStorageError("Evidence content does not match the declared SHA-256 digest.")
         object_key = f"sha256/{actual[:2]}/{actual}"
-        url = (
-            f"{self._base_url}/storage/v1/object/"
-            f"{quote(self._bucket, safe='')}/{quote(object_key, safe='/')}"
-        )
+        url = self._object_url(object_key)
         try:
             response = self._session.post(
                 url,
@@ -79,12 +101,13 @@ class SupabaseEvidenceObjectStore:
                 timeout=self._timeout,
             )
             if response.status_code == 409:
-                # A pre-existing content-addressed object is acceptable only after a
-                # separate trusted read-back verifies its bytes; do not silently accept it.
-                raise EvidenceStorageError("Evidence object already exists; verify stored bytes before reuse.")
-            response.raise_for_status()
+                # Idempotent retries are accepted only after the pre-existing bytes verify.
+                self.get_verified_artifact(object_key=object_key, expected_sha256=actual)
+            else:
+                response.raise_for_status()
+                self.get_verified_artifact(object_key=object_key, expected_sha256=actual)
         except EvidenceStorageError:
             raise
-        except (requests.RequestException, ValueError, TypeError) as exc:
-            raise EvidenceStorageError("Evidence artifact upload failed.") from exc
+        except (requests.RequestException, ValueError, TypeError, AttributeError) as exc:
+            raise EvidenceStorageError("Evidence artifact upload or read-back failed.") from exc
         return {"bucket": self._bucket, "object_key": object_key, "sha256": actual}
