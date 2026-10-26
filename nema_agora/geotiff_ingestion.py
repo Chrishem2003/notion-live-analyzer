@@ -173,6 +173,8 @@ def read_geotiff_scene(
                         "aoi_validation": validate_geojson_aoi(aoi_geojson) if aoi_geojson is not None else None,
                         "valid_mask_pixels": int(np.count_nonzero(valid)),
                         "total_pixels": int(src.width * src.height),
+                        "transform": [float(value) for value in src.transform],
+                        "pixel_size_degrees": {"x": float(src.transform.a), "y": float(abs(src.transform.e))},
                         "bounds": {
                             "west": float(src.bounds.left),
                             "south": float(src.bounds.bottom),
