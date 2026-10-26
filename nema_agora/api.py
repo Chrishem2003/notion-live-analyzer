@@ -136,7 +136,7 @@ def list_cases(
 
 
 @router.get("/storage-readiness")
-def storage_readiness(_auth: bool = Depends(_require_nema_api_key)):
+def storage_readiness(_auth: bool = Depends(_require_nema_read_access)):
     """Inspect configured storage without creating a database or changing records."""
     backend = os.environ.get("NEMA_CASE_STORAGE_BACKEND", "sqlite").strip().lower()
     if backend == "supabase_postgres":
@@ -207,7 +207,7 @@ def storage_readiness(_auth: bool = Depends(_require_nema_api_key)):
 
 
 @router.get("/{case_id}")
-def get_case(case_id: str, _auth: bool = Depends(_require_nema_api_key)):
+def get_case(case_id: str, _auth: bool = Depends(_require_nema_read_access)):
     """Read one persisted case and its audit history."""
     from nema_agora.supabase_repository import NemaStorageUnavailableError
 
@@ -229,7 +229,7 @@ def get_case(case_id: str, _auth: bool = Depends(_require_nema_api_key)):
         repository.close()
 
 @router.get("/{case_id}/review-packet")
-def review_packet(case_id: str, _auth: bool = Depends(_require_nema_api_key)):
+def review_packet(case_id: str, _auth: bool = Depends(_require_nema_read_access)):
     """Build a deterministic read-only preview; this does not submit an automation job."""
     from nema_agora.supabase_repository import NemaStorageUnavailableError
     from nema_agora.workflows import build_case_review_packet
