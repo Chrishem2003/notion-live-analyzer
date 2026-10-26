@@ -144,3 +144,17 @@ Never convert an absent metric into zero, and never display a target as an achie
 6. Generate reports only from measured/verified indicator records, with missing evidence and limitations visible.
 
 This is a measurement and implementation plan, not evidence that any target has been achieved.
+
+## Phase 191 — measurement evidence validation
+
+The workspace now has a structural validator for individual measurement records in `nema_agora/indicator_evidence.py`, surfaced in the single-page Pilot metrics workspace. A user may upload a JSON record and receive a validation result without changing the registry or persisting the submitted record.
+
+The validator requires the record to match a registry indicator and checks:
+- ISO reporting dates and a timezone-aware calculation timestamp;
+- a finite numeric value and exact unit match;
+- a non-empty set of unique source-record IDs;
+- an evidence reference, SHA-256 artifact digest, and method version;
+- numerator/denominator presence and arithmetic consistency for ratio-style indicators;
+- independent reviewer metadata and an accepted review outcome for records labelled `verified`.
+
+A passing result is explicitly structural only. It does not authenticate the evidence bytes, validate source ownership, authenticate a reviewer, or establish institutional acceptance. Registry statuses remain unchanged; evidence validation is not evidence ingestion or persistence.
