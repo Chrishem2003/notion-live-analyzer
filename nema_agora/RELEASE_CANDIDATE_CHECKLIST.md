@@ -4,9 +4,10 @@
 
 - Integration PR: [#115 — NEMA-AGORA mainline integration candidate](https://github.com/Chrishem2003/notion-live-analyzer/pull/115)
 - Branch: `integration/nema-agora-mainline-20261026`
-- Current candidate before Phase 189: `b247c838f8a6447bf020c6d629f06f538e058890`
+- Phase 188 verified candidate: `b247c838f8a6447bf020c6d629f06f538e058890`
+- Phase 189 staging-readiness candidate: `6416723d338b13d7a5db05ba822630cc11c0c273`
 - Base branch: `main` at `43ef47b404977dc6af5db45164ffc8a9d2f3f755`
-- Status: draft and unmerged. Phase 188 full repository CI/CD, NEMA integration checks, and authentication-role security checks passed on `b247c838f8a6447bf020c6d629f06f538e058890`. Phase 189 client hardening is being validated separately. Staging is not release-ready.
+- Status: draft and unmerged. Phase 188 full repository CI/CD, NEMA integration checks, and authentication-role security checks passed on `b247c838f8a6447bf020c6d629f06f538e058890`. Phase 189 client hardening and the staging audit are on the integration branch; Phase 189 CI is pending. Staging is not release-ready.
 
 ## Verified automated checks
 
@@ -28,6 +29,14 @@ The focused workflow runs the NEMA test suite, compiles the NEMA package and cur
 - Evidence lifecycle transitions revalidate source-observation fingerprints inside the write transaction.
 - Lifecycle history checks validate transitions, actor attribution, timezone-aware timestamps, chronology, and agreement with persisted state.
 - Release-readiness reports remain advisory: production approval, official integration, official submission, autonomous deployment, regulatory conclusions, and enforcement actions are explicitly disallowed.
+
+
+
+## Phase 189 — Staging-readiness findings
+
+See [the read-only staging audit](STAGING_READINESS_AUDIT_PHASE189.md). The Streamlit and API health endpoints returned HTTP 200 after cold starts. The NEMA case API is not ready: unauthenticated requests returned HTTP 503 because the staging API has no `PLATFORM_API_KEY`. The deployed staging schema lacks `owner_id` because migration 002 is not applied; migration 003 is also pending. The staging services still track `feat/shared-ai-gateway-rebase-oct25`, not the current integration branch. No secrets were changed and no database migrations were applied.
+
+The client now requires `NEMA_CASE_API_BASE_URL` explicitly and will not default to the production API. Phase 189 CI must pass before considering the next staging configuration step.
 
 ## Required before production or real-user data
 
