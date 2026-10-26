@@ -955,7 +955,62 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
         if records:
             counts = pd.DataFrame(records)["status"].value_counts().rename_axis("status").reset_index(name="count")
             st.bar_chart(counts.set_index("status"))
-        st.warning("Prototype metrics are not verified environmental outcomes or official response statistics.")
+        st.warning("Prototype activity metrics are not verified environmental outcomes or official response statistics.")
+
+    st.divider()
+    st.subheader("Pilot results & indicator register")
+    st.caption(
+        "Measurement contract for the four proposed pilot results. Targets are not achievements; "
+        "indicators remain not started until evidence is collected and checked."
+    )
+    registry_path = __import__("pathlib").Path(__file__).resolve().parents[1] / "nema_agora" / "indicator_registry.json"
+    try:
+        with registry_path.open("r", encoding="utf-8") as registry_file:
+            indicator_registry = json.load(registry_file)
+        indicators = indicator_registry["indicators"]
+        allowed_statuses = set(indicator_registry["status_values"])
+        if not all(item.get("status") in allowed_statuses for item in indicators):
+            raise ValueError("Indicator registry contains an unsupported status.")
+        status_counts = {status: sum(1 for item in indicators if item["status"] == status) for status in allowed_statuses}
+        status_cols = st.columns(4)
+        status_cols[0].metric("Indicators defined", len(indicators))
+        status_cols[1].metric("Measured", status_counts.get("measured", 0))
+        status_cols[2].metric("Verified", status_counts.get("verified", 0))
+        status_cols[3].metric("Blocked", status_counts.get("blocked", 0))
+        display_rows = []
+        for item in indicators:
+            target = item.get("target")
+            if target is None:
+                target_label = "Baseline to establish"
+            elif item.get("target_type") == "less_than_p95":
+                target_label = f"p95 < {target} {item.get('unit', '')}"
+            elif item.get("target_type") == "stretch_target_on_declared_evaluation_set":
+                target_label = f"{target}% on declared evaluation set"
+            else:
+                target_label = f"{target} {item.get('unit', '')}"
+            display_rows.append({
+                "Result": item.get("result_id", "—"),
+                "Indicator": item.get("name", item.get("id", "Unnamed")),
+                "Target": target_label,
+                "Status": item.get("status", "not_started"),
+                "Evidence required": "; ".join(item.get("required_evidence", [])),
+            })
+        st.dataframe(pd.DataFrame(display_rows), use_container_width=True, hide_index=True)
+        with st.expander("Indicator definitions and verification rules", expanded=False):
+            for item in indicators:
+                st.markdown(f"**{item.get('id', 'Indicator')} — {item.get('name', 'Unnamed')}**")
+                st.write(item.get("calculation", "Calculation method not yet defined."))
+                companions = item.get("quality_companions", [])
+                if companions:
+                    st.caption("Quality checks: " + ", ".join(companions))
+                if item.get("caveat"):
+                    st.warning(item["caveat"])
+        st.info(
+            "Evidence gate: a target must not be marked measured or verified without a defined reporting period, "
+            "calculation, denominator where applicable, source records, and a reviewable evidence reference."
+        )
+    except (OSError, json.JSONDecodeError, KeyError, TypeError, ValueError):
+        st.error("The indicator register could not be loaded or failed validation. No indicator status is being reported.");
 
 
 if active_section == "Governance & help" and governance_tool == "Release readiness":
