@@ -969,6 +969,30 @@ if active_section == "Maps & metrics" and map_tool == "Spatial evidence":
         m1.metric("NDVI delta", f"{delta_ndvi:+.3f}")
         m2.metric("NDWI delta", f"{delta_ndwi:+.3f}")
         m3.metric("Candidate status", candidate["state"].replace("_", " ").title())
+        st.markdown("### How to read these values")
+        st.caption(
+            "Delta = comparison value minus baseline value. These are index differences, not percentages "
+            "of land or water changed. The values entered above are not fetched from satellite imagery."
+        )
+        interpretation_cols = st.columns(2)
+        with interpretation_cols[0]:
+            if delta_ndvi < 0:
+                st.write("**NDVI decreased:** the supplied vegetation-index value is lower in the comparison input.")
+            elif delta_ndvi > 0:
+                st.write("**NDVI increased:** the supplied vegetation-index value is higher in the comparison input.")
+            else:
+                st.write("**NDVI unchanged:** the two supplied NDVI values are equal.")
+        with interpretation_cols[1]:
+            if delta_ndwi < 0:
+                st.write("**NDWI decreased:** the supplied water-related index value is lower in the comparison input.")
+            elif delta_ndwi > 0:
+                st.write("**NDWI increased:** the supplied water-related index value is higher in the comparison input.")
+            else:
+                st.write("**NDWI unchanged:** the two supplied NDWI values are equal.")
+        st.warning(
+            "Index direction alone does not establish the cause, extent, or legal significance of a change. "
+            "Check scene dates, cloud and valid-pixel quality, spatial alignment, seasonality, and independent field evidence."
+        )
         if candidate["state"] == "CANDIDATE_CHANGE_DETECTED":
             st.warning(
                 "A change signal crossed the selected thresholds. This is a review candidate, "
