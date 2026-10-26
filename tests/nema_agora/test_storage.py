@@ -487,3 +487,43 @@ def test_review_notes_only_update_is_audited_without_fake_status_transition(tmp_
     assert events[-1]["from_status"] is None
     assert events[-1]["to_status"] == "Received"
 
+def test_legacy_malformed_payload_is_preserved_and_rejected_after_migration(tmp_path):
+    import sqlite3
+
+    path = tmp_path / "legacy-malformed.sqlite3"
+    with sqlite3.connect(path) as connection:
+        connection.execute(
+            """CREATE TABLE observations (
+                case_id TEXT PRIMARY KEY,
+                status TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                record_json TEXT NOT NULL
+            )"""
+        )
+        connection.execute(
+            """INSERT INTO observations
+               (case_id, status, created_at, updated_at, record_json)
+               VALUES (?, ?, ?, ?, ?)""",
+            (
+                "NA-LEGACY-BROKEN",
+                "Received",
+                "2026-10-04T12:00:00+03:00",
+                "2026-10-04T12:00:00+03:00",
+                "{malformed-json",
+            ),
+        )
+
+    repository = NemaAgoraRepository(path)
+    with pytest.raises(ValueError, match="Stored observation integrity check failed"):
+        repository.get_observation(
+            "NA-LEGACY-BROKEN", actor_id="migration-admin", role="admin"
+        )
+
+    with sqlite3.connect(path) as connection:
+        stored_payload = connection.execute(
+            "SELECT record_json FROM observations WHERE case_id = ?",
+            ("NA-LEGACY-BROKEN",),
+        ).fetchone()[0]
+    assert stored_payload == "{malformed-json"
+
