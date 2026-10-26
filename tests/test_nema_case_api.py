@@ -232,7 +232,7 @@ def test_measurement_submission_auth_accepts_only_signed_submission_roles(monkey
     actor = "https://issuer.example|submitter-123"
 
     def signed(role):
-        message = f"{actor}\\n{role}".encode("utf-8")
+        message = f"{actor}\n{role}".encode("utf-8")
         return hmac.new(
             b"test-signing-secret-with-at-least-32-characters",
             message,
