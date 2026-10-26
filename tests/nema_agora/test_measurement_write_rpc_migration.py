@@ -34,7 +34,7 @@ def test_measurement_idempotency_and_audit_are_constrained():
 
 def test_submission_does_not_allow_self_verification():
     sql = MIGRATION.read_text(encoding="utf-8").lower()
-    assert "p_record->>'status' <> 'measured'" in sql
+    assert "p_record->>'status' is distinct from 'measured'" in sql
     assert "verification is a separate review action" in sql
     assert "does not authenticate p_actor_id/p_actor_role" in sql
 
