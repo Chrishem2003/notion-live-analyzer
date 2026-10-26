@@ -1142,6 +1142,11 @@ if active_section == "Maps & metrics" and map_tool == "Data sources & asset rece
         base_mask = st.file_uploader("Baseline valid-pixel mask GeoTIFF", type=["tif", "tiff"], key="nema_geotiff_base_mask")
         comp_raster = st.file_uploader("Comparison multiband GeoTIFF", type=["tif", "tiff"], key="nema_geotiff_comp")
         comp_mask = st.file_uploader("Comparison valid-pixel mask GeoTIFF", type=["tif", "tiff"], key="nema_geotiff_comp_mask")
+        aoi_geojson_file = st.file_uploader(
+            "Monitoring AOI boundary (GeoJSON; Polygon/MultiPolygon)",
+            type=["geojson", "json"], key="nema_geotiff_aoi_geojson",
+            help="The same boundary is applied to both scenes using pixel-center inclusion. Use a boundary whose authority and coordinate accuracy you have checked.",
+        )
         gi1, gi2, gi3 = st.columns(3)
         with gi1:
             base_scene_id = st.text_input("Baseline scene ID", value="BASELINE-001", key="nema_geotiff_base_id")
@@ -1159,23 +1164,26 @@ if active_section == "Maps & metrics" and map_tool == "Data sources & asset rece
         )
         if st.button("Ingest GeoTIFF pair and calculate indices", key="nema_geotiff_process", type="primary", use_container_width=True):
             st.session_state.pop("nema_agora_geotiff_analysis", None)
-            if not all((base_raster, base_mask, comp_raster, comp_mask)):
-                st.error("Upload both raster files and both valid-pixel mask files.")
+            if not all((base_raster, base_mask, comp_raster, comp_mask, aoi_geojson_file)):
+                st.error("Upload both raster files, both valid-pixel masks, and the AOI GeoJSON boundary.")
             elif not mask_assertion:
                 st.error("Confirm the cloud/shadow mask workflow before processing.")
             else:
                 try:
+                    aoi_geojson = json.loads(aoi_geojson_file.getvalue().decode("utf-8"))
                     base_scene = read_geotiff_scene(
                         raster_bytes=base_raster.getvalue(), valid_mask_bytes=base_mask.getvalue(),
                         scene_id=base_scene_id, acquired_at=base_acquired, aoi_id=raster_aoi_id,
                         reflectance_scale=scale, reflectance_offset=offset,
                         cloud_shadow_mask_applied=mask_assertion,
+                        aoi_geojson=aoi_geojson,
                     )
                     comp_scene = read_geotiff_scene(
                         raster_bytes=comp_raster.getvalue(), valid_mask_bytes=comp_mask.getvalue(),
                         scene_id=comp_scene_id, acquired_at=comp_acquired, aoi_id=raster_aoi_id,
                         reflectance_scale=scale, reflectance_offset=offset,
                         cloud_shadow_mask_applied=mask_assertion,
+                        aoi_geojson=aoi_geojson,
                     )
                     geo_result = analyze_paired_raster_arrays(
                         baseline_scene=base_scene, comparison_scene=comp_scene,
