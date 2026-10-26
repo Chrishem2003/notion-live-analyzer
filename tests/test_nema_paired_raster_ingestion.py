@@ -122,3 +122,11 @@ def test_report_includes_only_allowlisted_bounded_source_tags():
     assert source_tags["PROCESSING_BASELINE"] == "04.00"
     assert "SECRET_TOKEN" not in source_tags
     assert "LONG_NOTE" not in source_tags
+
+
+
+def test_pair_blocks_embedded_processing_baseline_conflict():
+    earlier = make_raster(tags={"PROCESSING_BASELINE": "05.00"})
+    later = make_raster(offset=100, tags={"PROCESSING_BASELINE": "04.00"})
+    with pytest.raises(PairedRasterError, match="embedded PROCESSING_BASELINE tag conflicts"):
+        run(earlier, later)
