@@ -262,6 +262,40 @@ if active_section == "Workspace overview":
     metric_cols[2].metric("Progressed", progressed)
     metric_cols[3].metric("Closed", closed_records)
 
+    if persistent:
+        st.markdown("### Review workload health")
+        try:
+            workload = service.case_workload_summary(principal, review_age_days=7)
+        except Exception as exc:
+            st.warning("The operational workload summary could not be confirmed from persistent storage.")
+            st.caption(f"Failure type: {type(exc).__name__}")
+        else:
+            workload_cols = st.columns(3)
+            workload_cols[0].metric("Open review cases", workload["open_review_count"])
+            workload_cols[1].metric("Aged ≥ 7 days", workload["stale_review_count"])
+            workload_cols[2].metric("Unusable timestamps", len(workload["invalid_timestamp_case_ids"]))
+            st.caption(
+                "Age screening uses the last-updated timestamp where available. Seven days is a configurable pilot screening default, "
+                "not an official NEMA service-level agreement. Counts are restricted to cases visible to your account."
+            )
+            if workload["stale_review_cases"]:
+                st.markdown("**Cases needing an age check**")
+                st.dataframe(
+                    pd.DataFrame(workload["stale_review_cases"]).rename(columns={
+                        "case_id": "Case ID",
+                        "status": "Status",
+                        "severity": "Priority (unverified)",
+                        "age_days": "Days since update",
+                    }),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+            if workload["invalid_timestamp_case_ids"]:
+                st.warning(
+                    "Some open cases have invalid or timezone-free timestamps; they are listed as data-quality exceptions, not treated as fresh."
+                )
+                st.write(", ".join(workload["invalid_timestamp_case_ids"]))
+
     if mode == "demo":
         st.warning("Demo mode: records are session-only and may disappear when the session ends.")
     elif persistent:
