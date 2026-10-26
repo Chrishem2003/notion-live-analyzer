@@ -44,10 +44,21 @@ def test_ingests_pair_and_runs_index_analysis():
         [[0.5, 0.6], [0.7, 0.4]],
     ])
     valid = _mask([[1, 1], [1, 1]])
+    polygon = {
+        "type": "Polygon",
+        "coordinates": [[
+            [32.50001, 0.49981],
+            [32.50019, 0.49981],
+            [32.50019, 0.49999],
+            [32.50001, 0.49999],
+            [32.50001, 0.49981],
+        ]],
+    }
     common = dict(
         valid_mask_bytes=valid, aoi_id="AOI-001", reflectance_scale=1.0,
         cloud_shadow_mask_applied=True,
         band_mapping_confirmed=True,
+        aoi_geojson=polygon,
     )
     baseline = read_geotiff_scene(
         raster_bytes=base_bytes, scene_id="BASE", acquired_at="2026-06-01T10:00:00Z", **common
