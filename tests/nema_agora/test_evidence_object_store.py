@@ -8,8 +8,9 @@ from nema_agora.evidence_object_store import EvidenceStorageError, SupabaseEvide
 
 
 class FakeResponse:
-    def __init__(self, status_code=200):
+    def __init__(self, status_code=200, content=b""):
         self.status_code = status_code
+        self.content = content
 
     def raise_for_status(self):
         if self.status_code >= 400:
@@ -21,11 +22,19 @@ class FakeSession:
         self.headers = {}
         self.status_code = status_code
         self.calls = []
+        self.get_calls = []
+        self.stored_content = b""
         self.closed = False
 
     def post(self, url, **kwargs):
         self.calls.append((url, kwargs))
+        if self.status_code != 409:
+            self.stored_content = kwargs["data"]
         return FakeResponse(self.status_code)
+
+    def get(self, url, **kwargs):
+        self.get_calls.append((url, kwargs))
+        return FakeResponse(200, self.stored_content)
 
     def close(self):
         self.closed = True
@@ -57,6 +66,8 @@ def test_upload_uses_digest_derived_key_and_no_overwrite(monkeypatch):
     assert kwargs["headers"]["x-upsert"] == "false"
     assert kwargs["timeout"] > 0
     assert "server-secret" not in url
+    assert len(session.get_calls) == 1
+    assert session.get_calls[0][1]["timeout"] > 0
 
 
 def test_digest_mismatch_fails_before_network_call(monkeypatch):
@@ -92,13 +103,30 @@ def test_storage_configuration_requires_https_and_private_bucket_name(monkeypatc
         SupabaseEvidenceObjectStore(session=FakeSession())
 
 
-def test_existing_content_addressed_object_is_not_silently_trusted(monkeypatch):
+def test_existing_content_addressed_object_is_accepted_only_after_digest_readback(monkeypatch):
     configure(monkeypatch)
+    content = b"artifact"
     session = FakeSession(status_code=409)
+    session.stored_content = content
+    store = SupabaseEvidenceObjectStore(session=session)
+
+    result = store.put_verified_artifact(
+        content=content,
+        expected_sha256=hashlib.sha256(content).hexdigest(),
+    )
+
+    assert result["sha256"] == hashlib.sha256(content).hexdigest()
+    assert len(session.get_calls) == 1
+
+
+def test_readback_digest_mismatch_fails_closed(monkeypatch):
+    configure(monkeypatch)
+    session = FakeSession()
     store = SupabaseEvidenceObjectStore(session=session)
     content = b"artifact"
+    session.stored_content = b"tampered bytes"
 
-    with pytest.raises(EvidenceStorageError, match="verify stored bytes"):
+    with pytest.raises(EvidenceStorageError, match="Stored evidence digest"):
         store.put_verified_artifact(
             content=content,
             expected_sha256=hashlib.sha256(content).hexdigest(),
