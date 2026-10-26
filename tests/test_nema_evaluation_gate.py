@@ -40,6 +40,17 @@ def spatial_units(overlap=False):
     ]
 
 
+def clean_lineage():
+    return [
+        {"record_id": "dev-asset", "split": "development", "source_asset_sha256": "a" * 64,
+         "tile_ids": ["tile-dev"], "derived_from": []},
+        {"record_id": "val-asset", "split": "validation", "source_asset_sha256": "b" * 64,
+         "tile_ids": ["tile-val"], "derived_from": []},
+        {"record_id": "hold-asset", "split": "holdout", "source_asset_sha256": "c" * 64,
+         "tile_ids": ["tile-hold"], "derived_from": []},
+    ]
+
+
 def records():
     return [
         {"unit_id": "h-1", "area_ha": 0.5, "detected": True, "reference_change": True,
@@ -51,7 +62,7 @@ def records():
 
 def test_holdout_gate_computes_metrics_only_for_exactly_matching_declared_units():
     result = evaluate_holdout_package(reference_review_package=review(), split_manifests=manifests(),
-                                      evaluation_records=records(), spatiotemporal_units=spatial_units())
+                                      evaluation_records=records(), spatiotemporal_units=spatial_units(), asset_lineage_records=clean_lineage())
     assert result["decision"] == "METRICS_COMPUTED_WITH_DECLARED_GATES"
     assert result["holdout_unit_count"] == 2
     assert result["evaluation"]["counts"]["true_positive"] == 1
@@ -71,13 +82,13 @@ def test_holdout_gate_computes_metrics_only_for_exactly_matching_declared_units(
 def test_holdout_gate_fails_closed(review_package, split_data, eval_data, message):
     with pytest.raises(EvaluationGateError, match=message):
         evaluate_holdout_package(reference_review_package=review_package, split_manifests=split_data,
-                                 evaluation_records=eval_data, spatiotemporal_units=spatial_units())
+                                 evaluation_records=eval_data, spatiotemporal_units=spatial_units(), asset_lineage_records=clean_lineage())
 
 
 def test_holdout_gate_blocks_spatial_or_temporal_overlap():
     with pytest.raises(EvaluationGateError, match="spatial/temporal overlap"):
         evaluate_holdout_package(reference_review_package=review(), split_manifests=manifests(),
-                                 evaluation_records=records(), spatiotemporal_units=spatial_units(overlap=True))
+                                 evaluation_records=records(), spatiotemporal_units=spatial_units(overlap=True), asset_lineage_records=clean_lineage())
 
 
 def test_holdout_gate_preserves_explicit_exclusions():
@@ -87,6 +98,12 @@ def test_holdout_gate_preserves_explicit_exclusions():
                                       evaluation_records=bad, spatiotemporal_units=spatial_units())
     assert result["evaluation"]["counts"]["eligible_units"] == 1
     assert result["evaluation"]["counts"]["excluded_units"] == 1
+
+
+def test_holdout_gate_blocks_missing_asset_lineage_manifest():
+    with pytest.raises(EvaluationGateError, match="asset_lineage_records is required"):
+        evaluate_holdout_package(reference_review_package=review(), split_manifests=manifests(),
+                                 evaluation_records=records(), spatiotemporal_units=spatial_units())
 
 
 def test_holdout_gate_blocks_shared_source_asset_across_splits():
