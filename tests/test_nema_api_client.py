@@ -39,3 +39,9 @@ def test_list_limit_is_bounded():
 def test_case_id_is_validated_before_request():
     with pytest.raises(ValueError):
         get_case("  ", "https://issuer.example|reviewer-1", "reviewer")
+
+
+@patch.dict("os.environ", {"NEMA_CASE_API_BASE_URL": "https://api.example.test", "PLATFORM_API_KEY": "test-secret"}, clear=True)
+def test_client_fails_closed_without_separate_identity_signing_secret():
+    with pytest.raises(NemaApiError, match="signing is not configured"):
+        list_cases("https://issuer.example|reviewer-1", "reviewer")
