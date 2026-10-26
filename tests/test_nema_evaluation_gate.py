@@ -95,7 +95,7 @@ def test_holdout_gate_preserves_explicit_exclusions():
     bad = records()
     bad[0]["independently_verified"] = False
     result = evaluate_holdout_package(reference_review_package=review(), split_manifests=manifests(),
-                                      evaluation_records=bad, spatiotemporal_units=spatial_units())
+                                      evaluation_records=bad, spatiotemporal_units=spatial_units(), asset_lineage_records=clean_lineage())
     assert result["evaluation"]["counts"]["eligible_units"] == 1
     assert result["evaluation"]["counts"]["excluded_units"] == 1
 
