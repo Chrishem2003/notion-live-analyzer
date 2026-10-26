@@ -64,6 +64,49 @@ def _require_nema_read_access(
 
 
 
+
+def _require_measurement_submission_access(
+    x_api_key: Optional[str] = Header(default=None),
+    x_nema_actor: Optional[str] = Header(default=None),
+    x_nema_role: Optional[str] = Header(default=None),
+    x_nema_signature: Optional[str] = Header(default=None),
+) -> dict[str, str | bool]:
+    """Authenticate a measurement-write principal without enabling a write route.
+
+    The actor/role are trusted only because the portal service signs them with
+    NEMA_PORTAL_SIGNING_SECRET. Never construct this principal from request JSON.
+    This dependency is deliberately separate from cross-case read authorization.
+    """
+    _require_nema_api_key(x_api_key=x_api_key)
+    actor = x_nema_actor.strip() if isinstance(x_nema_actor, str) else ""
+    role = x_nema_role.strip().lower() if isinstance(x_nema_role, str) else ""
+    signature = x_nema_signature.strip() if isinstance(x_nema_signature, str) else ""
+    if not actor or len(actor) > 512 or not signature:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="A signed portal identity is required for measurement submission.",
+        )
+    if role not in {"submitter", "coordinator", "admin"}:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This role cannot submit indicator measurements.",
+        )
+    signing_secret = os.environ.get("NEMA_PORTAL_SIGNING_SECRET", "").strip()
+    platform_key = os.environ.get("PLATFORM_API_KEY", "")
+    if len(signing_secret) < 32 or hmac.compare_digest(signing_secret, platform_key):
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="NEMA portal identity signing is not safely configured.",
+        )
+    message = f"{actor}\\n{role}".encode("utf-8")
+    expected = hmac.new(signing_secret.encode("utf-8"), message, hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(signature, expected):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="The signed portal identity is invalid.",
+        )
+    return {"authenticated": True, "subject": actor, "role": role}
+
 def _require_submitter_scope(identity: dict[str, str]) -> str | None:
     """Return a verified owner scope or deny submitters on unscoped storage."""
     if identity.get("role") != "submitter":
