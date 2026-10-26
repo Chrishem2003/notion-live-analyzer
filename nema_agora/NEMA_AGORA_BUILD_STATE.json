@@ -1,21 +1,21 @@
 {
   "project": "NEMA-AGORA",
   "mode": "AUTONOMOUS_BUILD",
-  "status": "RELEASE_READINESS",
-  "current_phase": 186,
-  "next_phase": 186,
-  "completed_through": 185,
-  "pr_number": 23,
-  "branch": "feature/nema-agora-clean-integration",
+  "status": "INTEGRATION_VALIDATION",
+  "current_phase": 187,
+  "next_phase": 187,
+  "completed_through": 186,
+  "pr_number": 115,
+  "branch": "integration/nema-agora-mainline-20261026",
   "base_branch": "main",
   "draft_pr": true,
   "merge_allowed": false,
-  "current_head": "8555fe02209fd54926b72ac0ede700e761b00b33",
-  "last_verified_head": "d235e4264118c0ee5186b29f06cb6fff1692f44f",
-  "last_verified_phase": 185,
+  "current_head": "fc4f31afa1e4a31980b82d99c8d2433e0d3f6488",
+  "last_verified_head": "55f61e2ddee29e3f7de7302842cdff7c9493f098",
+  "last_verified_phase": 186,
   "architecture_checkpoint_after": 174,
-  "last_action": "Phase 185 lifecycle-history chronology and valid intermediate-prefix checks passed focused NEMA-AGORA CI and repository-wide CI on candidate d235e4264118c0ee5186b29f06cb6fff1692f44f. Phase 186 should focus on release-candidate evidence reconciliation and closing deployment-backed gates rather than adding mechanical phase families.",
-  "validation_status": "PHASE_185_VERIFIED_ON_CANDIDATE_D235E42; LIVE_DEPLOYMENT_RELEASE_GATES_PENDING",
+  "last_action": "Phase 187 added cross-split source-asset, satellite-tile, and derived-data lineage screening; wired optional lineage manifests into the holdout evaluation gate; added regression tests and documented the remaining requirement to make lineage input mandatory in the workspace. CI for this phase is pending.",
+  "validation_status": "PHASE_187_IMPLEMENTED_CI_PENDING",
   "stop_conditions": [
     "destructive_or_irreversible_action",
     "missing_credentials",
@@ -32,10 +32,13 @@
     "backup_restore_and_retention_in_deployed_environment",
     "evaluation_artifact_verification",
     "accessibility_and_data_governance_review",
-    "institutional_approval"
+    "institutional_approval",
+    "asset_lineage_manifest_required_in_evaluation_workspace",
+    "phase_187_ci_verification",
+    "staging_environment_binding_and_authenticated_read_validation"
   ],
   "validation_evidence": {
-    "candidate_sha": "d235e4264118c0ee5186b29f06cb6fff1692f44f",
+    "candidate_sha": "fc4f31afa1e4a31980b82d99c8d2433e0d3f6488",
     "focused_nema_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39125258952",
     "repository_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39125258931",
     "checks": {
@@ -60,7 +63,10 @@
     },
     "phase_183_verified_sha": "a9187e8fa2d796c17c7edfe94c94cc196188af3c",
     "phase_183_focused_nema_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39124710423",
-    "phase_183_repository_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39124710554"
+    "phase_183_repository_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39124710554",
+    "phase_186_verified_sha": "55f61e2ddee29e3f7de7302842cdff7c9493f0988",
+    "phase_187_focused_ci": "PENDING",
+    "phase_187_repository_ci": "PENDING"
   },
   "safety_boundary": "Independent student-led prototype; not an official NEMA service or endorsement. No official ELMIS/SWIMS integration, autonomous enforcement, or production approval is claimed."
 }
