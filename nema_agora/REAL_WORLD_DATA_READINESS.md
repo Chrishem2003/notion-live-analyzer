@@ -77,6 +77,15 @@ Input contract:
 - Use reflectance scale/offset appropriate to the exact source product. They are user supplied and not inferred.
 - Both scenes must already use EPSG:4326 and matching unrotated north-up grids. Other CRSs, rotated grids, reprojection and resampling are not supported.
 - The checkbox that cloud/shadow masking was applied is a user assertion. It is not proof that the mask is scientifically correct or was generated from a QA layer.
-- The input raster is not clipped to the AOI by this module. AOI IDs are metadata labels, not a geometry intersection test.
+- When an AOI GeoJSON is supplied, the module masks pixels whose centers fall outside the polygon; the UI now requires this file for the GeoTIFF-pair workflow. The AOI is not reprojected or independently checked against an authoritative boundary. AOI IDs remain labels and must match between scenes.
 
 The module does not connect to Copernicus, NEMA or WEIS, and does not automatically fetch or authenticate source scenes. A successful calculation is a spectral screening output for human review only. Validate the product IDs, reflectance scaling, QA mask lineage, geotransform, scene seasonality, and field evidence independently before relying on any finding.
+
+
+## AOI-constrained GeoTIFF analysis milestone
+
+The manual GeoTIFF path now accepts a validated GeoJSON Polygon/MultiPolygon and applies a pixel-center inclusion mask to each scene before index analysis. It records whether clipping was applied, the AOI pixel count, valid pixels within the AOI, the AOI validation summary, and source/mask checksums. The paired-array analyzer separately tracks the analysis-domain mask, enforces that baseline and comparison domains match, and calculates valid-pixel fractions against the AOI domain rather than the full raster extent.
+
+The Streamlit GeoTIFF pair workflow requires the AOI file and passes the same parsed boundary to both scenes. Regression tests cover an AOI containing only one pixel and verify that outside pixels are excluded, while the quality denominator remains the in-AOI pixel count.
+
+Remaining limitations: GeoJSON validation checks basic structure and coordinate bounds, not full polygon topology or authoritative boundary status. Pixel-center clipping is not fractional-area weighting. This is still a manually supplied-data path; no provider acquisition, automatic reprojection, product-metadata band identification, or independent QA-mask validation is implemented.
