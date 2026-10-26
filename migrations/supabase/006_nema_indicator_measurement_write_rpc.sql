@@ -3,8 +3,8 @@
 -- Caller must be the trusted API using its server-side service_role credential.
 -- Never expose this RPC directly to browser/Streamlit clients.
 -- p_actor_id and p_actor_role MUST be derived by the trusted API from authenticated identity,
--- not copied from user-supplied request fields. p_payload_sha256 must be computed by the API
--- from the same canonical JSON serialization used by the idempotency contract.
+-- not copied from user-supplied request fields. The database computes the payload digest from
+-- PostgreSQL's canonical jsonb text representation of {measurement_id, record}; callers cannot supply it.
 
 begin;
 
@@ -61,7 +61,6 @@ for each row execute function public.reject_nema_measurement_audit_mutation();
 create or replace function public.submit_nema_indicator_measurement(
     p_measurement_id text,
     p_idempotency_key text,
-    p_payload_sha256 text,
     p_actor_id text,
     p_actor_role text,
     p_record jsonb
@@ -77,6 +76,7 @@ declare
     v_numerator numeric;
     v_denominator numeric;
     v_decision text;
+    v_payload_sha256 text;
 begin
     if p_measurement_id is null or length(pg_catalog.btrim(p_measurement_id)) = 0
        or length(pg_catalog.btrim(p_measurement_id)) > 256 then
@@ -85,9 +85,6 @@ begin
     if p_idempotency_key is null or length(pg_catalog.btrim(p_idempotency_key)) = 0
        or length(pg_catalog.btrim(p_idempotency_key)) > 256 then
         raise exception 'invalid idempotency key' using errcode = '22023';
-    end if;
-    if p_payload_sha256 is null or p_payload_sha256 !~ '^[a-fA-F0-9]{64}$' then
-        raise exception 'invalid payload digest' using errcode = '22023';
     end if;
     if p_actor_id is null or length(pg_catalog.btrim(p_actor_id)) = 0
        or length(pg_catalog.btrim(p_actor_id)) > 256 then
@@ -160,6 +157,19 @@ begin
         raise exception 'reporting period dates must be valid ISO dates' using errcode = '22023';
     end;
 
+    -- Compute the digest inside PostgreSQL from the actual database payload. jsonb::text has
+    -- deterministic key ordering and formatting within PostgreSQL; the API must not supply a digest.
+    v_payload_sha256 := pg_catalog.encode(
+        extensions.digest(
+            pg_catalog.convert_to(
+                pg_catalog.jsonb_build_object('measurement_id', p_measurement_id, 'record', p_record)::text,
+                'UTF8'
+            ),
+            'sha256'
+        ),
+        'hex'
+    );
+
     -- Serialize requests using the same key so concurrent retries cannot both create a record.
     perform pg_catalog.pg_advisory_xact_lock(
         pg_catalog.hashtextextended(p_idempotency_key, 0)
@@ -168,7 +178,7 @@ begin
       from public.nema_measurement_idempotency
      where idempotency_key = p_idempotency_key;
     if found then
-        if pg_catalog.lower(v_existing.payload_sha256) <> pg_catalog.lower(p_payload_sha256) then
+        if pg_catalog.lower(v_existing.payload_sha256) <> v_payload_sha256 then
             raise exception 'idempotency key reused with a different payload' using errcode = '23505';
         end if;
         return pg_catalog.jsonb_build_object(
@@ -196,19 +206,19 @@ begin
 
     insert into public.nema_measurement_idempotency (
         idempotency_key, payload_sha256, measurement_id
-    ) values (p_idempotency_key, pg_catalog.lower(p_payload_sha256), p_measurement_id);
+    ) values (p_idempotency_key, v_payload_sha256, p_measurement_id);
 
     insert into public.nema_measurement_audit (
         audit_id, measurement_id, actor_id, actor_role, action, idempotency_key, payload_sha256
     ) values (
         p_measurement_id || ':submitted', p_measurement_id, p_actor_id, p_actor_role,
-        'measurement_submitted', p_idempotency_key, pg_catalog.lower(p_payload_sha256)
+        'measurement_submitted', p_idempotency_key, v_payload_sha256
     );
 
     return pg_catalog.jsonb_build_object(
         'decision', 'new',
         'measurement_id', p_measurement_id,
-        'payload_sha256', pg_catalog.lower(p_payload_sha256),
+        'payload_sha256', v_payload_sha256,
         'audit_created', true
     );
 end;
@@ -220,9 +230,9 @@ grant usage on schema public to service_role;
 grant select on table public.nema_measurement_idempotency to service_role;
 grant select on table public.nema_measurement_audit to service_role;
 
-revoke all on function public.submit_nema_indicator_measurement(text, text, text, text, text, jsonb)
+revoke all on function public.submit_nema_indicator_measurement(text, text, text, text, jsonb)
     from public, anon, authenticated, service_role;
-grant execute on function public.submit_nema_indicator_measurement(text, text, text, text, text, jsonb)
+grant execute on function public.submit_nema_indicator_measurement(text, text, text, text, jsonb)
     to service_role;
 
 revoke all on function public.reject_nema_measurement_audit_mutation()
@@ -231,7 +241,8 @@ revoke all on function public.reject_nema_measurement_audit_mutation()
 commit;
 
 -- REQUIRED before staging approval:
--- * Validate the canonical digest is computed by the trusted API from the exact payload.
+-- * Verify pgcrypto is installed in schema extensions before applying this migration.
+-- * Validate database-computed digest parity and replay behavior on the target PostgreSQL version.
 -- * Test concurrent duplicate requests, conflict, injected rollback, and unique-key collision.
 -- * Confirm function owner is a least-privilege role with required table privileges.
 -- * Confirm RLS/grants and fixed search_path; verify no anon/authenticated execution.
