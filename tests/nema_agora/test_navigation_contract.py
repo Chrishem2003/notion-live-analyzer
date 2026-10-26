@@ -204,6 +204,9 @@ def test_case_management_has_searchable_filtered_queue_and_status_summary():
     assert 'st.text_input(\n                    "Search cases"' in page
     assert '"Status filter"' in page
     assert '"Category filter"' in page
+    assert '"Priority filter"' in page
+    assert '"All priorities"' in page
+    assert 'severity_filter == "All priorities" or item.get("severity") == severity_filter' in page
     assert "filtered_records = [" in page
     assert "No cases match these filters." in page
     assert 'queue_cols[idx].metric(status, status_counts.get(status, 0))' in page
