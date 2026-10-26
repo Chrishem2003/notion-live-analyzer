@@ -9,7 +9,7 @@ from rasterio.transform import from_origin
 from nema_agora.paired_raster_ingestion import PairedRasterError, compare_uploaded_geotiff_pair
 
 
-def make_raster(offset=0, transform=None, crs="EPSG:32636"):
+def make_raster(offset=0, transform=None, crs="EPSG:32636", scales=None, offsets=None):
     base = np.array([
         [[3000, 3100, 3200, 3300], [3100, 3200, 3300, 3400], [3200, 3300, 3400, 3500], [3300, 3400, 3500, 3600]],
         [[2000, 2100, 2200, 2300], [2100, 2200, 2300, 2400], [2200, 2300, 2400, 2500], [2300, 2400, 2500, 2600]],
@@ -23,6 +23,10 @@ def make_raster(offset=0, transform=None, crs="EPSG:32636"):
             ds.write(base)
             for i, name in enumerate(("B03", "B04", "B08", "SCL"), 1):
                 ds.set_band_description(i, name)
+            if scales is not None:
+                ds.scales = tuple(scales)
+            if offsets is not None:
+                ds.offsets = tuple(offsets)
         return mem.read()
 
 
@@ -88,3 +92,15 @@ def test_pair_blocks_different_operator_declared_scaling_or_baseline():
         run(make_raster(), make_raster(offset=100), later_reflectance_scale_id="L2A-reflectance-1e-3")
     with pytest.raises(PairedRasterError, match="baseline identifiers differ"):
         run(make_raster(), make_raster(offset=100), later_processing_baseline="05.00")
+
+
+
+def test_pair_blocks_embedded_spectral_scale_or_offset_mismatch():
+    base_scales = (1.0, 1.0, 1.0, 1.0)
+    changed_scales = (0.0001, 1.0, 1.0, 1.0)
+    with pytest.raises(PairedRasterError, match="Embedded spectral-band scales or offsets differ"):
+        run(make_raster(scales=base_scales), make_raster(offset=100, scales=changed_scales))
+    base_offsets = (0.0, 0.0, 0.0, 0.0)
+    changed_offsets = (10.0, 0.0, 0.0, 0.0)
+    with pytest.raises(PairedRasterError, match="Embedded spectral-band scales or offsets differ"):
+        run(make_raster(offsets=base_offsets), make_raster(offset=100, offsets=changed_offsets))
