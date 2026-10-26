@@ -131,3 +131,11 @@ def test_health_check_error_details_are_generic():
     summary = health_summary((HealthCheck("import:example", False, "module import failed; inspect restricted server logs"),))
     assert summary["checks"][0]["detail"] == "module import failed; inspect restricted server logs"
     assert summary["healthy"] is False
+
+
+def test_empty_health_check_set_is_not_reported_as_healthy():
+    from nema_agora.deployment import health_summary
+
+    summary = health_summary(())
+    assert summary["healthy"] is False
+    assert summary["checks"] == []
