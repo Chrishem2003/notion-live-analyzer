@@ -136,7 +136,7 @@ def test_fingerprint_is_deterministic_and_output_tampering_is_detectable():
 def test_joint_valid_fraction_must_meet_threshold():
     baseline, comparison = _pair()
     baseline["valid_mask"] = [[True, True], [True, False]]
-    comparison["valid_mask"] = [[True, False], [False, True]]
+    comparison["valid_mask"] = [[True, False], [True, True]]
     result = analyze_paired_raster_arrays(
         baseline_scene=baseline, comparison_scene=comparison, min_valid_fraction=0.7
     )
