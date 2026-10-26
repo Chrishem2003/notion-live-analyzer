@@ -1080,10 +1080,9 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
                     parsed = {}
                     for column in boolean_columns:
                         value = row[column]
-                        if isinstance(value, bool):
-                            parsed[column] = value
-                        elif isinstance(value, str) and value.strip().lower() in {"true", "false"}:
-                            parsed[column] = value.strip().lower() == "true"
+                        normalized = str(value).strip().lower()
+                        if normalized in {"true", "false"}:
+                            parsed[column] = normalized == "true"
                         else:
                             raise SatelliteEvaluationError(
                                 f"Row {row_index + 2}: {column} must be true or false."
