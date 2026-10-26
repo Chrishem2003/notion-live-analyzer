@@ -98,7 +98,7 @@ def _require_measurement_submission_access(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="NEMA portal identity signing is not safely configured.",
         )
-    message = f"{actor}\\n{role}".encode("utf-8")
+    message = f"{actor}\n{role}".encode("utf-8")
     expected = hmac.new(signing_secret.encode("utf-8"), message, hashlib.sha256).hexdigest()
     if not hmac.compare_digest(signature, expected):
         raise HTTPException(
