@@ -103,3 +103,55 @@ def test_requires_timezone_mask_assertion_and_valid_scale():
     kwargs["cloud_shadow_mask_applied"] = False
     with pytest.raises(ValueError, match="CLOUD_SHADOW_MASK_ASSERTION"):
         read_geotiff_scene(**kwargs)
+
+
+
+def test_aoi_geojson_clips_pixels_outside_polygon():
+    image = _geotiff([
+        [[0.4, 0.4], [0.5, 0.3]],
+        [[0.2, 0.2], [0.1, 0.3]],
+        [[0.6, 0.6], [0.7, 0.5]],
+    ])
+    polygon = {
+        "type": "Polygon",
+        "coordinates": [[
+            [32.50001, 0.49991],
+            [32.50009, 0.49991],
+            [32.50009, 0.49999],
+            [32.50001, 0.49999],
+            [32.50001, 0.49991],
+        ]],
+    }
+    scene = read_geotiff_scene(
+        raster_bytes=image,
+        valid_mask_bytes=_mask([[1, 1], [1, 1]]),
+        scene_id="AOI-CLIP-BASE",
+        acquired_at="2026-06-01T10:00:00Z",
+        aoi_id="AOI-001",
+        reflectance_scale=1.0,
+        cloud_shadow_mask_applied=True,
+        aoi_geojson=polygon,
+    )
+    assert scene["valid_mask"] == [[True, False], [False, False]]
+    assert scene["ingestion"]["aoi_clipping_applied"] is True
+    assert scene["ingestion"]["valid_mask_pixels"] == 1
+    assert scene["ingestion"]["aoi_validation"]["valid"] is True
+
+
+def test_rejects_invalid_aoi_before_raster_analysis():
+    image = _geotiff([
+        [[0.4, 0.4], [0.5, 0.3]],
+        [[0.2, 0.2], [0.1, 0.3]],
+        [[0.6, 0.6], [0.7, 0.5]],
+    ])
+    with pytest.raises(ValueError, match="INVALID_AOI_GEOJSON"):
+        read_geotiff_scene(
+            raster_bytes=image,
+            valid_mask_bytes=_mask([[1, 1], [1, 1]]),
+            scene_id="AOI-CLIP-BASE",
+            acquired_at="2026-06-01T10:00:00Z",
+            aoi_id="AOI-001",
+            reflectance_scale=1.0,
+            cloud_shadow_mask_applied=True,
+            aoi_geojson={"type": "Polygon", "coordinates": []},
+        )
