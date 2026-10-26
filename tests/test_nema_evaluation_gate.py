@@ -26,6 +26,20 @@ def manifests(overlap=False):
     ]
 
 
+def spatial_units(overlap=False):
+    holdout_box = [29.0, 0.0, 29.1, 0.1] if overlap else [31.0, 1.0, 31.1, 1.1]
+    return [
+        {"unit_id": "d-1", "split": "development", "bbox_wgs84": [28.0, -1.0, 28.1, -0.9],
+         "observation_start": "2024-01-01T00:00:00Z", "observation_end": "2024-01-02T00:00:00Z"},
+        {"unit_id": "v-1", "split": "validation", "bbox_wgs84": [30.0, 0.0, 30.1, 0.1],
+         "observation_start": "2024-06-01T00:00:00Z", "observation_end": "2024-06-02T00:00:00Z"},
+        {"unit_id": "h-1", "split": "holdout", "bbox_wgs84": holdout_box,
+         "observation_start": "2025-01-01T00:00:00Z", "observation_end": "2025-01-02T00:00:00Z"},
+        {"unit_id": "h-2", "split": "holdout", "bbox_wgs84": [32.0, 2.0, 32.1, 2.1],
+         "observation_start": "2025-06-01T00:00:00Z", "observation_end": "2025-06-02T00:00:00Z"},
+    ]
+
+
 def records():
     return [
         {"unit_id": "h-1", "area_ha": 0.5, "detected": True, "reference_change": True,
@@ -37,7 +51,7 @@ def records():
 
 def test_holdout_gate_computes_metrics_only_for_exactly_matching_declared_units():
     result = evaluate_holdout_package(reference_review_package=review(), split_manifests=manifests(),
-                                      evaluation_records=records())
+                                      evaluation_records=records(), spatiotemporal_units=spatial_units())
     assert result["decision"] == "METRICS_COMPUTED_WITH_DECLARED_GATES"
     assert result["holdout_unit_count"] == 2
     assert result["evaluation"]["counts"]["true_positive"] == 1
@@ -57,13 +71,19 @@ def test_holdout_gate_computes_metrics_only_for_exactly_matching_declared_units(
 def test_holdout_gate_fails_closed(review_package, split_data, eval_data, message):
     with pytest.raises(EvaluationGateError, match=message):
         evaluate_holdout_package(reference_review_package=review_package, split_manifests=split_data,
-                                 evaluation_records=eval_data)
+                                 evaluation_records=eval_data, spatiotemporal_units=spatial_units())
+
+
+def test_holdout_gate_blocks_spatial_or_temporal_overlap():
+    with pytest.raises(EvaluationGateError, match="spatial/temporal overlap"):
+        evaluate_holdout_package(reference_review_package=review(), split_manifests=manifests(),
+                                 evaluation_records=records(), spatiotemporal_units=spatial_units(overlap=True))
 
 
 def test_holdout_gate_preserves_explicit_exclusions():
     bad = records()
     bad[0]["independently_verified"] = False
     result = evaluate_holdout_package(reference_review_package=review(), split_manifests=manifests(),
-                                      evaluation_records=bad)
+                                      evaluation_records=bad, spatiotemporal_units=spatial_units())
     assert result["evaluation"]["counts"]["eligible_units"] == 1
     assert result["evaluation"]["counts"]["excluded_units"] == 1
