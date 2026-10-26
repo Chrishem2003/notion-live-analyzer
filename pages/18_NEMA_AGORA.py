@@ -602,6 +602,31 @@ if active_section == "Case management":
                     key=f"download_evidence_{selected_id}",
                     use_container_width=True,
                 )
+            if can_audit:
+                if st.button(
+                    "Verify persisted evidence history",
+                    key=f"verify_evidence_history_{selected_id}",
+                    use_container_width=True,
+                ):
+                    st.session_state.pop(f"evidence_history_check_{selected_id}", None)
+                    try:
+                        history_report = service.verify_evidence_case_history(selected_id, principal)
+                    except Exception as exc:
+                        st.error("The persisted evidence history could not be verified. Check audit permission and storage health.")
+                        st.caption(f"Failure type: {type(exc).__name__}")
+                    else:
+                        st.session_state[f"evidence_history_check_{selected_id}"] = history_report
+                history_report = st.session_state.get(f"evidence_history_check_{selected_id}")
+                if history_report is not None:
+                    if history_report.get("valid") is True:
+                        st.success(
+                            f"Evidence history verified · {history_report.get('event_count', 0)} lifecycle event(s) · "
+                            f"current state: {history_report.get('state', 'unknown')}."
+                        )
+                    else:
+                        st.error("Evidence lifecycle history has integrity or consistency issues. Do not treat this bundle as cleared for export.")
+                    st.json(history_report)
+
             if can_audit and st.checkbox(
                 "Show evidence-case transition audit",
                 key=f"show_evidence_audit_{selected_id}",
