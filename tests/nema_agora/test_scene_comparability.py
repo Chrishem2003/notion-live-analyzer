@@ -91,3 +91,37 @@ def test_aoi_geometry_fingerprint_mismatch_blocks_even_if_domain_masks_match():
     assert "AOI_GEOMETRY_FINGERPRINT_MISMATCH" in {
         item["code"] for item in report["blocking_findings"]
     }
+
+
+
+def test_malformed_checksums_and_non_finite_numeric_metadata_fail_closed():
+    baseline, comparison = _scene("BASE", "2026-06-01"), _scene("COMP", "2026-06-20")
+    baseline["ingestion"]["aoi_sha256"] = "z" * 64
+    baseline["ingestion"]["raster_sha256"] = "g" * 64
+    comparison["ingestion"]["valid_mask_sha256"] = "not-a-sha256"
+    comparison["ingestion"]["reflectance_scale"] = float("nan")
+    comparison["ingestion"]["reflectance_offset"] = float("inf")
+    baseline["ingestion"]["aoi_valid_pixel_fraction"] = float("nan")
+
+    report = assess_scene_comparability(baseline, comparison)
+    codes = {item["code"] for item in report["blocking_findings"]}
+    assert {
+        "BASELINE_AOI_CHECKSUM_REQUIRED",
+        "BASELINE_RASTER_CHECKSUM_REQUIRED",
+        "COMPARISON_MASK_CHECKSUM_REQUIRED",
+        "COMPARISON_INVALID_REFLECTANCE_SCALE",
+        "COMPARISON_INVALID_REFLECTANCE_OFFSET",
+        "BASELINE_INVALID_VALID_PIXEL_FRACTION",
+    } <= codes
+    assert report["state"] == "CONTROL_REQUIRED"
+
+
+def test_missing_aoi_fingerprint_is_not_treated_as_matching():
+    baseline, comparison = _scene("BASE", "2026-06-01"), _scene("COMP", "2026-06-20")
+    del baseline["ingestion"]["aoi_sha256"]
+    del comparison["ingestion"]["aoi_sha256"]
+
+    report = assess_scene_comparability(baseline, comparison)
+    codes = {item["code"] for item in report["blocking_findings"]}
+    assert {"BASELINE_AOI_CHECKSUM_REQUIRED", "COMPARISON_AOI_CHECKSUM_REQUIRED"} <= codes
+    assert report["state"] == "CONTROL_REQUIRED"
