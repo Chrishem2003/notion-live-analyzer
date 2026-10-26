@@ -73,3 +73,10 @@ Read-only observations from the current Render/Supabase staging environment:
 - The NEMA client is being hardened to require an explicit `NEMA_CASE_API_BASE_URL`; it must never silently default to the production API.
 
 No environment secrets were changed and no database migration was applied. Before staging authenticated reads: configure separate service/signing secrets in Render for the staging app and API, explicitly point the app to the staging API URL, review/apply owner-scope migrations only with explicit staging approval, then test signed read-only access and denial of unauthenticated access. Production remains unchanged.
+
+
+## Phase 191 — measurement evidence record contract
+
+Added `nema_agora/indicator_evidence.py` and `tests/test_nema_indicator_evidence.py`, and integrated JSON-record validation into the existing single-page NEMA-AGORA Pilot metrics workspace. Validation checks reporting periods, units, source IDs, artifact digest format, method version, calculation arithmetic, and independent-review fields for `verified` records. It does not persist uploaded records or alter registry status. Passing structural validation is not a claim of artifact authenticity or authenticated reviewer identity.
+
+Current CI must run against the final integration-branch head before this phase is considered verified. Release remains blocked by staging branch mismatch, missing API authentication configuration, unapplied owner-scope migrations, and unverified authenticated storage reads. No database migrations or environment secrets were changed.
