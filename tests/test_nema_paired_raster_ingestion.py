@@ -52,6 +52,10 @@ def test_pair_processes_common_grid_and_returns_provenance():
     assert report["compatibility"]["shared_valid_pixel_fraction"] == 1.0
     assert report["source"]["resampling_performed"] is False
     assert len(report["processing_report_sha256"]) == 64
+    limitations = " ".join(report["limitations"]).lower()
+    assert "seasonal phenology" in limitations
+    assert "cannot guarantee cloud-free" in limitations
+    assert "screening signal only" in limitations
 
 
 def test_pair_blocks_grid_mismatch():
