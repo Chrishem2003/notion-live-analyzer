@@ -108,3 +108,41 @@ def test_remote_repository_redacts_transport_errors(monkeypatch):
         assert "synthetic-test-key" not in str(error.value)
     finally:
         repository.close()
+
+
+def test_remote_repository_scopes_case_list_and_lookup_to_owner(monkeypatch):
+    _configure(monkeypatch)
+    session = FakeSession(
+        {
+            "nema_cases": [
+                {
+                    "record_json": {"case_id": "NEMA-OWNED-01", "status": "Received"},
+                    "version": 1,
+                }
+            ]
+        }
+    )
+    repository = remote.SupabaseReadOnlyNemaRepository(session=session)
+    try:
+        rows = repository.list_cases(limit=10, owner_id="issuer.example|subject-123")
+        assert rows[0][0]["case_id"] == "NEMA-OWNED-01"
+        assert session.calls[-1][1]["owner_id"] == "eq.issuer.example|subject-123"
+
+        repository.get_case("NEMA-OWNED-01", owner_id="issuer.example|subject-123")
+        assert session.calls[-1][1]["owner_id"] == "eq.issuer.example|subject-123"
+        assert session.calls[-1][1]["case_id"] == "eq.NEMA-OWNED-01"
+    finally:
+        repository.close()
+
+
+@pytest.mark.parametrize("owner_id", ["", "   ", "x" * 513])
+def test_remote_repository_rejects_invalid_owner_scope(monkeypatch, owner_id):
+    _configure(monkeypatch)
+    repository = remote.SupabaseReadOnlyNemaRepository(session=FakeSession())
+    try:
+        with pytest.raises(ValueError):
+            repository.list_cases(owner_id=owner_id)
+        with pytest.raises(ValueError):
+            repository.get_case("NEMA-OWNED-01", owner_id=owner_id)
+    finally:
+        repository.close()
