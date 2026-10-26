@@ -25,6 +25,7 @@ from nema_agora.core import CATEGORIES, SEVERITIES, STATUSES, make_observation, 
 from nema_agora.governance import policy_from_secrets, validate_governance
 from nema_agora.quality import assess_observation
 from nema_agora.evidence_case import validate_evidence_case
+from nema_agora.evidence_export import verify_export_package
 from nema_agora.service import NemaAgoraService
 from nema_agora.runtime import initialize_persistent_service
 from nema_agora.workflow import ALLOWED_TRANSITIONS, apply_status_update
@@ -359,7 +360,7 @@ elif active_section == "Maps & metrics":
 elif active_section == "Governance & help":
     governance_tool = st.radio(
         "Governance tools",
-        ["Release readiness", "Operations & backups", "About the pilot"],
+        ["Release readiness", "Operations & backups", "Verify exported evidence", "About the pilot"],
         horizontal=True,
         key="nema_agora_governance_tool",
     )
@@ -1798,6 +1799,46 @@ if active_section == "Governance & help" and governance_tool == "Operations & ba
                 "This panel creates and checks backups on the configured server filesystem. "
                 "It does not prove off-site recovery, restore readiness, encryption, or disaster-recovery compliance."
             )
+
+if active_section == "Governance & help" and governance_tool == "Verify exported evidence":
+    st.subheader("Offline evidence-package verification")
+    st.caption(
+        "Check an exported JSON package's internal fingerprints and governance flags. "
+        "The uploaded file is processed in this Streamlit session and is not saved by this tool."
+    )
+    if not (
+        has_permission(principal.role, "case:export")
+        or has_permission(principal.role, "audit:read")
+    ):
+        st.error("Your provisioned role is not permitted to verify evidence packages.")
+    else:
+        st.warning(
+            "Do not upload confidential, personal, or sensitive incident information here. "
+            "A valid result checks internal consistency only; it does not prove source authenticity, "
+            "environmental truth, or NEMA authorization."
+        )
+        export_upload = st.file_uploader(
+            "Choose an exported NEMA-AGORA evidence JSON file",
+            type=["json"],
+            key="nema_agora_export_verification_upload",
+        )
+        if export_upload is not None:
+            try:
+                export_payload = json.loads(export_upload.getvalue().decode("utf-8"))
+            except (UnicodeDecodeError, json.JSONDecodeError):
+                st.error("The selected file is not valid UTF-8 JSON. No verification result is claimed.")
+            else:
+                verification = verify_export_package(export_payload)
+                if verification["valid"]:
+                    st.success("Internal package integrity checks passed.")
+                else:
+                    st.error("Package verification failed. Do not rely on this export.")
+                st.json(verification)
+                st.caption(
+                    "Verification is offline and advisory. Keep source assets and chain-of-custody "
+                    "records separately where required; this is not an official regulatory submission."
+                )
+
 
 if active_section == "Governance & help" and governance_tool == "About the pilot":
     st.subheader("Project purpose")
