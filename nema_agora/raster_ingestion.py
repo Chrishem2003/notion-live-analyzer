@@ -89,7 +89,7 @@ def process_uploaded_geotiff(
                 missing = sorted(set(REQUIRED_BANDS) - set(descriptions))
                 if missing:
                     raise RasterIngestionError("Required band descriptions missing: " + ", ".join(missing))
-                if not dataset.transform.isfinite or abs(dataset.transform.determinant) < 1e-20:
+                if not np.all(np.isfinite(dataset.transform[:6])) or abs(dataset.transform.determinant) < 1e-20:
                     raise RasterIngestionError("Raster affine transform is invalid or singular.")
                 indexes = {name: descriptions.index(name) + 1 for name in REQUIRED_BANDS}
                 masked_bands = {}
@@ -145,12 +145,12 @@ def process_uploaded_geotiff(
     except Exception as exc:
         raise RasterIngestionError("GeoTIFF could not be opened or validated. Check file integrity and band metadata.") from exc
     result["source"] = metadata
-    canonical = json.dumps(result, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False)
-    result["processing_report_sha256"] = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
     result["state"] = "RASTER_SCREENING_REPORT_REVIEW_REQUIRED"
     result["limitations"].extend([
         "The user supplied the source raster; the processor does not independently authenticate its provider or acquisition metadata.",
         "A GeoJSON AOI has no embedded CRS in this workflow; same-CRS correctness is an explicit user attestation.",
         "Pixel-level index summaries do not establish environmental change, wetland status, legal compliance or enforcement evidence.",
     ])
+    canonical = json.dumps(result, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False)
+    result["processing_report_sha256"] = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
     return result
