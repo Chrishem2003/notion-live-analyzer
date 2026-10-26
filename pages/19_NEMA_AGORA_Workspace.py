@@ -1440,17 +1440,30 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
             "Later acquisition time (ISO-8601 with timezone)",
             placeholder="2026-02-14T10:20:00Z", key="nema_pair_later_date",
         )
-    col_scale, col_baseline = st.columns(2)
-    with col_scale:
-        reflectance_scale_id = st.text_input(
-            "Verified reflectance scale/product identifier",
-            placeholder="e.g. Sentinel-2 L2A reflectance scaled by 10000",
-            key="nema_pair_scale_id",
+    st.caption("Enter metadata identifiers separately for each acquisition. The workflow blocks mismatches; entries remain operator declarations and must be checked against original product metadata.")
+    scale_a_col, scale_b_col = st.columns(2)
+    with scale_a_col:
+        earlier_reflectance_scale_id = st.text_input(
+            "Earlier date — reflectance scale/product identifier",
+            placeholder="e.g. L2A reflectance DN scaled by 10000",
+            key="nema_pair_earlier_scale_id",
         )
-    with col_baseline:
-        processing_baseline = st.text_input(
-            "Verified processing baseline",
-            placeholder="e.g. 04.00", key="nema_pair_processing_baseline",
+    with scale_b_col:
+        later_reflectance_scale_id = st.text_input(
+            "Later date — reflectance scale/product identifier",
+            placeholder="Same identifier only if verified",
+            key="nema_pair_later_scale_id",
+        )
+    baseline_a_col, baseline_b_col = st.columns(2)
+    with baseline_a_col:
+        earlier_processing_baseline = st.text_input(
+            "Earlier date — processing baseline",
+            placeholder="e.g. 04.00", key="nema_pair_earlier_baseline",
+        )
+    with baseline_b_col:
+        later_processing_baseline = st.text_input(
+            "Later date — processing baseline",
+            placeholder="Same baseline only if verified", key="nema_pair_later_baseline",
         )
     pair_aoi_crs_confirmed = False
     if pair_aoi_upload is not None:
@@ -1481,8 +1494,8 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
         elif not earlier_acquired_at.strip() or not later_acquired_at.strip():
             st.error("Both acquisition timestamps are required.")
             st.session_state.pop("nema_pair_change_report", None)
-        elif not reflectance_scale_id.strip() or not processing_baseline.strip():
-            st.error("Supply the verified reflectance scale/product identifier and processing baseline.")
+        elif not all(value.strip() for value in (earlier_reflectance_scale_id, later_reflectance_scale_id, earlier_processing_baseline, later_processing_baseline)):
+            st.error("Supply the reflectance scale/product identifier and processing baseline for both dates.")
             st.session_state.pop("nema_pair_change_report", None)
         elif pair_aoi_upload is not None and not pair_aoi_crs_confirmed:
             st.error("AOI comparison is blocked until same-CRS confirmation is checked.")
@@ -1495,8 +1508,10 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
                         later_upload.getvalue(),
                         earlier_acquired_at=earlier_acquired_at.strip(),
                         later_acquired_at=later_acquired_at.strip(),
-                        reflectance_scale_id=reflectance_scale_id.strip(),
-                        processing_baseline=processing_baseline.strip(),
+                        earlier_reflectance_scale_id=earlier_reflectance_scale_id.strip(),
+                        later_reflectance_scale_id=later_reflectance_scale_id.strip(),
+                        earlier_processing_baseline=earlier_processing_baseline.strip(),
+                        later_processing_baseline=later_processing_baseline.strip(),
                         aoi_geojson_bytes=pair_aoi_upload.getvalue() if pair_aoi_upload is not None else None,
                         aoi_crs_confirmed_same_as_rasters=pair_aoi_crs_confirmed,
                         ndvi_change_threshold=float(pair_ndvi_threshold),
