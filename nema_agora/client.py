@@ -11,7 +11,9 @@ class NemaApiError(RuntimeError):
     """Safe-to-display API error; never includes request headers or secrets."""
 
 def _settings() -> tuple[str, str, str]:
-    base_url = os.getenv("NEMA_CASE_API_BASE_URL", "https://notion-live-analyzer-api.onrender.com").strip().rstrip("/")
+    base_url = os.getenv("NEMA_CASE_API_BASE_URL", "").strip().rstrip("/")
+    if not base_url:
+        raise NemaApiError("NEMA_CASE_API_BASE_URL must be explicitly configured; the client will not fall back to a production API.")
     api_key = os.getenv("PLATFORM_API_KEY", "").strip()
     signing_secret = os.getenv("NEMA_PORTAL_SIGNING_SECRET", "").strip()
     parsed = urlparse(base_url)
