@@ -2,20 +2,20 @@
   "project": "NEMA-AGORA",
   "mode": "AUTONOMOUS_BUILD",
   "status": "INTEGRATION_VALIDATION",
-  "current_phase": 194,
-  "next_phase": 195,
-  "completed_through": 193,
+  "current_phase": 215,
+  "next_phase": 216,
+  "completed_through": 213,
   "pr_number": 115,
   "branch": "integration/nema-agora-mainline-20261026",
   "base_branch": "main",
   "draft_pr": true,
   "merge_allowed": false,
   "current_head": "PENDING_CI_FINAL_HEAD",
-  "last_verified_head": "55f61e2ddee29e3f7de7302842cdff7c9493f098",
-  "last_verified_phase": 186,
+  "last_verified_head": "a0710c81cd422bb36ace0de51b4cb56f89ea4d60",
+  "last_verified_phase": 213,
   "architecture_checkpoint_after": 174,
-  "last_action": "Phase 194 adds a tested Wilson-confidence-interval evaluator for the existing offline satellite reference-set workflow and displays recall, precision and specificity intervals in the existing one-page Streamlit workspace. Tests are included under tests/nema_agora so focused integration CI executes them. Phase 193 passed focused NEMA CI, full repository CI and auth-role checks on a6f356bf822e99a4b996f1686b3ee253beb9aa31. Phase 194 final-head CI pending.",
-  "validation_status": "PHASE_193_ALL_CI_PASSED_PHASE_194_CI_PENDING_STAGING_BLOCKED",
+  "last_action": "Phases 214–215 add PostgreSQL regression coverage for duplicate measurement-ID rollback and direct table-write privileges, and harden migration 006 by granting schema CREATE only during SECURITY DEFINER function ownership transfer. Latest changes await final-head CI; disposable PostgreSQL execution and staging approval remain mandatory. The measurement HTTP API remains read-only.",
+  "validation_status": "PHASE_215_IMPLEMENTED_CI_PENDING_DISPOSABLE_POSTGRES_AND_STAGING_BLOCKED",
   "stop_conditions": [
     "destructive_or_irreversible_action",
     "missing_credentials",
@@ -46,8 +46,12 @@
     "phase_190_search_path_migration_review_and_staging_approval",
     "indicator_evidence_artifact_authenticity_integration_pending",
     "phase_192_ci_verification",
-    "durable_measurement_ledger_and_transactional_write_path_not_implemented",
-    "phase_194_confidence_interval_ci_verification"
+    "phase_tracker_reconciled_through_phase_213",
+    "phase_214_215_final_head_ci_pending",
+    "disposable_postgres_suite_must_run_not_skip",
+    "migration_006_not_applied_and_requires_isolated_validation",
+    "measurement_http_write_route_disabled",
+    "evidence_bytes_persistence_and_provenance_not_integrated"
   ],
   "validation_evidence": {
     "candidate_sha": "6416723d338b13d7a5db05ba822630cc11c0c273",
@@ -109,7 +113,14 @@
     "phase_193_repository_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/40406604458",
     "phase_193_auth_role_ci": "https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/40406604379",
     "phase_194_change_evaluation_ci": "PENDING",
-    "phase_194_confidence_intervals": "IMPLEMENTED_IN_SINGLE_PAGE_UI_AND_TESTS; NO_REAL_WORLD_RESULT_CLAIMED"
+    "phase_194_confidence_intervals": "IMPLEMENTED_IN_SINGLE_PAGE_UI_AND_TESTS; NO_REAL_WORLD_RESULT_CLAIMED",
+    "phase_214_duplicate_measurement_id_rollback_test": "ADDED_CI_PENDING",
+    "phase_214_direct_table_write_privilege_test": "ADDED_CI_PENDING",
+    "phase_215_temporary_schema_create_grant_test": "ADDED_CI_PENDING",
+    "phase_215_migration_hardening_commit": "20669196ca04c7d52824360fe3d11977c6411e21",
+    "phase_214_postgres_regression_commit": "886ff5bfb5d622ae2681dc9d74b46136bddf7d3d",
+    "phase_215_test_commit": "aa71d9e5af58ecece71adc357be6c0ea13680e8a",
+    "phase_215_checkpoint_doc_commit": "6e4c6201c27a0482efa6289b749f8d02b89a69e6"
   },
   "safety_boundary": "Independent student-led prototype; not an official NEMA service or endorsement. No official ELMIS/SWIMS integration, autonomous enforcement, or production approval is claimed."
 }
