@@ -70,7 +70,10 @@ def build_measurement_rpc_request(
         "denominator": record.get("denominator"),
         "exclusions": record.get("exclusions", []),
         "source_refs": record["source_record_ids"],
-        "evidence_refs": [record["evidence_reference"]],
+        "evidence_refs": [{
+            "reference": record["evidence_reference"],
+            "sha256": validated["evidence_sha256"],
+        }],
         "calculation_method": record["method_version"],
         "reviewer_id": None,
         "verified_at": None,
