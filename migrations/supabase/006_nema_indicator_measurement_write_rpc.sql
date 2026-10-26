@@ -107,7 +107,7 @@ begin
     if p_record is null or pg_catalog.jsonb_typeof(p_record) <> 'object' then
         raise exception 'measurement record must be a JSON object' using errcode = '22023';
     end if;
-    if p_record->>'status' <> 'measured' then
+    if p_record->>'status' is distinct from 'measured' then
         raise exception 'submission status must be measured; verification is a separate review action'
             using errcode = '22023';
     end if;
