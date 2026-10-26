@@ -1417,6 +1417,12 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
         "Reflectance scale and processing baseline must be verified from the original product metadata; "
         "the labels below are operator declarations, not independently authenticated facts."
     )
+    st.info(
+        "Scientific interpretation gate: compare like seasons where possible. Rainfall, seasonal vegetation, "
+        "water-level changes, illumination, haze, cloud edges and shadows can create index differences. "
+        "SCL filtering reduces some contamination but does not guarantee cloud-free pixels. Review source imagery "
+        "and contextual evidence before treating a signal as persistent change."
+    )
     earlier_upload = st.file_uploader(
         "Earlier-date multi-band GeoTIFF (max 100 MiB)",
         type=["tif", "tiff"], key="nema_pair_earlier_upload",
