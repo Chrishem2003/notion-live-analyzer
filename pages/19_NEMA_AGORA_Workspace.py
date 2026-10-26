@@ -12,6 +12,7 @@ import pandas as pd
 import streamlit as st
 
 from nema_agora.access import has_permission
+from nema_agora.client import NemaApiError, get_case, get_review_packet, get_storage_readiness, list_cases
 from nema_agora.auth import resolve_principal
 from nema_agora.config import (
     backup_dir_from_secrets,
@@ -130,6 +131,7 @@ with st.sidebar:
         "Choose a work area",
         [
             "Submit observation",
+            "Persisted cases & audit",
             "Case management",
             "Intelligence workspace",
             "Maps & metrics",
@@ -204,6 +206,101 @@ elif active_section == "Governance & help":
     )
 
 # One Streamlit page with short, task-oriented navigation.
+
+if active_section == "Persisted cases & audit":
+    st.subheader("Persisted cases & audit")
+    st.caption("Read-only view of cases held by the Render-hosted case API. This panel does not create, edit, close, or enforce cases.")
+    st.warning("Access requires an authenticated, server-provisioned NEMA-AGORA account. The API credential is server-side and is never displayed.")
+    if not persistent or principal is None or not principal.is_authorised:
+        st.info("Persisted case access is disabled until authenticated persistent mode and a server-provisioned role are active.")
+    else:
+        with st.sidebar:
+            st.subheader("Case API connection")
+            if st.button("Refresh persisted cases", key="nema_refresh_persisted_cases", use_container_width=True):
+                st.cache_data.clear()
+                st.rerun()
+            st.caption("Connection credentials are read from server environment variables and are never shown.")
+
+        @st.cache_data(ttl=30, show_spinner=False)
+        def _nema_case_api_readiness():
+            return get_storage_readiness()
+
+        @st.cache_data(ttl=30, show_spinner=False)
+        def _nema_case_api_list(limit: int):
+            return list_cases(limit=limit)
+
+        try:
+            readiness = _nema_case_api_readiness()
+            status_value = str(readiness.get("status", "unknown")).lower()
+            backend = readiness.get("storage_backend", "unknown")
+            ready = status_value in {"configured", "ready"}
+            metrics = st.columns(4)
+            metrics[0].metric("Storage status", "Connected" if ready else status_value.replace("_", " ").title())
+            metrics[1].metric("Backend", str(backend))
+            metrics[2].metric("Production writes", "Enabled" if readiness.get("production_writes_enabled") else "Disabled")
+            metrics[3].metric("Durability verified", "Yes" if readiness.get("storage_durability_verified") else "Not yet")
+            if not readiness.get("production_writes_enabled"):
+                st.info("Read-only safety mode is active. Storage connectivity does not certify production write readiness or backup/restore.")
+        except NemaApiError:
+            st.error("The persisted case API is not ready. Check the server-side API key and storage configuration, then retry.")
+            st.stop()
+
+        case_left, case_right = st.columns([1.1, 1])
+        with case_left:
+            st.markdown("#### Persisted cases")
+            case_limit = st.selectbox("Maximum cases to load", [25, 50, 100, 250, 500, 1000], index=2, key="nema_persisted_case_limit")
+            try:
+                case_result = _nema_case_api_list(case_limit)
+                case_items = case_result.get("items", [])
+                st.metric("Cases returned", int(case_result.get("count", len(case_items))))
+                if not case_items:
+                    st.info("No persisted cases were returned. Empty storage is valid until a governed, audited write workflow is enabled.")
+                else:
+                    case_options = []
+                    case_ids = {}
+                    for case_index, case_item in enumerate(case_items):
+                        case_record = case_item.get("record", {})
+                        case_id = str(case_record.get("case_id") or case_record.get("id") or f"record-{case_index + 1}")
+                        case_label = str(case_record.get("title") or case_record.get("name") or case_id)
+                        display_label = f"{case_label} · {case_id}"
+                        case_options.append(display_label)
+                        case_ids[display_label] = case_id
+                    selected_label = st.selectbox("Select a case", case_options, key="nema_persisted_case_choice")
+                    if st.button("Load case details", key="nema_load_persisted_case", type="primary"):
+                        st.session_state["nema_selected_case_id"] = case_ids[selected_label]
+            except NemaApiError:
+                st.error("Cases could not be loaded. Check API health and access, then retry.")
+                st.stop()
+
+        with case_right:
+            st.markdown("#### Case details and audit")
+            selected_case_id = st.session_state.get("nema_selected_case_id")
+            if not selected_case_id:
+                st.caption("Select a case and choose Load case details to inspect its record and audit history.")
+            else:
+                try:
+                    detail = get_case(selected_case_id)
+                    st.caption(f"Case ID: {selected_case_id} · Version: {detail.get('version', 'unknown')}")
+                    st.json(detail.get("record", {}), expanded=True)
+                    with st.expander("Audit history", expanded=False):
+                        st.json(detail.get("audit", []), expanded=True)
+                    if st.button("Generate review packet (read-only preview)", key="nema_generate_review_packet"):
+                        try:
+                            st.session_state["nema_review_packet"] = {
+                                "case_id": selected_case_id,
+                                "packet": get_review_packet(selected_case_id),
+                            }
+                        except NemaApiError:
+                            st.error("The review packet could not be prepared. Check API health and access, then retry.")
+                    saved_packet = st.session_state.get("nema_review_packet", {})
+                    if saved_packet.get("case_id") == selected_case_id:
+                        st.markdown("#### Deterministic review packet")
+                        st.caption("Preview only; this does not create a workflow job or change case data. Human review remains required.")
+                        st.json(saved_packet.get("packet", {}), expanded=True)
+                except NemaApiError:
+                    st.error("Case details could not be loaded. Refresh the list and retry.")
+        st.divider()
+        st.caption("Governance: this API uses service-to-service authentication. The page requires a provisioned portal identity, but the API does not independently enforce each user's case-level permissions. Do not use this view for enforcement or official compliance decisions.")
 
 if active_section == "Submit observation":
     st.subheader("Record an environmental observation")
