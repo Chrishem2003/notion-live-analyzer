@@ -1515,7 +1515,7 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
         )
         st.write(f"**State:** {pair_report['state']}")
         st.write(f"**Shared valid pixels:** {pair_report['compatibility']['shared_valid_pixel_count']:,} / "
-                 f"{pair_report['compatibility']['total_grid_pixels']:,}")
+                 f"{pair_report['compatibility']['total_comparison_domain_pixels']:,}")
         st.write(f"**Shared valid fraction:** {pair_report['compatibility']['shared_valid_pixel_fraction']:.1%}")
         st.dataframe([
             {
