@@ -58,3 +58,17 @@ no unexpected RLS policy commands on these tables.
 This remains a proposed migration. Passing disposable PostgreSQL tests does not
 verify the actual Supabase extension placement, migration privileges, backup
 recovery, or deployment configuration. Those remain separate release gates.
+
+
+## Phase 208 — fail closed on pre-existing writer roles
+
+The migration now normalizes the dedicated writer role's attributes even if
+`nema_measurement_writer` already exists: NOLOGIN, NOINHERIT, NOSUPERUSER,
+NOCREATEDB, NOCREATEROLE, NOREPLICATION, and NOBYPASSRLS. It also aborts if the
+role participates in any role membership, rather than assuming a pre-existing
+role is safe. PostgreSQL tests assert these role attributes.
+
+This reduces the risk that a role created outside this migration carries
+unexpected authority into the SECURITY DEFINER boundary. It still needs
+validation against the target Supabase migration executor's privileges; no
+shared staging schema has been changed.
