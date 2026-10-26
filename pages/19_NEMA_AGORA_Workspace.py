@@ -32,6 +32,7 @@ from nema_agora.release_readiness import evaluate_release_readiness, validate_re
 from nema_agora.spatial_temporal_change import spatial_temporal_change_evidence
 from nema_agora.spatial_temporal_quality import spatial_temporal_quality_evidence
 from nema_agora.spatial_change_detection import detect_candidate
+from nema_agora.satellite_evaluation import SatelliteEvaluationError, evaluate_change_candidates
 from nema_agora.spatial_workspace_bundle import build_spatial_evidence_bundle, validate_spatial_evidence_bundle
 
 st.set_page_config(page_title="NEMA-AGORA Pilot", page_icon="🌿", layout="wide")
@@ -1011,6 +1012,134 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
         )
     except (OSError, json.JSONDecodeError, KeyError, TypeError, ValueError):
         st.error("The indicator register could not be loaded or failed validation. No indicator status is being reported.");
+
+
+if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
+    st.divider()
+    st.subheader("Offline satellite evaluation (evidence-gated)")
+    st.caption(
+        "Evaluate a prepared reference dataset or inspect a clearly labelled synthetic example. "
+        "This does not fetch imagery, run a satellite model, or measure live pilot performance."
+    )
+    st.info(
+        "CSV columns required: unit_id, area_ha, detected, reference_change, "
+        "independently_verified, usable. Boolean columns must contain true/false values. "
+        "Use independently reviewed reference labels; never upload confidential or personal data."
+    )
+    evaluation_file = st.file_uploader(
+        "Upload evaluation fixture CSV",
+        type=["csv"],
+        key="nema_satellite_eval_csv",
+        help="Expected columns are listed above. The file is processed for this Streamlit session only.",
+    )
+    eval_left, eval_right = st.columns([1, 2])
+    with eval_left:
+        area_threshold = st.number_input(
+            "Minimum area threshold (ha)",
+            min_value=0.0,
+            value=0.1,
+            step=0.05,
+            format="%.2f",
+            key="nema_satellite_eval_area_threshold",
+        )
+        run_synthetic = st.button(
+            "Run synthetic example",
+            key="nema_run_synthetic_satellite_eval",
+            use_container_width=True,
+        )
+        run_uploaded = st.button(
+            "Evaluate uploaded CSV",
+            key="nema_run_uploaded_satellite_eval",
+            type="primary",
+            use_container_width=True,
+            disabled=evaluation_file is None,
+        )
+    if run_synthetic or run_uploaded:
+        try:
+            if run_synthetic:
+                fixture = [
+                    {"unit_id": "SYN-TP", "area_ha": 0.22, "detected": True, "reference_change": True, "independently_verified": True, "usable": True},
+                    {"unit_id": "SYN-FP", "area_ha": 0.18, "detected": True, "reference_change": False, "independently_verified": True, "usable": True},
+                    {"unit_id": "SYN-FN", "area_ha": 0.25, "detected": False, "reference_change": True, "independently_verified": True, "usable": True},
+                    {"unit_id": "SYN-TN", "area_ha": 0.30, "detected": False, "reference_change": False, "independently_verified": True, "usable": True},
+                    {"unit_id": "SYN-EXCLUDED", "area_ha": 0.10, "detected": True, "reference_change": True, "independently_verified": True, "usable": True},
+                ]
+                result_label = "SYNTHETIC EXAMPLE — NOT REAL SATELLITE RESULTS"
+            else:
+                required_columns = {
+                    "unit_id", "area_ha", "detected", "reference_change",
+                    "independently_verified", "usable",
+                }
+                frame = pd.read_csv(evaluation_file)
+                missing = sorted(required_columns - set(frame.columns))
+                if missing:
+                    raise SatelliteEvaluationError("Missing required CSV columns: " + ", ".join(missing))
+                boolean_columns = ["detected", "reference_change", "independently_verified", "usable"]
+                fixture = []
+                for row_index, row in frame.iterrows():
+                    parsed = {}
+                    for column in boolean_columns:
+                        value = row[column]
+                        if isinstance(value, bool):
+                            parsed[column] = value
+                        elif isinstance(value, str) and value.strip().lower() in {"true", "false"}:
+                            parsed[column] = value.strip().lower() == "true"
+                        else:
+                            raise SatelliteEvaluationError(
+                                f"Row {row_index + 2}: {column} must be true or false."
+                            )
+                    fixture.append({
+                        "unit_id": row["unit_id"],
+                        "area_ha": row["area_ha"],
+                        **parsed,
+                    })
+                result_label = "UPLOADED FIXTURE — RESULTS APPLY ONLY TO THIS DATASET"
+            result = evaluate_change_candidates(fixture, min_area_ha=area_threshold)
+        except (SatelliteEvaluationError, ValueError, TypeError, pd.errors.ParserError, UnicodeDecodeError) as exc:
+            st.error("Evaluation could not be completed. Check the CSV format and required values.")
+            st.caption(str(exc))
+        else:
+            st.session_state["nema_satellite_evaluation_result"] = {
+                "label": result_label,
+                "result": result,
+            }
+    saved_evaluation = st.session_state.get("nema_satellite_evaluation_result")
+    if saved_evaluation:
+        result = saved_evaluation["result"]
+        st.warning(saved_evaluation["label"])
+        counts = result["counts"]
+        metrics = result["metrics"]
+        stat_cols = st.columns(4)
+        stat_cols[0].metric("Eligible units", counts["eligible_units"])
+        stat_cols[1].metric("Precision", "N/A" if metrics["precision"] is None else f'{metrics["precision"]:.1%}')
+        stat_cols[2].metric("Recall", "N/A" if metrics["recall"] is None else f'{metrics["recall"]:.1%}')
+        stat_cols[3].metric("False-positive rate", "N/A" if metrics["false_positive_rate"] is None else f'{metrics["false_positive_rate"]:.1%}')
+        st.write(f"**Evaluation state:** {result['state']} · **Version:** {result['evaluation_version']}")
+        st.dataframe(
+            pd.DataFrame([
+                {"Measure": "True positives", "Count": counts["true_positive"]},
+                {"Measure": "False positives", "Count": counts["false_positive"]},
+                {"Measure": "False negatives", "Count": counts["false_negative"]},
+                {"Measure": "True negatives", "Count": counts["true_negative"]},
+                {"Measure": "Excluded units", "Count": counts["excluded_units"]},
+            ]),
+            use_container_width=True,
+            hide_index=True,
+        )
+        st.caption("F1 score: " + ("N/A (undefined denominator)" if metrics["f1_score"] is None else f'{metrics["f1_score"]:.1%}'))
+        if any(result["exclusions"].values()):
+            st.write("**Exclusions**")
+            st.json(result["exclusions"], expanded=False)
+        st.write("**Limitations**")
+        for limitation in result["limitations"]:
+            st.caption("• " + limitation)
+        st.download_button(
+            "Download evaluation report (JSON)",
+            data=json.dumps({"label": saved_evaluation["label"], **result}, indent=2, allow_nan=False),
+            file_name="nema_satellite_evaluation_report.json",
+            mime="application/json",
+            key="nema_download_satellite_eval_json",
+        )
 
 
 if active_section == "Governance & help" and governance_tool == "Release readiness":
