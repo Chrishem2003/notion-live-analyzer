@@ -205,5 +205,25 @@ def test_postgres_rpc_has_dedicated_non_login_owner_and_scoped_rls(migrated_post
     assert scalar("SELECT has_table_privilege('nema_measurement_writer', 'public.nema_measurement_audit', 'INSERT')") is True
     assert scalar("SELECT has_table_privilege('nema_measurement_writer', 'public.nema_measurement_audit', 'UPDATE')") is False
     assert scalar("SELECT has_table_privilege('nema_measurement_writer', 'public.nema_measurement_audit', 'DELETE')") is False
+    for table in (
+        "public.nema_indicator_measurements",
+        "public.nema_measurement_idempotency",
+        "public.nema_measurement_audit",
+    ):
+        assert scalar("SELECT has_table_privilege('nema_measurement_writer', %s, 'UPDATE')", (table,)) is False
+        assert scalar("SELECT has_table_privilege('nema_measurement_writer', %s, 'DELETE')", (table,)) is False
     assert scalar("SELECT rolbypassrls FROM pg_roles WHERE rolname = 'nema_measurement_writer'") is False
+    assert scalar("SELECT rolcanlogin FROM pg_roles WHERE rolname = 'nema_measurement_writer'") is False
+    assert scalar("""
+        SELECT count(*) FROM pg_auth_members
+        WHERE roleid = (SELECT oid FROM pg_roles WHERE rolname = 'nema_measurement_writer')
+           OR member = (SELECT oid FROM pg_roles WHERE rolname = 'nema_measurement_writer')
+    """) == 0
     assert scalar("SELECT rowsecurity FROM pg_tables WHERE schemaname='public' AND tablename='nema_measurement_audit'") is True
+    assert scalar("""
+        SELECT count(*) FROM pg_policies
+        WHERE schemaname='public'
+          AND tablename IN ('nema_indicator_measurements', 'nema_measurement_idempotency', 'nema_measurement_audit')
+          AND roles @> ARRAY['nema_measurement_writer']::name[]
+          AND cmd NOT IN ('SELECT', 'INSERT')
+    """) == 0
