@@ -101,14 +101,14 @@ def test_holdout_gate_fails_closed(review_package, split_data, eval_data, messag
 def test_holdout_gate_blocks_spatial_or_temporal_overlap():
     with pytest.raises(EvaluationGateError, match="spatial/temporal overlap"):
         evaluate_holdout_package(reference_review_package=review(), split_manifests=manifests(),
-                                 evaluation_records=records(), spatiotemporal_units=spatial_units(overlap=True), asset_lineage_records=clean_lineage())
+                                 evaluation_records=records(), spatiotemporal_units=spatial_units(overlap=True), asset_lineage_records=clean_lineage(), asset_source_bytes=clean_source_bytes())
 
 
 def test_holdout_gate_preserves_explicit_exclusions():
     bad = records()
     bad[0]["independently_verified"] = False
     result = evaluate_holdout_package(reference_review_package=review(), split_manifests=manifests(),
-                                      evaluation_records=bad, spatiotemporal_units=spatial_units(), asset_lineage_records=clean_lineage())
+                                      evaluation_records=bad, spatiotemporal_units=spatial_units(), asset_lineage_records=clean_lineage(), asset_source_bytes=clean_source_bytes())
     assert result["evaluation"]["counts"]["eligible_units"] == 1
     assert result["evaluation"]["counts"]["excluded_units"] == 1
 
@@ -117,6 +117,16 @@ def test_holdout_gate_blocks_missing_asset_lineage_manifest():
     with pytest.raises(EvaluationGateError, match="asset_lineage_records is required"):
         evaluate_holdout_package(reference_review_package=review(), split_manifests=manifests(),
                                  evaluation_records=records(), spatiotemporal_units=spatial_units())
+
+
+def test_holdout_gate_blocks_source_hash_mismatch():
+    source_bytes = clean_source_bytes()
+    altered = dict(source_bytes)
+    altered["development.tif"] = b"tampered-development-bytes"
+    with pytest.raises(EvaluationGateError, match="hash does not match"):
+        evaluate_holdout_package(reference_review_package=review(), split_manifests=manifests(),
+                                 evaluation_records=records(), spatiotemporal_units=spatial_units(),
+                                 asset_lineage_records=clean_lineage(), asset_source_bytes=altered)
 
 
 def test_holdout_gate_blocks_missing_source_asset_bytes():
