@@ -1162,6 +1162,11 @@ if active_section == "Maps & metrics" and map_tool == "Data sources & asset rece
             "I have applied a documented cloud/shadow validity mask to both mask files",
             value=False, key="nema_geotiff_mask_assertion",
         )
+        minimum_aoi_pixels = st.number_input(
+            "Minimum valid analysis-domain size (pixels)", min_value=1, max_value=250000,
+            value=25, step=1, key="nema_geotiff_min_aoi_pixels",
+            help="Default 25 pixels is a basic screening floor, not a scientific standard. Review spatial resolution and AOI size before interpreting results.",
+        )
         if st.button("Ingest GeoTIFF pair and calculate indices", key="nema_geotiff_process", type="primary", use_container_width=True):
             st.session_state.pop("nema_agora_geotiff_analysis", None)
             if not all((base_raster, base_mask, comp_raster, comp_mask, aoi_geojson_file)):
@@ -1187,6 +1192,7 @@ if active_section == "Maps & metrics" and map_tool == "Data sources & asset rece
                     )
                     geo_result = analyze_paired_raster_arrays(
                         baseline_scene=base_scene, comparison_scene=comp_scene,
+                        min_domain_pixels=int(minimum_aoi_pixels),
                     )
                     geo_result["ingestion"] = {
                         "baseline": base_scene["ingestion"],
