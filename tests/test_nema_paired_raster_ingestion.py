@@ -134,3 +134,16 @@ def test_pair_blocks_embedded_processing_baseline_conflict():
     later = make_raster(offset=100, tags={"PROCESSING_BASELINE": "04.00"})
     with pytest.raises(PairedRasterError, match="embedded PROCESSING_BASELINE tag conflicts"):
         run(earlier, later)
+
+
+def test_workspace_surfaces_seasonal_and_cloud_review_gate():
+    from pathlib import Path
+
+    source = (
+        Path(__file__).resolve().parents[1]
+        / "pages"
+        / "19_NEMA_AGORA_Workspace.py"
+    ).read_text(encoding="utf-8")
+    assert "compare like seasons where possible" in source
+    assert "does not guarantee cloud-free pixels" in source
+    assert "Review source imagery and contextual evidence" in source
