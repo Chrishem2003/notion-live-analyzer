@@ -199,7 +199,7 @@ def analyze_paired_raster_arrays(
     if valid_pixels == 0:
         return {"policy_version": POLICY_VERSION, "state": "CONTROL_REQUIRED", "findings": [{"code": "NO_COMPARABLE_VALID_PIXELS"}]}
 
-    def stats(values: list[float]) -> dict[str, float]:
+    def stats(name: str, values: list[float]) -> dict[str, float]:
         return {
             "mean": round(sum(values) / len(values), 8),
             "min": round(min(values), 8),
@@ -207,7 +207,7 @@ def analyze_paired_raster_arrays(
             "mean_absolute": round(sum(abs(v) for v in values) / len(values), 8),
             "threshold_hit_pixels": sum(abs(v) >= (float(min_abs_ndvi_delta) if name == "NDVI" else float(min_abs_ndwi_delta)) for v in values),
         }
-    summaries = {name: stats(values) for name, values in deltas.items()}
+    summaries = {name: stats(name, values) for name, values in deltas.items()}
     total_pixels = baseline["shape"][0] * baseline["shape"][1]
     payload = {
         "policy_version": POLICY_VERSION,
