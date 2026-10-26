@@ -329,3 +329,40 @@ def test_read_fails_closed_when_record_payload_status_drifts_from_indexed_status
         repository.get_observation(
             created["case_id"], actor_id="integrity-status-owner", role="submitter"
         )
+
+
+def test_review_update_refuses_to_mutate_tampered_observation_payload(tmp_path):
+    import json
+    import sqlite3
+
+    path = tmp_path / "tampered-review.sqlite3"
+    repository = NemaAgoraRepository(path)
+    created = repository.create_observation(
+        sample_record(), actor_id="tampered-review-owner", role="submitter"
+    )
+    tampered = dict(created)
+    tampered["owner_id"] = "forged-owner"
+    with sqlite3.connect(path) as connection:
+        connection.execute(
+            "UPDATE observations SET record_json = ? WHERE case_id = ?",
+            (json.dumps(tampered, sort_keys=True), created["case_id"]),
+        )
+
+    with pytest.raises(ValueError, match="Stored observation integrity check failed"):
+        repository.update_review(
+            created["case_id"], actor_id="integrity-reviewer", role="reviewer",
+            new_status="Under review", review_notes="Should not apply",
+            changed_at="2026-10-04T12:10:00+03:00",
+        )
+
+    with sqlite3.connect(path) as connection:
+        row = connection.execute(
+            "SELECT status FROM observations WHERE case_id = ?",
+            (created["case_id"],),
+        ).fetchone()
+        event_count = connection.execute(
+            "SELECT COUNT(*) FROM audit_events WHERE case_id = ?",
+            (created["case_id"],),
+        ).fetchone()[0]
+    assert row[0] == "Received"
+    assert event_count == 1
