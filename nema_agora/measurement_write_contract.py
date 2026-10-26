@@ -42,6 +42,8 @@ def build_measurement_rpc_request(
     ):
         if not isinstance(value, str) or not value.strip() or len(value) > 256:
             raise MeasurementWriteContractError(f"{label} must be a non-empty string of at most 256 characters.")
+    if "\n" in authenticated_actor_id or "\r" in authenticated_actor_id:
+        raise MeasurementWriteContractError("authenticated_actor_id must not contain carriage-return or line-feed characters.")
     if not isinstance(authenticated_actor_role, str) or authenticated_actor_role not in _ALLOWED_ROLES:
         raise MeasurementWriteContractError("Authenticated actor role is not allowed to submit measurements.")
     if not isinstance(evidence_bytes, bytes):
