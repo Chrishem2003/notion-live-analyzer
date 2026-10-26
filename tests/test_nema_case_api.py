@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import hashlib
+import hmac
+
 import pytest
 from fastapi import HTTPException
 
@@ -40,6 +43,52 @@ def test_case_api_authentication_fails_closed(monkeypatch):
     assert wrong.value.status_code == 401
 
     assert api._require_nema_api_key(x_api_key="expected-key") is True
+
+
+def test_case_api_requires_a_valid_signed_portal_identity(monkeypatch):
+    monkeypatch.setenv("PLATFORM_API_KEY", "test-platform-key")
+
+    with pytest.raises(HTTPException) as missing:
+        api._require_nema_read_access(
+            x_api_key="test-platform-key",
+            x_nema_actor=None,
+            x_nema_role=None,
+            x_nema_signature=None,
+        )
+    assert missing.value.status_code == 401
+
+    # Submitters cannot use the cross-case endpoint until owner-level filtering exists.
+    actor = "https://issuer.example|submitter-123"
+    message = f"{actor}\\\\nsubmitter".encode("utf-8")
+    signature = hmac.new(b"test-platform-key", message, hashlib.sha256).hexdigest()
+    with pytest.raises(HTTPException) as forbidden:
+        api._require_nema_read_access(
+            x_api_key="test-platform-key",
+            x_nema_actor=actor,
+            x_nema_role="submitter",
+            x_nema_signature=signature,
+        )
+    assert forbidden.value.status_code == 403
+
+    role = "reviewer"
+    message = f"{actor}\\\\n{role}".encode("utf-8")
+    signature = hmac.new(b"test-platform-key", message, hashlib.sha256).hexdigest()
+    identity = api._require_nema_read_access(
+        x_api_key="test-platform-key",
+        x_nema_actor=actor,
+        x_nema_role=role,
+        x_nema_signature=signature,
+    )
+    assert identity == {"actor": actor, "role": role}
+
+    with pytest.raises(HTTPException) as tampered:
+        api._require_nema_read_access(
+            x_api_key="test-platform-key",
+            x_nema_actor=actor,
+            x_nema_role="admin",
+            x_nema_signature=signature,
+        )
+    assert tampered.value.status_code == 401
 
 
 def test_case_api_rejects_unconfirmed_or_ephemeral_storage(monkeypatch, tmp_path):
