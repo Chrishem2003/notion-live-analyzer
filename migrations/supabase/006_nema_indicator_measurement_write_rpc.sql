@@ -692,10 +692,6 @@ commit;
 ),
     registered_by text not null,
     created_at timestamptz not null default pg_catalog.now(),
-    constraint nema_evidence_object_key_matches_digest check (
-        object_key = 'sha256/' || pg_catalog.lower(sha256) ||
-        object_key = 'sha256/' || pg_catalog.lower(sha256)
-    ),
     constraint nema_evidence_bucket_object_unique unique (bucket_name, object_key),
     constraint nema_evidence_object_key_shape check (
         object_key ~ '^sha256/[0-9a-f]{2}/[0-9a-f]{64}
@@ -2455,7 +2451,7 @@ commit;
 -- * This RPC does not authenticate p_actor_id/p_actor_role; API must derive these from OIDC/session.
 -- * Evidence bytes and reviewer independence require separate authenticated workflows.
 
-            or split_part(evidence_ref.item->>'reference', '/', 3) <> pg_catalog.lower(evidence_ref.item->>'sha256')
+            or split_part(evidence_ref.item->>'reference', '/', 3) <> substr(pg_catalog.lower(evidence_ref.item->>'sha256'), 1, 2)
             or split_part(evidence_ref.item->>'reference', '/', 4) <> pg_catalog.lower(evidence_ref.item->>'sha256')
     ) then
         raise exception 'evidence_refs require a reference and a valid SHA-256 digest' using errcode = '22023';
