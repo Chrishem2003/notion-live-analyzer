@@ -65,13 +65,14 @@ def test_case_api_requires_a_valid_signed_portal_identity(monkeypatch):
         message,
         hashlib.sha256,
     ).hexdigest()
-    submitter_identity = api._require_nema_read_access(
-        x_api_key="test-platform-key",
-        x_nema_actor=actor,
-        x_nema_role="submitter",
-        x_nema_signature=signature,
-    )
-    assert submitter_identity == {"actor": actor, "role": "submitter"}
+    with pytest.raises(HTTPException) as submitter_denied:
+        api._require_nema_read_access(
+            x_api_key="test-platform-key",
+            x_nema_actor=actor,
+            x_nema_role="submitter",
+            x_nema_signature=signature,
+        )
+    assert submitter_denied.value.status_code == 403
 
     role = "reviewer"
     message = f"{actor}\n{role}".encode("utf-8")
