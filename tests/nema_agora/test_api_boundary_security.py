@@ -11,7 +11,7 @@ from nema_agora import api
 
 
 def _signature(actor: str, role: str, key: str) -> str:
-    message = f"{actor}\nrole".encode("utf-8")
+    message = f"{actor}\n{role}".encode("utf-8")
     return hmac.new(key.encode("utf-8"), message, hashlib.sha256).hexdigest()
 
 
