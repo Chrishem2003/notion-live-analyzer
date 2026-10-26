@@ -6,6 +6,8 @@ import importlib
 from pathlib import Path
 from typing import Iterable
 
+from nema_agora.backup import integrity_check
+
 POLICY_VERSION = "phase27-v1"
 
 REQUIRED_MODULES = (
@@ -46,9 +48,24 @@ def _path_check() -> HealthCheck:
         return HealthCheck("package-path", False, "package path does not exist")
     return HealthCheck("package-path", True, "package path available")
 
-def run_health_checks() -> tuple[HealthCheck, ...]:
+def _database_check(database_path: str | Path) -> HealthCheck:
+    """Check an explicitly configured existing SQLite database without creating it."""
+    try:
+        path = Path(database_path).expanduser()
+        if not path.is_file():
+            return HealthCheck("persistent-database", False, "configured database file is missing")
+        if not integrity_check(path):
+            return HealthCheck("persistent-database", False, "database integrity check failed")
+        return HealthCheck("persistent-database", True, "database integrity verified")
+    except (OSError, TypeError, ValueError):
+        return HealthCheck("persistent-database", False, "database health could not be verified")
+
+
+def run_health_checks(database_path: str | Path | None = None) -> tuple[HealthCheck, ...]:
     checks = _module_checks()
     checks.append(_path_check())
+    if database_path is not None:
+        checks.append(_database_check(database_path))
     checks.append(HealthCheck("policy-version", bool(POLICY_VERSION.strip()), POLICY_VERSION))
     return tuple(checks)
 
