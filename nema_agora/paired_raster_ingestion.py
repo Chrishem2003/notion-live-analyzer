@@ -135,6 +135,15 @@ def compare_uploaded_geotiff_pair(
         raise PairedRasterError("Processing baseline identifiers differ between dates; comparison blocked.")
     a = _read_pair_source(earlier_bytes, "Earlier raster")
     b = _read_pair_source(later_bytes, "Later raster")
+    for label, source, declared_baseline in (
+        ("Earlier", a, baseline_a),
+        ("Later", b, baseline_b),
+    ):
+        embedded_baseline = source["metadata_tags"].get("PROCESSING_BASELINE")
+        if embedded_baseline and embedded_baseline != declared_baseline:
+            raise PairedRasterError(
+                f"{label} raster embedded PROCESSING_BASELINE tag conflicts with the operator declaration; comparison blocked."
+            )
     if (a["crs"], a["width"], a["height"], a["transform"]) != (b["crs"], b["width"], b["height"], b["transform"]):
         raise PairedRasterError("CRS, dimensions or affine transform differ between dates; comparison blocked without reprojection/resampling.")
     if a["band_scales"] != b["band_scales"] or a["band_offsets"] != b["band_offsets"]:
