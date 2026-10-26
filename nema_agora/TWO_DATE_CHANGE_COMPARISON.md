@@ -10,7 +10,7 @@ The `nema_agora.paired_raster_ingestion.compare_uploaded_geotiff_pair` workflow 
 - Every index array and shared valid mask must match the declared raster grid.
 - A configurable minimum shared-valid fraction is enforced (default 70%); low coverage blocks the comparison.
 - Embedded GeoTIFF scale and offset values for B03, B04 and B08 must be finite and match exactly between dates; the values are recorded in provenance.
-- A short allowlist of dataset and band metadata tags is captured for review, with values bounded to 240 characters. Tags are untrusted claims, not authenticated evidence.
+- A short allowlist of dataset and band metadata tags is captured for review, with values bounded to 240 characters. If an embedded PROCESSING_BASELINE tag exists and conflicts with the corresponding operator declaration, comparison is blocked. Tags remain untrusted claims, not authenticated evidence.
 - Outputs include index deltas, robust summary statistics, threshold-exceedance pixel counts, compatibility checks and a report SHA-256 digest.
 - Does not calculate area, infer causation, authenticate source imagery or make environmental/legal findings.
 
