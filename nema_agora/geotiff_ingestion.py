@@ -42,6 +42,7 @@ def read_geotiff_scene(
     reflectance_scale: float,
     reflectance_offset: float = 0.0,
     cloud_shadow_mask_applied: bool = False,
+    band_mapping_confirmed: bool = False,
     aoi_geojson: Any | None = None,
 ) -> dict[str, Any]:
     """Decode a 3-band or more multiband GeoTIFF plus a same-grid validity mask.
