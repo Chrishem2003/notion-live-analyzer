@@ -1443,6 +1443,14 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
             {"unit_id": "holdout-001", "area_ha": 0.5, "detected": True,
              "reference_change": True, "independently_verified": True, "usable": True}
         ],
+        "spatiotemporal_units": [
+            {"unit_id": "development-001", "split": "development", "bbox_wgs84": [28.0, -1.0, 28.1, -0.9],
+             "observation_start": "2024-01-01T00:00:00Z", "observation_end": "2024-01-02T00:00:00Z"},
+            {"unit_id": "validation-001", "split": "validation", "bbox_wgs84": [30.0, 0.0, 30.1, 0.1],
+             "observation_start": "2024-06-01T00:00:00Z", "observation_end": "2024-06-02T00:00:00Z"},
+            {"unit_id": "holdout-001", "split": "holdout", "bbox_wgs84": [32.0, 1.0, 32.1, 1.1],
+             "observation_start": "2025-06-01T00:00:00Z", "observation_end": "2025-06-02T00:00:00Z"}
+        ],
         "min_area_ha": 0.1
     }
     st.download_button(
@@ -1456,7 +1464,7 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
         "Upload combined holdout evaluation JSON",
         type=["json"],
         key="nema_gated_evaluation_json",
-        help="Include reference_review_package, split_manifests, evaluation_records and optional min_area_ha.",
+        help="Include reference_review_package, split_manifests, evaluation_records, spatiotemporal_units and optional min_area_ha.",
     )
     if st.button(
         "Run gated holdout evaluation",
@@ -1471,6 +1479,7 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
                 reference_review_package=payload.get("reference_review_package"),
                 split_manifests=payload.get("split_manifests"),
                 evaluation_records=payload.get("evaluation_records"),
+                spatiotemporal_units=payload.get("spatiotemporal_units"),
                 min_area_ha=payload.get("min_area_ha", 0.1),
             )
             st.session_state["nema_gated_holdout_evaluation"] = report
@@ -1486,6 +1495,7 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
         st.write(f"**Review package SHA-256:** {gated_report['reference_review_sha256']}")
         st.write(f"**Split manifest SHA-256:** {gated_report['split_manifest_sha256']}")
         st.json(gated_report["evaluation"])
+        st.write("**Spatial/temporal audit:**", gated_report["spatiotemporal_audit"]["state"])
         for limitation in gated_report["limitations"]:
             st.caption("• " + limitation)
         st.download_button(
