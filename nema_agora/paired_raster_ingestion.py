@@ -51,8 +51,14 @@ def _read_pair_source(raw: bytes, label: str) -> dict[str, Any]:
                 scl = np.asarray(scl_masked.filled(0))
                 if not np.all(np.isfinite(scl)) or not np.all(scl == np.floor(scl)):
                     raise PairedRasterError(f"{label}: SCL must contain finite integer class codes.")
+                band_scales = {name: float(ds.scales[idx[name] - 1]) for name in ("B03", "B04", "B08")}
+                band_offsets = {name: float(ds.offsets[idx[name] - 1]) for name in ("B03", "B04", "B08")}
+                if not all(np.isfinite(v) for v in (*band_scales.values(), *band_offsets.values())):
+                    raise PairedRasterError(f"{label}: band scale/offset metadata must be finite.")
                 return {
                     "raw_sha256": hashlib.sha256(raw).hexdigest(),
+                    "band_scales": band_scales,
+                    "band_offsets": band_offsets,
                     "crs": str(ds.crs),
                     "width": int(ds.width),
                     "height": int(ds.height),
@@ -106,6 +112,8 @@ def compare_uploaded_geotiff_pair(
     b = _read_pair_source(later_bytes, "Later raster")
     if (a["crs"], a["width"], a["height"], a["transform"]) != (b["crs"], b["width"], b["height"], b["transform"]):
         raise PairedRasterError("CRS, dimensions or affine transform differ between dates; comparison blocked without reprojection/resampling.")
+    if a["band_scales"] != b["band_scales"] or a["band_offsets"] != b["band_offsets"]:
+        raise PairedRasterError("Embedded spectral-band scales or offsets differ between dates; comparison blocked.")
     aoi_mask = np.ones((a["height"], a["width"]), dtype=bool)
     aoi_digest = None
     if aoi_geojson_bytes is not None:
@@ -183,8 +191,8 @@ def compare_uploaded_geotiff_pair(
     except ChangeComparisonError as exc:
         raise PairedRasterError(str(exc)) from exc
     comparison["source"] = {
-        "earlier": {"sha256": a["raw_sha256"], "crs": a["crs"], "width": a["width"], "height": a["height"], "band_descriptions": a["descriptions"], "nodata": a["nodata"]},
-        "later": {"sha256": b["raw_sha256"], "crs": b["crs"], "width": b["width"], "height": b["height"], "band_descriptions": b["descriptions"], "nodata": b["nodata"]},
+        "earlier": {"sha256": a["raw_sha256"], "crs": a["crs"], "width": a["width"], "height": a["height"], "band_descriptions": a["descriptions"], "nodata": a["nodata"], "spectral_band_scales": a["band_scales"], "spectral_band_offsets": a["band_offsets"]},
+        "later": {"sha256": b["raw_sha256"], "crs": b["crs"], "width": b["width"], "height": b["height"], "band_descriptions": b["descriptions"], "nodata": b["nodata"], "spectral_band_scales": b["band_scales"], "spectral_band_offsets": b["band_offsets"]},
         "aoi_geojson_sha256": aoi_digest,
         "earlier_reflectance_scale_id_operator_supplied": scale_a,
         "later_reflectance_scale_id_operator_supplied": scale_b,
@@ -194,7 +202,8 @@ def compare_uploaded_geotiff_pair(
         "remote_assets_downloaded": False,
     }
     comparison["limitations"].extend([
-        "Reflectance scale and processing baseline were supplied separately by the operator and compared for exact equality; neither is independently authenticated.",
+        "Operator-declared reflectance scale/product and processing baseline labels are compared for exact equality but are not independently authenticated.",
+        "Embedded GeoTIFF scales and offsets are read and compared exactly for the B03, B04 and B08 bands. Matching values (including default 1.0/0.0 values) do not prove that pixel values are physically scaled reflectance; verify original provider metadata and processing history.",
         "Both dates use the same AOI and conservative SCL exclusion policy; valid pixels are the intersection of both dates.",
         "This local paired-raster workflow does not independently validate atmospheric correction, acquisition metadata, or the scientific suitability of the chosen threshold.",
     ])
