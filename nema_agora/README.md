@@ -8,10 +8,12 @@ NEMA-AGORA is an independent student-led prototype proposal. It is **not** an of
 
 ## Current MVP
 
-The Streamlit page is `pages/18_NEMA_AGORA.py` and provides:
+The single consolidated Streamlit workspace is `pages/19_NEMA_AGORA_Workspace.py`. It brings NEMA-AGORA navigation and the pilot workflows into one user-facing page. The available data path depends on configuration: demo mode is session-only, while persistent case reads require the separately configured authenticated API and storage backend.
+
+The pilot workflow includes:
 
 - Structured environmental observation entry.
-- Session-only case identifiers and status tracking.
+- Case identifiers and status tracking appropriate to the configured mode.
 - Reviewer notes and update timestamps.
 - Guarded case-status transitions with a current-session status-change history.
 - Length limits on user-entered fields and spreadsheet-formula neutralisation on CSV export.
@@ -34,7 +36,7 @@ The helper does not itself start the login flow, validate OIDC tokens, manage us
 
 ## Important limitations
 
-- The Streamlit page now has two explicit modes: demo (session-only) and persistent. Persistent mode is available only after OIDC authentication resolves to a server-configured role and an explicit database path is configured.
+- The application supports demo (session-only) and persistent modes. Persistent access must only be enabled when the relevant authentication, trusted role binding, storage configuration, and operational safeguards are present.
 - A standalone, deny-by-default role-permission policy now exists in `nema_agora/access.py`; it is policy logic only, not authentication or enforcement at the UI/database boundary. SQLite audit events record actor identifiers supplied by the caller, so the policy and repository must not be exposed until actor identifiers come from verified authentication and every sensitive operation enforces permissions.
 - A database audit table is not automatically tamper-proof; production use needs access controls, backups, retention rules, monitoring and an appropriate audit-protection design.
 - No reports are sent to NEMA or any other authority.
@@ -55,7 +57,7 @@ For Supabase read-only mode, configure \`NEMA_CASE_STORAGE_BACKEND=supabase_post
 From the repository root, with the repository's environment activated:
 
 ```powershell
-python -m streamlit run pages/18_NEMA_AGORA.py
+python -m streamlit run pages/19_NEMA_AGORA_Workspace.py
 ```
 
 The repository already includes Streamlit in its main requirements. If setting up a new environment, install the project requirements first.
@@ -109,7 +111,7 @@ The next build phase is now wired end-to-end at the application boundary:
 - `nema_agora/config.py` makes persistence an explicit deployment choice (`demo` or `persistent`) and requires explicit backup configuration for operations.
 - `nema_agora/backup.py` provides verified SQLite backup, integrity checking, bounded file retention and explicitly confirmed restore.
 - `pages/19_NEMA_AGORA_ADMIN.py` provides an admin-only operations console with health, backup inventory, restore safeguards and administrative audit events.
-- `pages/18_NEMA_AGORA.py` requires authentication and a provisioned role before persistent data is exposed.
+- `pages/19_NEMA_AGORA_Workspace.py` is the consolidated user-facing entrypoint; persistent access must remain behind the authenticated application/API boundary.
 - Repository reads, reviews, audit access and exports are permission-gated.
 - Submitter ownership isolation is preserved.
 - A legacy SQLite schema without `owner_id` is migrated to an inaccessible `legacy-unowned` owner rather than guessing ownership.
