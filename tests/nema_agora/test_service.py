@@ -642,3 +642,48 @@ def test_service_list_rejects_unprovisioned_principal(tmp_path):
     service = NemaAgoraService(NemaAgoraRepository(tmp_path / "list-deny.sqlite3"))
     with pytest.raises(PermissionError):
         service.list_observations(principal("list-unprovisioned", None))
+
+
+
+def test_case_workload_summary_is_principal_scoped_and_flags_stale_review(tmp_path):
+    service = NemaAgoraService(NemaAgoraRepository(tmp_path / "workload-summary.sqlite3"))
+    owner = principal("workload-owner", "submitter")
+    other = principal("workload-other", "submitter")
+    reviewer = principal("workload-reviewer", "reviewer")
+
+    old_record = record()
+    old_record["created_at"] = "2026-10-01T09:00:00+03:00"
+    old_record["updated_at"] = old_record["created_at"]
+    old = service.create_observation(old_record, owner)
+
+    fresh_record = record()
+    fresh_record["created_at"] = "2026-10-19T09:00:00+03:00"
+    fresh_record["updated_at"] = fresh_record["created_at"]
+    fresh = service.create_observation(fresh_record, owner)
+
+    other_record = record()
+    other_record["created_at"] = "2026-09-01T09:00:00+03:00"
+    other_record["updated_at"] = other_record["created_at"]
+    service.create_observation(other_record, other)
+
+    summary = service.case_workload_summary(
+        owner, as_of="2026-10-20T12:00:00+03:00", review_age_days=7
+    )
+    assert summary["visible_case_count"] == 2
+    assert summary["open_review_count"] == 2
+    assert summary["stale_review_count"] == 1
+    assert summary["stale_review_cases"][0]["case_id"] == old["case_id"]
+    assert summary["stale_review_cases"][0]["age_days"] > 7
+    assert fresh["case_id"] not in {item["case_id"] for item in summary["stale_review_cases"]}
+    assert summary["threshold_is_screening_default_not_official_sla"] is True
+
+
+def test_case_workload_summary_rejects_invalid_time_threshold_and_unprovisioned_user(tmp_path):
+    service = NemaAgoraService(NemaAgoraRepository(tmp_path / "workload-validation.sqlite3"))
+    reviewer = principal("workload-validation", "reviewer")
+    with pytest.raises(ValueError, match="timezone"):
+        service.case_workload_summary(reviewer, as_of="2026-10-20T12:00:00")
+    with pytest.raises(ValueError, match="positive integer"):
+        service.case_workload_summary(reviewer, review_age_days=0)
+    with pytest.raises(PermissionError):
+        service.case_workload_summary(principal("workload-unknown", None))
