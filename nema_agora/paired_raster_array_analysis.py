@@ -201,6 +201,8 @@ def analyze_paired_raster_arrays(
             index_values[key].append(rows[key])
     if valid_pixels == 0:
         return {"policy_version": POLICY_VERSION, "state": "CONTROL_REQUIRED", "findings": [{"code": "NO_COMPARABLE_VALID_PIXELS"}]}
+    if valid_pixels / (baseline["shape"][0] * baseline["shape"][1]) < float(min_valid_fraction):
+        return {"policy_version": POLICY_VERSION, "state": "CONTROL_REQUIRED", "findings": [{"code": "JOINT_VALID_FRACTION_BELOW_THRESHOLD"}]}
 
     def stats(name: str, values: list[float]) -> dict[str, float]:
         return {
@@ -239,3 +241,36 @@ def analyze_paired_raster_arrays(
     }
     payload["fingerprint"] = _digest(payload)
     return payload
+
+
+def validate_paired_array_analysis(result: Any) -> dict[str, Any]:
+    """Verify output fingerprint and ensure analysis cannot imply a legal conclusion."""
+    if not isinstance(result, Mapping):
+        return {"valid": False, "findings": [{"code": "INVALID_ANALYSIS_RESULT"}]}
+    findings: list[dict[str, str]] = []
+    supplied = result.get("fingerprint")
+    try:
+        payload = dict(result)
+        payload.pop("fingerprint", None)
+        expected = _digest(payload)
+        if not isinstance(supplied, str) or supplied != expected:
+            findings.append({"code": "ANALYSIS_FINGERPRINT_MISMATCH"})
+    except (TypeError, ValueError):
+        findings.append({"code": "ANALYSIS_NOT_CANONICAL_JSON"})
+    if result.get("policy_version") != POLICY_VERSION:
+        findings.append({"code": "POLICY_VERSION_MISMATCH"})
+    if result.get("state") != "PIXEL_ANALYSIS_COMPLETE":
+        findings.append({"code": "ANALYSIS_STATE_NOT_COMPLETE"})
+    interpretation = result.get("interpretation")
+    if not isinstance(interpretation, Mapping):
+        findings.append({"code": "INTERPRETATION_REQUIRED"})
+    else:
+        if interpretation.get("environmental_conclusion") is not None:
+            findings.append({"code": "ENVIRONMENTAL_CONCLUSION_MUST_REMAIN_UNSET"})
+        if interpretation.get("regulatory_conclusion") is not None:
+            findings.append({"code": "REGULATORY_CONCLUSION_MUST_REMAIN_UNSET"})
+        if interpretation.get("violation") is not None:
+            findings.append({"code": "VIOLATION_MUST_REMAIN_UNSET"})
+        if interpretation.get("enforcement_action") is not None:
+            findings.append({"code": "ENFORCEMENT_ACTION_MUST_REMAIN_UNSET"})
+    return {"valid": not findings, "fingerprint": supplied, "findings": findings}
