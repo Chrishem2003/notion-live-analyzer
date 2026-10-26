@@ -107,3 +107,36 @@ def csv_safe_value(value):
     if value.startswith(("\t", "\r")) or (candidate and candidate[0] in ("=", "+", "-", "@")):
         return "'" + value
     return value
+
+
+
+ALLOWED_STATUS_TRANSITIONS = {
+    "Received": {"Under review"},
+    "Under review": {"Referred", "Action recorded", "Closed"},
+    "Referred": {"Under review", "Action recorded", "Closed"},
+    "Action recorded": {"Under review", "Closed"},
+    "Closed": {"Under review"},
+}
+
+
+def validate_status_transition(
+    current_status: str,
+    new_status: str,
+    *,
+    reason: str = "",
+) -> list[str]:
+    """Validate a repository case transition; reopening requires an audit reason."""
+    if current_status not in STATUSES:
+        return ["Current status is not recognised."]
+    if new_status not in STATUSES:
+        return ["New status is not recognised."]
+    if current_status == new_status:
+        return []
+    if new_status not in ALLOWED_STATUS_TRANSITIONS[current_status]:
+        return [f"Transition from {current_status} to {new_status} is not allowed."]
+    if current_status == "Closed" and new_status == "Under review":
+        if not isinstance(reason, str) or not reason.strip():
+            return ["A reason is required to reopen a closed case."]
+        if len(reason.strip()) < 10:
+            return ["The reopening reason must be at least 10 characters."]
+    return []
