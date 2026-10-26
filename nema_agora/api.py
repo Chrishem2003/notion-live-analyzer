@@ -39,8 +39,7 @@ def _require_nema_read_access(
     """Require service authentication plus a signed, server-resolved portal identity.
 
     The Streamlit service signs the OIDC subject and role after resolving the role
-    from trusted server-side bindings. Submitters are deliberately denied this
-    cross-case API because case ownership is not yet consistently modeled.
+    from trusted server-side bindings. Submitters may use only owner-scoped Supabase reads. SQLite remains unavailable to submitters because its case schema does not yet enforce owner-scoped access.
     """
     _require_nema_api_key(x_api_key=x_api_key)
     actor = x_nema_actor.strip() if isinstance(x_nema_actor, str) else ""
@@ -48,7 +47,7 @@ def _require_nema_read_access(
     signature = x_nema_signature.strip() if isinstance(x_nema_signature, str) else ""
     if not actor or len(actor) > 512 or not signature:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="A signed portal identity is required.")
-    if role not in {"reviewer", "coordinator", "admin"}:
+    if role not in {"submitter", "reviewer", "coordinator", "admin"}:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="This role cannot access cross-case records.")
     signing_secret = os.environ.get("NEMA_PORTAL_SIGNING_SECRET", "").strip()
     if len(signing_secret) < 32 or hmac.compare_digest(signing_secret, os.environ.get("PLATFORM_API_KEY", "")):
@@ -62,6 +61,28 @@ def _require_nema_read_access(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="The signed portal identity is invalid.")
     return {"actor": actor, "role": role}
 
+
+
+
+def _require_submitter_scope(identity: dict[str, str]) -> str | None:
+    """Return a verified owner scope or deny submitters on unscoped storage."""
+    if identity.get("role") != "submitter":
+        return None
+    backend = os.environ.get("NEMA_CASE_STORAGE_BACKEND", "sqlite").strip().lower()
+    if backend != "supabase_postgres":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Submitter access requires owner-scoped Supabase storage.",
+        )
+    actor = identity.get("actor", "").strip()
+    if not actor or len(actor) > 512:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="A valid owner identity is required.")
+    return actor
+
+
+def _require_reviewer_role(identity: dict[str, str]) -> None:
+    if identity.get("role") not in {"reviewer", "coordinator", "admin"}:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="This operation requires a reviewer role.")
 
 def _database_path() -> Path:
     raw = os.environ.get("NEMA_CASE_DATABASE_PATH", "").strip()
@@ -125,9 +146,13 @@ def list_cases(
     """List persisted case summaries; no write or enforcement operation is exposed."""
     from nema_agora.supabase_repository import NemaStorageUnavailableError
 
+    owner_id = _require_submitter_scope(_auth)
     repository = _repository()
     try:
-        rows = repository.list_cases(limit=limit)
+        if owner_id is not None:
+            rows = repository.list_cases(limit=limit, owner_id=owner_id)
+        else:
+            rows = repository.list_cases(limit=limit)
         return {
             "items": [{"record": record, "version": version} for record, version in rows],
             "count": len(rows),
@@ -143,6 +168,7 @@ def list_cases(
 @router.get("/storage-readiness")
 def storage_readiness(_auth: dict[str, str] = Depends(_require_nema_read_access)):
     """Inspect configured storage without creating a database or changing records."""
+    _require_reviewer_role(_auth)
     backend = os.environ.get("NEMA_CASE_STORAGE_BACKEND", "sqlite").strip().lower()
     if backend == "supabase_postgres":
         from nema_agora.supabase_repository import NemaStorageUnavailableError
@@ -218,7 +244,15 @@ def get_case(case_id: str, _auth: dict[str, str] = Depends(_require_nema_read_ac
 
     repository = _repository()
     try:
-        found = repository.get_case(case_id)
+        owner_id = _require_submitter_scope(_auth)
+        if owner_id is not None:
+            found = repository.get_case(case_id, owner_id=owner_id)
+        else:
+            owner_id = _require_submitter_scope(_auth)
+        if owner_id is not None:
+            found = repository.get_case(case_id, owner_id=owner_id)
+        else:
+            found = repository.get_case(case_id)
         if found is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Case not found.")
         record, version = found
