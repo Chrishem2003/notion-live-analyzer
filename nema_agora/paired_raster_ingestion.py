@@ -165,6 +165,7 @@ def compare_uploaded_geotiff_pair(
             earlier_ndvi=ndvi_a, later_ndvi=ndvi_b,
             earlier_ndwi=ndwi_a, later_ndwi=ndwi_b,
             shared_valid_mask=valid,
+            comparison_domain_mask=aoi_mask,
             ndvi_change_threshold=ndvi_change_threshold,
             ndwi_change_threshold=ndwi_change_threshold,
             minimum_valid_fraction=minimum_valid_fraction,
