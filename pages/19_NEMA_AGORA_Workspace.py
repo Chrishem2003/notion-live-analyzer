@@ -36,6 +36,7 @@ from nema_agora.spatial_temporal_quality import spatial_temporal_quality_evidenc
 from nema_agora.spatial_change_detection import detect_candidate
 from nema_agora.satellite_evaluation import SatelliteEvaluationError, evaluate_change_candidates
 from nema_agora.satellite_manifest import SatelliteManifestError, validate_dataset_manifest
+from nema_agora.stac_discovery import StacDiscoveryError, discover_scenes
 from nema_agora.spatial_workspace_bundle import build_spatial_evidence_bundle, validate_spatial_evidence_bundle
 
 st.set_page_config(page_title="NEMA-AGORA Pilot", page_icon="🌿", layout="wide")
@@ -1246,6 +1247,75 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
             file_name="nema_satellite_manifest_validation_report.json",
             mime="application/json",
             key="nema_satellite_manifest_validation_report",
+        )
+
+
+if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
+    st.divider()
+    st.subheader("Live catalogue discovery (metadata only)")
+    st.caption(
+        "Optional network request to the fixed public Earth Search STAC catalogue for Sentinel-2 L2A scene metadata. "
+        "This does not download imagery, calculate indices, or establish environmental change."
+    )
+    with st.expander("Search satellite scene catalogue", expanded=False):
+        st.warning("Use a WGS84 bounding box (longitude/latitude). Scene cloud cover is not AOI-specific valid-pixel quality.")
+        col_w, col_s, col_e, col_n = st.columns(4)
+        with col_w:
+            bbox_west = st.number_input("West longitude", min_value=-180.0, max_value=180.0, value=32.0, step=0.1, key="nema_stac_west")
+        with col_s:
+            bbox_south = st.number_input("South latitude", min_value=-90.0, max_value=90.0, value=0.5, step=0.1, key="nema_stac_south")
+        with col_e:
+            bbox_east = st.number_input("East longitude", min_value=-180.0, max_value=180.0, value=33.0, step=0.1, key="nema_stac_east")
+        with col_n:
+            bbox_north = st.number_input("North latitude", min_value=-90.0, max_value=90.0, value=1.5, step=0.1, key="nema_stac_north")
+        date_col_a, date_col_b, cloud_col, limit_col = st.columns(4)
+        with date_col_a:
+            acquisition_start = st.date_input("Acquisition start", value=date(2026, 1, 1), key="nema_stac_start")
+        with date_col_b:
+            acquisition_end = st.date_input("Acquisition end", value=date(2026, 1, 31), key="nema_stac_end")
+        with cloud_col:
+            max_cloud = st.number_input("Max scene cloud cover (%)", min_value=0.0, max_value=100.0, value=30.0, step=5.0, key="nema_stac_cloud")
+        with limit_col:
+            scene_limit = st.number_input("Maximum scenes", min_value=1, max_value=100, value=20, step=1, key="nema_stac_limit")
+        aoi_id = st.text_input("Stable AOI identifier", value="UG-PILOT-AOI-01", key="nema_stac_aoi")
+        if st.button("Search public catalogue", key="nema_stac_search"):
+            try:
+                with st.spinner("Searching scene metadata; no imagery is downloaded…"):
+                    report = discover_scenes(
+                        aoi_id=aoi_id,
+                        bbox=[bbox_west, bbox_south, bbox_east, bbox_north],
+                        start_date=acquisition_start.isoformat(),
+                        end_date=acquisition_end.isoformat(),
+                        max_cloud_cover_pct=float(max_cloud),
+                        limit=int(scene_limit),
+                    )
+                st.session_state["nema_stac_discovery_report"] = report
+            except StacDiscoveryError as exc:
+                st.session_state.pop("nema_stac_discovery_report", None)
+                st.error(f"Catalogue search blocked or failed: {exc}")
+    stac_report = st.session_state.get("nema_stac_discovery_report")
+    if stac_report:
+        st.write(f"**Catalogue result:** {stac_report['state']}")
+        st.write(f"**Scenes accepted for metadata review:** {len(stac_report['scenes'])}")
+        st.write(f"**Rejected metadata records:** {len(stac_report['rejected'])}")
+        if stac_report["scenes"]:
+            st.dataframe([
+                {"Item ID": scene["item_id"], "Acquired": scene["acquired_at"],
+                 "Cloud cover (%)": scene["cloud_cover_pct"], "Platform": scene["platform"],
+                 "Available asset references": len(scene["assets"])}
+                for scene in stac_report["scenes"]
+            ], use_container_width=True, hide_index=True)
+        if stac_report["rejected"]:
+            with st.expander("Rejected catalogue records"):
+                st.json(stac_report["rejected"])
+        for limitation in stac_report["limitations"]:
+            st.caption("• " + limitation)
+        st.download_button(
+            "Download STAC discovery report (JSON)",
+            data=json.dumps(stac_report, indent=2, allow_nan=False),
+            file_name="nema_stac_scene_discovery_report.json",
+            mime="application/json",
+            key="nema_stac_discovery_report_download",
         )
 
 
