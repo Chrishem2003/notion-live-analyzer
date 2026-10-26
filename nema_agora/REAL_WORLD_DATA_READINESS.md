@@ -98,3 +98,8 @@ Remaining limitations: GeoJSON validation checks basic structure and coordinate 
 The paired-array analyzer now runs these checks whenever either scene includes GeoTIFF ingestion metadata, includes the report in the fingerprinted analysis output, and blocks analysis on comparability failures. Synthetic arrays without ingestion metadata remain available for numeric unit tests, but their output explicitly labels scene-comparability provenance as unavailable.
 
 The default 180-day interval, 45-day day-of-year gap, and valid-pixel threshold are screening defaults—not universal scientific rules. Passing checks do not establish sensor/product equivalence, atmospheric correction quality, registration accuracy, true cloud-mask lineage, seasonal comparability, or environmental cause. A qualified reviewer must assess those factors and local conditions before interpreting a candidate signal.
+
+
+Additional comparability hardening: the paired-scene gate now requires an AOI-clipped ingestion path for both scenes, checks the normalized AOI geometry SHA-256 in addition to matching raster-domain masks, and requires raster and validity-mask checksums. This prevents equal pixel masks alone from being treated as proof that the exact same AOI geometry and source assets were used. The scene fingerprint includes supplied ingestion provenance. The workspace displays seasonal/interval warnings and preserves comparability details when analysis is blocked.
+
+These checks still do not validate checksum authenticity against an external trusted source, prove that an uploaded mask is scientifically correct, or establish that the AOI is an official boundary. They are consistency and traceability controls, not external attestation.
