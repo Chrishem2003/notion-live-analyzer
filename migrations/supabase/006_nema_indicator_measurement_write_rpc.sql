@@ -8,6 +8,16 @@
 
 begin;
 
+-- Dedicated non-login owner for the SECURITY DEFINER RPC. It is deliberately not
+-- granted BYPASSRLS and is not a member of service_role or any login role.
+do $role$
+begin
+    if not exists (select 1 from pg_catalog.pg_roles where rolname = 'nema_measurement_writer') then
+        create role nema_measurement_writer nologin noinherit;
+    end if;
+end;
+$role$;
+
 create table if not exists public.nema_measurement_idempotency (
     idempotency_key text primary key,
     payload_sha256 text not null check (payload_sha256 ~ '^[a-fA-F0-9]{64}$'),
@@ -226,12 +236,36 @@ $function$;
 
 revoke all on table public.nema_measurement_idempotency from anon, authenticated, service_role;
 revoke all on table public.nema_measurement_audit from anon, authenticated, service_role;
+revoke all on table public.nema_indicator_measurements from anon, authenticated, service_role;
+
+-- The function owner has only the table rights the RPC needs. RLS remains enabled;
+-- policies below are scoped only to this non-login role. No direct client policies exist.
+grant usage on schema public to nema_measurement_writer;
+grant usage on schema extensions to nema_measurement_writer;
+grant select, insert on table public.nema_indicator_measurements to nema_measurement_writer;
+grant select, insert on table public.nema_measurement_idempotency to nema_measurement_writer;
+grant insert on table public.nema_measurement_audit to nema_measurement_writer;
+
+drop policy if exists nema_measurement_writer_access on public.nema_indicator_measurements;
+create policy nema_measurement_writer_access on public.nema_indicator_measurements
+    for all to nema_measurement_writer using (true) with check (true);
+drop policy if exists nema_measurement_writer_access on public.nema_measurement_idempotency;
+create policy nema_measurement_writer_access on public.nema_measurement_idempotency
+    for all to nema_measurement_writer using (true) with check (true);
+drop policy if exists nema_measurement_writer_access on public.nema_measurement_audit;
+create policy nema_measurement_writer_access on public.nema_measurement_audit
+    for insert to nema_measurement_writer with check (true);
+
 grant usage on schema public to service_role;
+grant execute on function extensions.digest(bytea, text) to nema_measurement_writer;
 grant select on table public.nema_measurement_idempotency to service_role;
 grant select on table public.nema_measurement_audit to service_role;
 
 revoke all on function public.submit_nema_indicator_measurement(text, text, text, text, jsonb)
     from public, anon, authenticated, service_role;
+alter function public.submit_nema_indicator_measurement(text, text, text, text, jsonb)
+    owner to nema_measurement_writer;
+
 grant execute on function public.submit_nema_indicator_measurement(text, text, text, text, jsonb)
     to service_role;
 
@@ -244,7 +278,8 @@ commit;
 -- * Verify pgcrypto is installed in schema extensions before applying this migration.
 -- * Validate database-computed digest parity and replay behavior on the target PostgreSQL version.
 -- * Test concurrent duplicate requests, conflict, injected rollback, and unique-key collision.
--- * Confirm function owner is a least-privilege role with required table privileges.
+-- * Verify function owner is nema_measurement_writer (NOLOGIN, NOINHERIT, no BYPASSRLS).
+-- * Verify writer-role table grants and scoped RLS policies match this migration.
 -- * Confirm RLS/grants and fixed search_path; verify no anon/authenticated execution.
 -- * This RPC does not authenticate p_actor_id/p_actor_role; API must derive these from OIDC/session.
 -- * Evidence bytes and reviewer independence require separate authenticated workflows.
