@@ -1031,7 +1031,7 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
     template_columns = ["unit_id", "area_ha", "detected", "reference_change", "independently_verified", "usable"]
     st.download_button(
         "Download CSV template",
-        data=",".join(template_columns) + "\\n",
+        data=",".join(template_columns) + "\n",
         file_name="nema_satellite_evaluation_template.csv",
         mime="text/csv",
         key="nema_satellite_eval_template",
