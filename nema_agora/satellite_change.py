@@ -145,7 +145,7 @@ def compare_two_dates(
             "same_reflectance_scale_id": True,
             "same_processing_baseline": True,
             "shared_valid_pixel_count": count,
-            "total_grid_pixels": total,
+            "total_comparison_domain_pixels": total,
             "shared_valid_pixel_fraction": fraction,
             "coverage_denominator": "comparison domain (AOI when supplied)",
             "minimum_valid_pixel_fraction": float(minimum_valid_fraction),
