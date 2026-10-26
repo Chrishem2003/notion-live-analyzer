@@ -18,8 +18,8 @@ The gate enforces consistency of declarations, not scientific authenticity. It c
 
 ## Source asset and derived-data lineage screening
 
-The gate accepts optional `asset_lineage_records` and, when supplied, runs `nema_agora/asset_lineage_audit.py`. Records declare a unique record ID, split, source-asset SHA-256, satellite tile IDs, and parent record IDs in `derived_from`. Reused source hashes, tile identifiers, or derived parents across different splits block metric generation. Unknown parents and lineage cycles are rejected.
+The gate requires `asset_lineage_records` and runs `nema_agora/asset_lineage_audit.py` before metrics can be computed. Records declare a unique record ID, split, source-asset SHA-256, satellite tile IDs, and parent record IDs in `derived_from`. Reused source hashes, tile identifiers, or derived parents across different splits block metric generation. Unknown parents and lineage cycles are rejected.
 
-**Important:** this screening is currently opt-in at the function boundary. A caller that omits `asset_lineage_records` receives `asset_lineage_audit: null`; that is not evidence of asset independence. Before a release candidate is accepted, the workspace must collect a verifiable lineage manifest and make this gate mandatory for the evaluation workflow. Hashes should be computed from actual bytes and expected digests should come from a trusted source.
+**Fail-closed requirement:** a caller that omits the manifest or supplies an empty manifest is blocked before metrics are computed. The Streamlit workspace includes the manifest in its JSON template and passes it to the gate. Replace template placeholders with SHA-256 hashes of actual source bytes and stable tile/parent identifiers. The audit only checks declared hashes/IDs/links; hashes should be independently anchored to a trusted source.
 
 The audit cannot identify undeclared relationships, alternate encodings, shared model weights, derived-feature leakage not represented in the graph, or holdout-informed tuning. A clean result is not proof of complete independence.
