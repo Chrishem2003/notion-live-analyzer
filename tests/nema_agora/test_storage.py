@@ -408,3 +408,82 @@ def test_legacy_records_migrate_to_unowned_without_trusting_payload_owner(tmp_pa
             legacy["case_id"], actor_id="untrusted-legacy-owner", role="submitter"
         )
 
+def test_complete_case_lifecycle_keeps_status_and_audit_history_in_sync(tmp_path):
+    repository = NemaAgoraRepository(tmp_path / "case-lifecycle.sqlite3")
+    created = repository.create_observation(
+        sample_record(), actor_id="lifecycle-submitter", role="submitter"
+    )
+    transitions = [
+        ("Under review", "2026-10-04T12:10:00+03:00"),
+        ("Referred", "2026-10-04T12:20:00+03:00"),
+        ("Action recorded", "2026-10-04T12:30:00+03:00"),
+        ("Closed", "2026-10-04T12:40:00+03:00"),
+        ("Under review", "2026-10-04T12:50:00+03:00"),
+    ]
+
+    for index, (new_status, changed_at) in enumerate(transitions):
+        updated = repository.update_review(
+            created["case_id"],
+            actor_id="lifecycle-reviewer",
+            role="reviewer",
+            new_status=new_status,
+            review_notes=f"Lifecycle step {index + 1}",
+            changed_at=changed_at,
+        )
+        assert updated["status"] == new_status
+        assert updated["updated_at"] == changed_at
+
+    persisted = repository.get_observation(
+        created["case_id"], actor_id="lifecycle-submitter", role="submitter"
+    )
+    events = repository.list_audit_events(
+        created["case_id"], actor_id="lifecycle-admin", role="admin"
+    )
+
+    assert persisted["status"] == "Under review"
+    assert persisted["review_notes"] == "Lifecycle step 5"
+    assert [event["event_type"] for event in events] == [
+        "record_created",
+        "status_changed",
+        "status_changed",
+        "status_changed",
+        "status_changed",
+        "status_changed",
+    ]
+    assert [(event["from_status"], event["to_status"]) for event in events[1:]] == [
+        ("Received", "Under review"),
+        ("Under review", "Referred"),
+        ("Referred", "Action recorded"),
+        ("Action recorded", "Closed"),
+        ("Closed", "Under review"),
+    ]
+    assert [event["occurred_at"] for event in events] == [
+        created["created_at"],
+        *(changed_at for _, changed_at in transitions),
+    ]
+
+
+def test_review_notes_only_update_is_audited_without_fake_status_transition(tmp_path):
+    repository = NemaAgoraRepository(tmp_path / "review-note-only.sqlite3")
+    created = repository.create_observation(
+        sample_record(), actor_id="notes-submitter", role="submitter"
+    )
+    reviewed = repository.update_review(
+        created["case_id"],
+        actor_id="notes-reviewer",
+        role="reviewer",
+        new_status="Received",
+        review_notes="Clarified intake details",
+        changed_at="2026-10-04T12:10:00+03:00",
+    )
+    events = repository.list_audit_events(
+        created["case_id"], actor_id="notes-admin", role="admin"
+    )
+
+    assert reviewed["status"] == "Received"
+    assert reviewed["review_notes"] == "Clarified intake details"
+    assert len(events) == 2
+    assert events[-1]["event_type"] == "review_updated"
+    assert events[-1]["from_status"] is None
+    assert events[-1]["to_status"] == "Received"
+
