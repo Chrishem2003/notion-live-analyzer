@@ -193,3 +193,16 @@ def test_mismatched_domain_masks_fail_closed():
     result = analyze_paired_raster_arrays(baseline_scene=baseline, comparison_scene=comparison)
     assert result["state"] == "CONTROL_REQUIRED"
     assert "AOI_DOMAIN_MASK_MISMATCH" in {x["code"] for x in result["findings"]}
+
+
+
+def test_minimum_domain_pixel_gate_rejects_too_small_aoi():
+    baseline, comparison = _pair()
+    domain = [[True, False], [False, False]]
+    baseline["domain_mask"] = domain
+    comparison["domain_mask"] = domain
+    result = analyze_paired_raster_arrays(
+        baseline_scene=baseline, comparison_scene=comparison, min_domain_pixels=25,
+    )
+    assert result["state"] == "CONTROL_REQUIRED"
+    assert "AOI_DOMAIN_BELOW_MINIMUM_PIXEL_COUNT" in {x["code"] for x in result["findings"]}
