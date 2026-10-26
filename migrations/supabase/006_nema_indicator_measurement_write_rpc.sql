@@ -18,6 +18,24 @@ begin
 end;
 $role$;
 
+-- Normalize an existing role too; CREATE ROLE IF NOT EXISTS alone would not
+-- correct unsafe attributes if this name already existed in the target project.
+alter role nema_measurement_writer
+    nologin noinherit nosuperuser nocreatedb nocreaterole noreplication nobypassrls;
+
+do $membership_guard$
+begin
+    if exists (
+        select 1
+          from pg_catalog.pg_auth_members
+         where roleid = (select oid from pg_catalog.pg_roles where rolname = 'nema_measurement_writer')
+            or member = (select oid from pg_catalog.pg_roles where rolname = 'nema_measurement_writer')
+    ) then
+        raise exception 'nema_measurement_writer must have no role memberships before migration';
+    end if;
+end;
+$membership_guard$;
+
 create table if not exists public.nema_measurement_idempotency (
     idempotency_key text primary key,
     payload_sha256 text not null check (payload_sha256 ~ '^[a-fA-F0-9]{64}$'),
