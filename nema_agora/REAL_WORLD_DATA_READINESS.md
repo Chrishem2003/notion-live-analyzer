@@ -46,3 +46,16 @@ The first pilot should be considered successful only when another reviewer can r
 ## Deployment gate
 
 No live provider, government system, NEMA workflow, or persistent production storage is claimed until an end-to-end test is run in the target deployment with approved credentials and permissions. Until then, use synthetic records or public reference material and label the source mode honestly.
+
+
+## Implemented provenance receipt contract
+
+`asset_receipt.py` now provides a deterministic, fingerprinted receipt for **manually supplied assets**. The receipt records the source registry ID, acquisition and recording timestamps, AOI ID, baseline/comparison role, CRS, spatial resolution, cloud cover, valid-pixel fraction, asset storage reference, media type, and SHA-256 checksum. Validation rejects unknown sources, malformed metadata, duplicate asset IDs, invalid checksums, altered fingerprints, missing limitations, and claims that provider connectivity or automated acquisition has been verified.
+
+Important boundaries:
+
+- A receipt fingerprint proves that the recorded metadata has not changed relative to its fingerprint; it does **not** prove that an asset is authentic, licensed, scientifically valid, or actually from the named provider.
+- The provider-API acquisition method is deliberately blocked pending a separately verified adapter and its own tests.
+- The automated-acquisition and provider-connected flags must remain false in this manual receipt workflow.
+- Test fixtures use a tiny synthetic byte string to test checksums; they are not imagery and must never be presented as environmental findings.
+- Receipt metadata is a provenance foundation only. It is not yet an end-user upload screen, a production asset store, or a live Sentinel-2 pipeline.
