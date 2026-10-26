@@ -366,3 +366,44 @@ def test_review_update_refuses_to_mutate_tampered_observation_payload(tmp_path):
         ).fetchone()[0]
     assert row[0] == "Received"
     assert event_count == 1
+
+def test_legacy_records_migrate_to_unowned_without_trusting_payload_owner(tmp_path):
+    import json
+    import sqlite3
+
+    path = tmp_path / "legacy-observations.sqlite3"
+    legacy = sample_record()
+    legacy["owner_id"] = "untrusted-legacy-owner"
+    with sqlite3.connect(path) as connection:
+        connection.execute(
+            """CREATE TABLE observations (
+                case_id TEXT PRIMARY KEY,
+                status TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                record_json TEXT NOT NULL
+            )"""
+        )
+        connection.execute(
+            """INSERT INTO observations
+               (case_id, status, created_at, updated_at, record_json)
+               VALUES (?, ?, ?, ?, ?)""",
+            (
+                legacy["case_id"],
+                legacy["status"],
+                legacy["created_at"],
+                legacy["updated_at"],
+                json.dumps(legacy, sort_keys=True),
+            ),
+        )
+
+    repository = NemaAgoraRepository(path)
+    migrated = repository.get_observation(
+        legacy["case_id"], actor_id="migration-reviewer", role="admin"
+    )
+    assert migrated["owner_id"] == "legacy-unowned"
+    with pytest.raises(PermissionError):
+        repository.get_observation(
+            legacy["case_id"], actor_id="untrusted-legacy-owner", role="submitter"
+        )
+
