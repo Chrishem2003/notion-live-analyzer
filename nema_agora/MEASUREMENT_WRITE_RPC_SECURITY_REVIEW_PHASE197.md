@@ -44,3 +44,17 @@ The disposable PostgreSQL suite asserts the function owner, role flags, minimum
 table privileges, and audit immutability privileges. This is a proposed migration;
 do not apply it to the shared staging database until CI passes and an explicit
 staging approval is obtained.
+
+
+## Phase 207 — command-scoped row-level security
+
+The dedicated writer role's RLS policies are now limited to SELECT and INSERT
+for the measurement and idempotency tables, and INSERT only for the audit table.
+The prior broad `FOR ALL` policies were replaced with command-specific policies.
+PostgreSQL integration assertions now check that the writer has no UPDATE/DELETE
+table privileges, has no role memberships, cannot log in or bypass RLS, and has
+no unexpected RLS policy commands on these tables.
+
+This remains a proposed migration. Passing disposable PostgreSQL tests does not
+verify the actual Supabase extension placement, migration privileges, backup
+recovery, or deployment configuration. Those remain separate release gates.
