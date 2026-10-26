@@ -6,7 +6,7 @@ This remains an independent student-led prototype, not an official NEMA service.
 """
 from __future__ import annotations
 
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 import hashlib
 import io
 import json
@@ -1270,9 +1270,9 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
             bbox_north = st.number_input("North latitude", min_value=-90.0, max_value=90.0, value=1.5, step=0.1, key="nema_stac_north")
         date_col_a, date_col_b, cloud_col, limit_col = st.columns(4)
         with date_col_a:
-            acquisition_start = st.date_input("Acquisition start", value=date(2026, 1, 1), key="nema_stac_start")
+            acquisition_start = st.date_input("Acquisition start", value=datetime.now(timezone.utc).date() - timedelta(days=30), key="nema_stac_start")
         with date_col_b:
-            acquisition_end = st.date_input("Acquisition end", value=date(2026, 1, 31), key="nema_stac_end")
+            acquisition_end = st.date_input("Acquisition end", value=datetime.now(timezone.utc).date(), key="nema_stac_end")
         with cloud_col:
             max_cloud = st.number_input("Max scene cloud cover (%)", min_value=0.0, max_value=100.0, value=30.0, step=5.0, key="nema_stac_cloud")
         with limit_col:
