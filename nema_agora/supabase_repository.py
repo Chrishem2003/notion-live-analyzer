@@ -140,3 +140,57 @@ class SupabaseReadOnlyNemaRepository:
             "storage_durability_verified": False,
             "production_writes_enabled": False,
         }
+
+    def list_indicator_measurements(
+        self, *, limit: int = 100, status: str | None = None, indicator_id: str | None = None
+    ) -> list[dict[str, Any]]:
+        """Read canonical measurement rows; this adapter intentionally has no write methods."""
+        if isinstance(limit, bool) or not isinstance(limit, int) or not 1 <= limit <= 1000:
+            raise ValueError("Limit must be an integer between 1 and 1000.")
+        params = {
+            "select": (
+                "measurement_id,indicator_id,definition_version,reporting_period_start,"
+                "reporting_period_end,reporting_timezone,status,value,unit,numerator,"
+                "denominator,exclusions,source_refs,evidence_refs,calculation_method,"
+                "reviewer_id,verified_at,caveats,created_at"
+            ),
+            "order": "created_at.desc,measurement_id.asc",
+            "limit": str(limit),
+        }
+        if status is not None:
+            if status not in {"not_started", "in_progress", "measured", "verified", "blocked"}:
+                raise ValueError("Unsupported measurement status.")
+            params["status"] = "eq." + status
+        if indicator_id is not None:
+            if not isinstance(indicator_id, str) or not indicator_id.strip() or len(indicator_id) > 128:
+                raise ValueError("Indicator ID must be non-empty and at most 128 characters.")
+            params["indicator_id"] = "eq." + indicator_id
+        rows = self._get("nema_indicator_measurements", params)
+        required = {"measurement_id", "indicator_id", "status", "created_at"}
+        if any(not required.issubset(row) for row in rows):
+            raise NemaStorageUnavailableError("NEMA measurement storage returned an incomplete record.")
+        return rows
+
+    def list_measurement_audit_events(
+        self, measurement_id: str, *, limit: int = 100
+    ) -> list[dict[str, Any]]:
+        """Read immutable submission audit events for a canonical measurement ID."""
+        if not isinstance(measurement_id, str) or not measurement_id.strip() or len(measurement_id) > 256:
+            raise ValueError("Measurement ID must be non-empty and at most 256 characters.")
+        if isinstance(limit, bool) or not isinstance(limit, int) or not 1 <= limit <= 1000:
+            raise ValueError("Limit must be an integer between 1 and 1000.")
+        rows = self._get(
+            "nema_measurement_audit",
+            {
+                "select": "audit_id,measurement_id,actor_id,actor_role,action,idempotency_key,payload_sha256,created_at",
+                "measurement_id": "eq." + measurement_id,
+                "order": "created_at.asc,audit_id.asc",
+                "limit": str(limit),
+            },
+        )
+        required = {"audit_id", "measurement_id", "actor_id", "actor_role", "action", "created_at"}
+        if any(not required.issubset(row) for row in rows):
+            raise NemaStorageUnavailableError("NEMA measurement audit storage returned an incomplete event.")
+        if any(row.get("measurement_id") != measurement_id for row in rows):
+            raise NemaStorageUnavailableError("NEMA audit storage returned an event for a different measurement.")
+        return rows
