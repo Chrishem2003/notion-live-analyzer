@@ -164,8 +164,10 @@ begin
     ) then
         raise exception 'source_refs entries must be unique' using errcode = '22023';
     end if;
-    if pg_catalog.jsonb_typeof(p_record->'evidence_refs') is distinct from 'array'
-       or pg_catalog.jsonb_array_length(p_record->'evidence_refs') = 0 then
+    if pg_catalog.jsonb_typeof(p_record->'evidence_refs') is distinct from 'array' then
+        raise exception 'measured records require evidence_refs array' using errcode = '22023';
+    end if;
+    if pg_catalog.jsonb_array_length(p_record->'evidence_refs') = 0 then
         raise exception 'measured records require evidence_refs array' using errcode = '22023';
     end if;
     if exists (
