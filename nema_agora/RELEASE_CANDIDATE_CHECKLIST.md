@@ -2,17 +2,19 @@
 
 ## Candidate
 
-- Integration PR: [#23 — clean main-based integration](https://github.com/Chrishem2003/notion-live-analyzer/pull/23)
-- Branch: `feature/nema-agora-clean-integration`
-- Current tracker commit: `ba3c60fecf72d4b74223e4e84d8726e7f42d9887`
-- Status: CI passed for the tracker commit; release remains blocked on deployment and governance evidence.
+- Integration PR: [#115 — NEMA-AGORA mainline integration candidate](https://github.com/Chrishem2003/notion-live-analyzer/pull/115)
+- Branch: `integration/nema-agora-mainline-20261026`
+- Current candidate commit at this checklist revision: `46315fdc2981dd5033f5e70192079a24cd306cfd`
+- Base branch: `main` at `43ef47b404977dc6af5db45164ffc8a9d2f3f755`
+- Status: draft and unmerged. The latest code/security workflows passed on parent commit `8075c4e8588dd66058b7fa0a41ab6a16146d1abd`; this documentation-only follow-up still needs its own CI result. Release remains blocked on deployment and governance evidence.
 
 ## Verified automated checks
 
-The following workflows passed on the current tracker commit:
+The following workflows passed on the preceding code commit (`8075c4e8588dd66058b7fa0a41ab6a16146d1abd`), not yet on the documentation-only follow-up:
 
-- [NEMA-AGORA Pilot Checks](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39133042467)
-- [Repository CI/CD Pipeline](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/39133042477)
+- [NEMA-AGORA focused checks](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/40377656381)
+- [Full repository CI](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/40377656415)
+- [Authentication-role security checks](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/40377656146)
 
 The focused workflow runs the NEMA test suite, compiles the NEMA package and curated Streamlit entrypoints, and smoke-tests the consolidated `app.py` routing. The repository workflow provides broader regression coverage. These are CI results, not proof of a live production deployment.
 
