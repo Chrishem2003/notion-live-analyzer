@@ -370,7 +370,7 @@ if active_section == "Case management":
                 queue_cols[idx].metric(status, status_counts.get(status, 0))
 
             st.markdown("### Find a case")
-            filter_cols = st.columns([2, 1, 1])
+            filter_cols = st.columns([2, 1, 1, 1])
             with filter_cols[0]:
                 case_query = st.text_input(
                     "Search cases",
@@ -385,11 +385,16 @@ if active_section == "Case management":
                 category_filter = st.selectbox(
                     "Category filter", ["All categories", *CATEGORIES], key="nema_case_category_filter"
                 )
+            with filter_cols[3]:
+                severity_filter = st.selectbox(
+                    "Priority filter", ["All priorities", *SEVERITIES], key="nema_case_severity_filter"
+                )
 
             filtered_records = [
                 item for item in records
                 if (status_filter == "All statuses" or item.get("status") == status_filter)
                 and (category_filter == "All categories" or item.get("category") == category_filter)
+                and (severity_filter == "All priorities" or item.get("severity") == severity_filter)
                 and (
                     not case_query
                     or case_query in " ".join(
@@ -456,7 +461,7 @@ if active_section == "Case management":
                 })
                 st.dataframe(queue_frame, use_container_width=True, hide_index=True)
             else:
-                st.info("No cases match these filters. Clear the search or choose 'All statuses' and 'All categories'.")
+                st.info("No cases match these filters. Clear the search or reset the status, category, and priority filters.")
             if can_export:
                 st.download_button(
                     "Download authorised records as CSV",
