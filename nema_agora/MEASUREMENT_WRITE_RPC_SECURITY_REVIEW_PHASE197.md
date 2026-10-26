@@ -72,3 +72,16 @@ This reduces the risk that a role created outside this migration carries
 unexpected authority into the SECURITY DEFINER boundary. It still needs
 validation against the target Supabase migration executor's privileges; no
 shared staging schema has been changed.
+
+
+## Phase 209 — portal/API signature parity regression
+
+The measurement-authentication dependency had an escaped literal `\\n` in its
+HMAC message, while the portal signer uses an actual newline between actor and
+role. That mismatch would reject legitimate signed measurement requests if a
+write route were attached. The API now uses the same actor-newline-role message
+format as the portal client, and the auth regression test signs the same format.
+
+This was found before enabling a write route; no live submission route was
+added. The new CI run must confirm both the focused API tests and the PostgreSQL
+security suite remain green.
