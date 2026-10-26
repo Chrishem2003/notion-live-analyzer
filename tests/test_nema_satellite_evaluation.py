@@ -87,3 +87,30 @@ def test_missing_or_non_boolean_truth_fields_are_rejected():
     bad["reference_change"] = None
     with pytest.raises(SatelliteEvaluationError, match="reference_change"):
         evaluate_change_candidates([bad])
+
+
+def test_workspace_exports_source_digest_and_evaluation_version():
+    from pathlib import Path
+
+    source = (
+        Path(__file__).resolve().parents[1]
+        / "pages"
+        / "19_NEMA_AGORA_Workspace.py"
+    ).read_text(encoding="utf-8")
+    assert "hashlib.sha256(source_bytes).hexdigest()" in source
+    assert "created_at_utc" in source
+    assert "source_sha256" in source
+    assert "Evaluation provenance & reproducibility" in source
+    assert '"evaluation": result' in source
+
+
+def test_workspace_parses_csv_booleans_strictly():
+    from pathlib import Path
+
+    source = (
+        Path(__file__).resolve().parents[1]
+        / "pages"
+        / "19_NEMA_AGORA_Workspace.py"
+    ).read_text(encoding="utf-8")
+    assert 'normalized in {"true", "false"}' in source
+    assert 'raise SatelliteEvaluationError(' in source
