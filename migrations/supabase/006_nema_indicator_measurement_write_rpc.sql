@@ -142,8 +142,12 @@ begin
        or p_record->>'reporting_period_end' is null then
         raise exception 'required measurement fields are missing' using errcode = '22023';
     end if;
-    if pg_catalog.jsonb_typeof(p_record->'source_refs') <> 'array'
-       or pg_catalog.jsonb_array_length(p_record->'source_refs') = 0 then
+    -- IS DISTINCT FROM rejects SQL NULL as well as JSON values of the wrong type.
+    -- Keep array length in a separate branch so it is never evaluated on a non-array.
+    if pg_catalog.jsonb_typeof(p_record->'source_refs') is distinct from 'array' then
+        raise exception 'measured records require source_refs array' using errcode = '22023';
+    end if;
+    if pg_catalog.jsonb_array_length(p_record->'source_refs') = 0 then
         raise exception 'measured records require source_refs array' using errcode = '22023';
     end if;
     if p_record ? 'evidence_refs' and pg_catalog.jsonb_typeof(p_record->'evidence_refs') <> 'array' then
