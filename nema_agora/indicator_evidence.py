@@ -7,6 +7,7 @@ separate integration and governance responsibilities.
 from __future__ import annotations
 
 from datetime import date, datetime
+import hashlib
 import math
 import re
 from typing import Any, Mapping
@@ -47,12 +48,16 @@ def _parse_timestamp(value: Any, field: str, errors: list[str]) -> datetime | No
 
 
 def validate_measurement_record(
-    record: Mapping[str, Any], indicator: Mapping[str, Any]
+    record: Mapping[str, Any],
+    indicator: Mapping[str, Any],
+    *,
+    evidence_bytes: bytes | None = None,
 ) -> dict[str, Any]:
     """Validate one measured/verified result against its indicator definition.
 
-    Raises IndicatorEvidenceError with actionable validation errors. Successful
-    output contains only a validation summary, not a claim of evidence authenticity.
+    Raises IndicatorEvidenceError with actionable validation errors. If evidence_bytes
+    is supplied, its SHA-256 must match the record digest. This proves byte-level
+    consistency only; it does not prove source authenticity or reviewer identity.
     """
     if not isinstance(record, Mapping):
         raise IndicatorEvidenceError("Measurement record must be a JSON object.")
@@ -99,6 +104,16 @@ def validate_measurement_record(
     evidence_sha256 = record.get("evidence_sha256")
     if not isinstance(evidence_sha256, str) or not _SHA256.fullmatch(evidence_sha256):
         errors.append("evidence_sha256 must be a 64-character SHA-256 digest.")
+
+    artifact_digest_match = False
+    if evidence_bytes is not None:
+        if not isinstance(evidence_bytes, bytes):
+            errors.append("evidence_bytes must be bytes when supplied.")
+        elif isinstance(evidence_sha256, str) and _SHA256.fullmatch(evidence_sha256):
+            actual_digest = hashlib.sha256(evidence_bytes).hexdigest()
+            artifact_digest_match = actual_digest.lower() == evidence_sha256.lower()
+            if not artifact_digest_match:
+                errors.append("uploaded evidence artifact SHA-256 does not match evidence_sha256.")
 
     method_version = record.get("method_version")
     if not isinstance(method_version, str) or not method_version.strip():
@@ -156,6 +171,7 @@ def validate_measurement_record(
         "period_start": start.isoformat() if start else None,
         "period_end": end.isoformat() if end else None,
         "evidence_sha256": evidence_sha256.lower(),
+        "evidence_artifact_bytes_verified": artifact_digest_match,
         "evidence_authenticity_verified": False,
         "reviewer_identity_authenticated": False,
     }
