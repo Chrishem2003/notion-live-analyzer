@@ -48,6 +48,7 @@ from nema_agora.raster_ingestion import RasterIngestionError, process_uploaded_g
 from nema_agora.paired_raster_ingestion import PairedRasterError, compare_uploaded_geotiff_pair
 from nema_agora.spatial_workspace_bundle import build_spatial_evidence_bundle, validate_spatial_evidence_bundle
 from nema_agora.indicator_evidence import IndicatorEvidenceError, validate_measurement_record
+from nema_agora.change_evaluation import ChangeEvaluationError, evaluate_change_detections
 
 st.set_page_config(page_title="NEMA-AGORA Pilot", page_icon="🌿", layout="wide")
 
@@ -1201,6 +1202,36 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
         stat_cols[3].metric("False-positive rate", "N/A" if metrics["false_positive_rate"] is None else f'{metrics["false_positive_rate"]:.1%}')
         st.write(f"**Evaluation state:** {result['state']} · **Version:** {result['evaluation_version']}")
         provenance = saved_evaluation["provenance"]
+        try:
+            confidence_summary = evaluate_change_detections(
+                {
+                    "true_positive": counts["true_positive"],
+                    "false_positive": counts["false_positive"],
+                    "false_negative": counts["false_negative"],
+                    "true_negative": counts["true_negative"],
+                },
+                evaluation_set_id=provenance["source_sha256"],
+                threshold_hectares=float(provenance["area_threshold_ha"]),
+                processing_version=result["evaluation_version"],
+            )
+        except (ChangeEvaluationError, KeyError, TypeError, ValueError):
+            st.warning("Confidence intervals could not be calculated for this evaluation record.")
+        else:
+            st.markdown("**95% Wilson confidence intervals**")
+            ci_cols = st.columns(3)
+            for column, metric_name in zip(ci_cols, ("recall", "precision", "specificity")):
+                interval = confidence_summary["metrics"][f"{metric_name}_wilson_interval"]
+                if interval is None:
+                    column.metric(metric_name.title() + " interval", "N/A")
+                else:
+                    column.metric(
+                        metric_name.title() + " interval",
+                        f"{interval['lower']:.1%}–{interval['upper']:.1%}",
+                    )
+            st.caption(
+                "Intervals describe uncertainty within this supplied reference set; they do not correct biased sampling "
+                "or prove that the reference labels are independent. The source SHA-256 is used as the evaluation-set identifier."
+            )
         with st.expander("Evaluation provenance & reproducibility", expanded=True):
             st.write(f"**Source:** {provenance['source_name']}")
             st.write(f"**Source SHA-256:** {provenance['source_sha256']}")
