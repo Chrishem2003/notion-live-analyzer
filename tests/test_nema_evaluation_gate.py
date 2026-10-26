@@ -27,7 +27,7 @@ def manifests(overlap=False):
 
 
 def spatial_units(overlap=False):
-    holdout_box = [29.0, 0.0, 29.1, 0.1] if overlap else [31.0, 1.0, 31.1, 1.1]
+    holdout_box = [28.05, -0.95, 28.15, -0.85] if overlap else [31.0, 1.0, 31.1, 1.1]
     return [
         {"unit_id": "d-1", "split": "development", "bbox_wgs84": [28.0, -1.0, 28.1, -0.9],
          "observation_start": "2024-01-01T00:00:00Z", "observation_end": "2024-01-02T00:00:00Z"},
