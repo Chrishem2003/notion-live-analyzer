@@ -110,6 +110,7 @@ def read_geotiff_scene(
                 valid &= np.all(np.isfinite(scaled), axis=0)
                 # The analysis contract accepts normalized reflectance only.
                 valid &= np.all((scaled >= 0) & (scaled <= 1), axis=0)
+                scaled[:, ~valid] = 0.0
                 bands = {
                     "B03": scaled[0].tolist(),
                     "B04": scaled[1].tolist(),
