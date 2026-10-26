@@ -74,8 +74,10 @@ def compare_uploaded_geotiff_pair(
     *,
     earlier_acquired_at: str,
     later_acquired_at: str,
-    reflectance_scale_id: str,
-    processing_baseline: str,
+    earlier_reflectance_scale_id: str,
+    later_reflectance_scale_id: str,
+    earlier_processing_baseline: str,
+    later_processing_baseline: str,
     aoi_geojson_bytes: bytes | None = None,
     aoi_crs_confirmed_same_as_rasters: bool = False,
     ndvi_change_threshold: float = 0.15,
@@ -88,10 +90,18 @@ def compare_uploaded_geotiff_pair(
     independently authenticated. The same declared labels are applied to both
     files; reviewers must verify them against original product metadata.
     """
-    if not isinstance(reflectance_scale_id, str) or not reflectance_scale_id.strip() or len(reflectance_scale_id) > 120:
-        raise PairedRasterError("Provide a concise reflectance scale/product identifier and verify it against source metadata.")
-    if not isinstance(processing_baseline, str) or not processing_baseline.strip() or len(processing_baseline) > 120:
-        raise PairedRasterError("Provide a processing-baseline identifier and verify it against source metadata.")
+    scale_a = earlier_reflectance_scale_id.strip() if isinstance(earlier_reflectance_scale_id, str) else ""
+    scale_b = later_reflectance_scale_id.strip() if isinstance(later_reflectance_scale_id, str) else ""
+    baseline_a = earlier_processing_baseline.strip() if isinstance(earlier_processing_baseline, str) else ""
+    baseline_b = later_processing_baseline.strip() if isinstance(later_processing_baseline, str) else ""
+    for label, value in (("earlier reflectance scale/product", scale_a), ("later reflectance scale/product", scale_b),
+                         ("earlier processing baseline", baseline_a), ("later processing baseline", baseline_b)):
+        if not value or len(value) > 120:
+            raise PairedRasterError(f"Provide a concise, source-metadata-checked {label} identifier (1–120 characters).")
+    if scale_a != scale_b:
+        raise PairedRasterError("Reflectance scale/product identifiers differ between dates; comparison blocked.")
+    if baseline_a != baseline_b:
+        raise PairedRasterError("Processing baseline identifiers differ between dates; comparison blocked.")
     a = _read_pair_source(earlier_bytes, "Earlier raster")
     b = _read_pair_source(later_bytes, "Later raster")
     if (a["crs"], a["width"], a["height"], a["transform"]) != (b["crs"], b["width"], b["height"], b["transform"]):
@@ -152,8 +162,8 @@ def compare_uploaded_geotiff_pair(
                 "acquired_at": earlier_acquired_at, "source_sha256": a["raw_sha256"],
                 "crs": a["crs"], "width": a["width"], "height": a["height"],
                 "transform": list(a["transform"]), "grid_id": grid_identity,
-                "reflectance_scale_id": reflectance_scale_id.strip(),
-                "processing_baseline": processing_baseline.strip(),
+                "reflectance_scale_id": scale_a,
+                "processing_baseline": baseline_a,
             },
             later={
                 "acquired_at": later_acquired_at, "source_sha256": b["raw_sha256"],
@@ -176,13 +186,15 @@ def compare_uploaded_geotiff_pair(
         "earlier": {"sha256": a["raw_sha256"], "crs": a["crs"], "width": a["width"], "height": a["height"], "band_descriptions": a["descriptions"], "nodata": a["nodata"]},
         "later": {"sha256": b["raw_sha256"], "crs": b["crs"], "width": b["width"], "height": b["height"], "band_descriptions": b["descriptions"], "nodata": b["nodata"]},
         "aoi_geojson_sha256": aoi_digest,
-        "reflectance_scale_id_operator_supplied": reflectance_scale_id.strip(),
-        "processing_baseline_operator_supplied": processing_baseline.strip(),
+        "earlier_reflectance_scale_id_operator_supplied": scale_a,
+        "later_reflectance_scale_id_operator_supplied": scale_b,
+        "earlier_processing_baseline_operator_supplied": baseline_a,
+        "later_processing_baseline_operator_supplied": baseline_b,
         "resampling_performed": False,
         "remote_assets_downloaded": False,
     }
     comparison["limitations"].extend([
-        "Reflectance scale and processing baseline were supplied by the operator and are not independently authenticated.",
+        "Reflectance scale and processing baseline were supplied separately by the operator and compared for exact equality; neither is independently authenticated.",
         "Both dates use the same AOI and conservative SCL exclusion policy; valid pixels are the intersection of both dates.",
         "This local paired-raster workflow does not independently validate atmospheric correction, acquisition metadata, or the scientific suitability of the chosen threshold.",
     ])
