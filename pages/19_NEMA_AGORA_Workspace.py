@@ -213,6 +213,8 @@ if active_section == "Persisted cases & audit":
     st.warning("Access requires an authenticated, server-provisioned NEMA-AGORA account. The API credential is server-side and is never displayed.")
     if not persistent or principal is None or not principal.is_authorised:
         st.info("Persisted case access is disabled until authenticated persistent mode and a server-provisioned role are active.")
+    elif principal.role not in {"reviewer", "coordinator", "admin"}:
+        st.warning("Cross-case records are restricted to reviewers, coordinators, and administrators. Submitter ownership filtering is not yet available.")
     else:
         with st.sidebar:
             st.subheader("Case API connection")
@@ -222,15 +224,15 @@ if active_section == "Persisted cases & audit":
             st.caption("Connection credentials are read from server environment variables and are never shown.")
 
         @st.cache_data(ttl=30, show_spinner=False)
-        def _nema_case_api_readiness():
-            return get_storage_readiness()
+        def _nema_case_api_readiness(actor_id: str, actor_role: str):
+            return get_storage_readiness(actor_id, actor_role)
 
         @st.cache_data(ttl=30, show_spinner=False)
-        def _nema_case_api_list(limit: int):
-            return list_cases(limit=limit)
+        def _nema_case_api_list(actor_id: str, actor_role: str, limit: int):
+            return list_cases(actor_id, actor_role, limit=limit)
 
         try:
-            readiness = _nema_case_api_readiness()
+            readiness = _nema_case_api_readiness(principal.subject_key, principal.role)
             status_value = str(readiness.get("status", "unknown")).lower()
             backend = readiness.get("storage_backend", "unknown")
             ready = status_value in {"configured", "ready"}
@@ -250,7 +252,7 @@ if active_section == "Persisted cases & audit":
             st.markdown("#### Persisted cases")
             case_limit = st.selectbox("Maximum cases to load", [25, 50, 100, 250, 500, 1000], index=2, key="nema_persisted_case_limit")
             try:
-                case_result = _nema_case_api_list(case_limit)
+                case_result = _nema_case_api_list(principal.subject_key, principal.role, case_limit)
                 case_items = case_result.get("items", [])
                 st.metric("Cases returned", int(case_result.get("count", len(case_items))))
                 if not case_items:
@@ -279,7 +281,7 @@ if active_section == "Persisted cases & audit":
                 st.caption("Select a case and choose Load case details to inspect its record and audit history.")
             else:
                 try:
-                    detail = get_case(selected_case_id)
+                    detail = get_case(selected_case_id, principal.subject_key, principal.role)
                     st.caption(f"Case ID: {selected_case_id} · Version: {detail.get('version', 'unknown')}")
                     st.json(detail.get("record", {}), expanded=True)
                     with st.expander("Audit history", expanded=False):
@@ -288,7 +290,7 @@ if active_section == "Persisted cases & audit":
                         try:
                             st.session_state["nema_review_packet"] = {
                                 "case_id": selected_case_id,
-                                "packet": get_review_packet(selected_case_id),
+                                "packet": get_review_packet(selected_case_id, principal.subject_key, principal.role),
                             }
                         except NemaApiError:
                             st.error("The review packet could not be prepared. Check API health and access, then retry.")
@@ -300,7 +302,7 @@ if active_section == "Persisted cases & audit":
                 except NemaApiError:
                     st.error("Case details could not be loaded. Refresh the list and retry.")
         st.divider()
-        st.caption("Governance: this API uses service-to-service authentication. The page requires a provisioned portal identity, but the API does not independently enforce each user's case-level permissions. Do not use this view for enforcement or official compliance decisions.")
+        st.caption("Governance: each request carries a server-signed OIDC subject and role. Cross-case reads are restricted to reviewer, coordinator, and admin roles; submitter-owned case filtering is not yet implemented. Do not use this view for enforcement or official compliance decisions.")
 
 if active_section == "Submit observation":
     st.subheader("Record an environmental observation")
