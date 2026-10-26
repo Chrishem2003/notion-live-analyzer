@@ -4,9 +4,9 @@
 
 - Integration PR: [#115 — NEMA-AGORA mainline integration candidate](https://github.com/Chrishem2003/notion-live-analyzer/pull/115)
 - Branch: `integration/nema-agora-mainline-20261026`
-- Current candidate commit at this checklist revision: `46315fdc2981dd5033f5e70192079a24cd306cfd`
+- Current candidate before Phase 189: `b247c838f8a6447bf020c6d629f06f538e058890`
 - Base branch: `main` at `43ef47b404977dc6af5db45164ffc8a9d2f3f755`
-- Status: draft and unmerged. The latest code/security workflows passed on parent commit `8075c4e8588dd66058b7fa0a41ab6a16146d1abd`; this documentation-only follow-up still needs its own CI result. Release remains blocked on deployment and governance evidence.
+- Status: draft and unmerged. Phase 188 full repository CI/CD, NEMA integration checks, and authentication-role security checks passed on `b247c838f8a6447bf020c6d629f06f538e058890`. Phase 189 client hardening is being validated separately. Staging is not release-ready.
 
 ## Verified automated checks
 
@@ -45,6 +45,17 @@ The focused workflow runs the NEMA test suite, compiles the NEMA package and cur
 
 NEMA-AGORA is an independent student-led prototype, not an official NEMA service or endorsement. No ELMIS/SWIMS integration, official report submission, autonomous enforcement, or production approval is claimed. Use synthetic or appropriately consented test records until all deployment and governance gates are closed.
 
-## Current next step — Phase 186
+## Current next step — Phase 189: staging readiness
 
-Reconcile release evidence against the exact candidate, verify the consolidated user journey and direct authorization boundaries, then run deployment-backed operational checks. Do not merge or describe the system as production-ready while any required gate remains open.
+Read-only observations from the current Render/Supabase staging environment:
+
+- Streamlit staging health endpoint returned HTTP 200 after a cold start.
+- API health returned HTTP 200 and explicitly reports research-run write-back disabled.
+- NEMA case API requests without service authentication returned HTTP 503 with `PLATFORM_API_KEY is not configured`; authenticated reads have not been tested.
+- Staging Supabase has `public.nema_cases` and `public.nema_case_audit`, both RLS-enabled with no client policies. This is fail-closed for direct anon/authenticated access and should remain so.
+- The deployed staging schema does not include `owner_id`; repository migration `002_nema_case_owner_scope.sql` is not applied. Migration `003_nema_case_owner_integrity.sql` is also not applied.
+- Supabase reports a mutable `search_path` warning for `public.reject_nema_case_audit_mutation`.
+- Render staging services currently track `feat/shared-ai-gateway-rebase-oct25`, not the NEMA integration branch. Do not claim the latest candidate is deployed.
+- The NEMA client is being hardened to require an explicit `NEMA_CASE_API_BASE_URL`; it must never silently default to the production API.
+
+No environment secrets were changed and no database migration was applied. Before staging authenticated reads: configure separate service/signing secrets in Render for the staging app and API, explicitly point the app to the staging API URL, review/apply owner-scope migrations only with explicit staging approval, then test signed read-only access and denial of unauthenticated access. Production remains unchanged.
