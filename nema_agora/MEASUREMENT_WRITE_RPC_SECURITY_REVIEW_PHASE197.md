@@ -31,3 +31,16 @@ The advisory lock serializes requests sharing a key, but this is not yet tested 
 ## Current safety boundary
 
 Migration 006 has not been applied. No live database, environment variable, Render service, or production deployment was changed. Static CI is useful but is not evidence of successful PostgreSQL execution. The release gate stays blocked.
+
+
+## Phase 206 — dedicated RPC owner and RLS boundary
+
+The proposed migration now creates a non-login, NOINHERIT role named
+`nema_measurement_writer` without BYPASSRLS, grants only the insert/select
+rights needed by the RPC, adds narrowly scoped RLS policies for that role, and
+transfers ownership of the SECURITY DEFINER function to it. Client roles still
+have no table access and only the server-side service role may execute the RPC.
+The disposable PostgreSQL suite asserts the function owner, role flags, minimum
+table privileges, and audit immutability privileges. This is a proposed migration;
+do not apply it to the shared staging database until CI passes and an explicit
+staging approval is obtained.
