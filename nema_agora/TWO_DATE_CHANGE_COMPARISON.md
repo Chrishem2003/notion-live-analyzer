@@ -1,6 +1,6 @@
 # Two-date satellite index comparison contract
 
-Status: **calculation and compatibility contract implemented; not yet connected to a paired-raster UI workflow or independently validated imagery**.
+Status: **paired local GeoTIFF workflow implemented in the single-page workspace; automated verification is in progress and no independently validated imagery has been analysed**.
 
 The `nema_agora.satellite_change.compare_two_dates` function accepts paired NDVI and McFeeters NDWI arrays, explicit acquisition timestamps, grid/CRS/transform identity, reflectance-scale identity, processing-baseline identity, and a shared boolean validity mask.
 
