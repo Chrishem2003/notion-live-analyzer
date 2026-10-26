@@ -5,9 +5,10 @@
 - Integration PR: [#115 — NEMA-AGORA mainline integration candidate](https://github.com/Chrishem2003/notion-live-analyzer/pull/115)
 - Branch: `integration/nema-agora-mainline-20261026`
 - Phase 188 verified candidate: `b247c838f8a6447bf020c6d629f06f538e058890`
-- Phase 189 staging-readiness candidate: `6416723d338b13d7a5db05ba822630cc11c0c273`
+- Phase 189 verified candidate: `b9f11fa494fb069feae39ca264043e4e30f255f6`
+- Phase 190 search-path migration candidate: `15a1615f7fdb2e7b87ce5ac5857040ceb8fe975d`
 - Base branch: `main` at `43ef47b404977dc6af5db45164ffc8a9d2f3f755`
-- Status: draft and unmerged. Phase 188 full repository CI/CD, NEMA integration checks, and authentication-role security checks passed on `b247c838f8a6447bf020c6d629f06f538e058890`. Phase 189 client hardening and the staging audit are on the integration branch; Phase 189 CI is pending. Staging is not release-ready.
+- Status: draft and unmerged. Phase 189 repository CI/CD, NEMA integration checks, and authentication-role security checks all passed on `b9f11fa494fb069feae39ca264043e4e30f255f6`. Phase 190 adds an additive search-path hardening migration candidate; its CI is pending. Staging is not release-ready.
 
 ## Verified automated checks
 
@@ -36,7 +37,7 @@ The focused workflow runs the NEMA test suite, compiles the NEMA package and cur
 
 See [the read-only staging audit](STAGING_READINESS_AUDIT_PHASE189.md). The Streamlit and API health endpoints returned HTTP 200 after cold starts. The NEMA case API is not ready: unauthenticated requests returned HTTP 503 because the staging API has no `PLATFORM_API_KEY`. The deployed staging schema lacks `owner_id` because migration 002 is not applied; migration 003 is also pending. The staging services still track `feat/shared-ai-gateway-rebase-oct25`, not the current integration branch. No secrets were changed and no database migrations were applied.
 
-The client now requires `NEMA_CASE_API_BASE_URL` explicitly and will not default to the production API. Phase 189 CI must pass before considering the next staging configuration step.
+The client now requires `NEMA_CASE_API_BASE_URL` explicitly and will not default to the production API. Phase 189 CI passed on the recorded candidate. Phase 190 adds `005_nema_audit_search_path_hardening.sql`; it has not been applied to any database.
 
 ## Required before production or real-user data
 
@@ -54,7 +55,11 @@ The client now requires `NEMA_CASE_API_BASE_URL` explicitly and will not default
 
 NEMA-AGORA is an independent student-led prototype, not an official NEMA service or endorsement. No ELMIS/SWIMS integration, official report submission, autonomous enforcement, or production approval is claimed. Use synthetic or appropriately consented test records until all deployment and governance gates are closed.
 
-## Current next step — Phase 189: staging readiness
+## Phase 190 — additive audit-trigger hardening candidate
+
+Added `migrations/supabase/005_nema_audit_search_path_hardening.sql`, which pins the existing append-only audit trigger function's `search_path` to `pg_catalog`. This is additive configuration only; it does not change rows, grants, RLS, or write permissions. The migration is **not applied** and requires CI verification plus explicit approval before staging application.
+
+## Current next step — Phase 190: staging readiness
 
 Read-only observations from the current Render/Supabase staging environment:
 
