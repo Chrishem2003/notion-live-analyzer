@@ -165,6 +165,8 @@ def read_geotiff_scene(
                         "reflectance_offset": float(reflectance_offset),
                         "cloud_shadow_mask_applied_by_uploader": True,
                         "aoi_clipping_applied": aoi_clipping_applied,
+                        "aoi_clipping_method": "pixel_center" if aoi_clipping_applied else None,
+                        "aoi_sha256": _digest(json.dumps(_geojson_geometries(aoi_geojson), sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")) if aoi_geojson is not None else None,
                         "aoi_pixel_count": int(np.count_nonzero(domain_mask)),
                         "aoi_valid_pixel_fraction": (float(np.count_nonzero(valid)) / int(np.count_nonzero(domain_mask))) if np.count_nonzero(domain_mask) else 0.0,
                         "aoi_validation": validate_geojson_aoi(aoi_geojson) if aoi_geojson is not None else None,
