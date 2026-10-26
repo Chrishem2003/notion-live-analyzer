@@ -1452,13 +1452,13 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
              "observation_start": "2025-06-01T00:00:00Z", "observation_end": "2025-06-02T00:00:00Z"}
         ],
         "asset_lineage_records": [
-            {"record_id": "development-source-001", "split": "development",
+            {"record_id": "development-source-001", "split": "development", "source_asset_filename": "development-source.tif",
              "source_asset_sha256": "REPLACE_WITH_SHA256_OF_ACTUAL_SOURCE_FILE",
              "tile_ids": ["REPLACE_WITH_DEVELOPMENT_TILE_ID"], "derived_from": []},
-            {"record_id": "validation-source-001", "split": "validation",
+            {"record_id": "validation-source-001", "split": "validation", "source_asset_filename": "validation-source.tif",
              "source_asset_sha256": "REPLACE_WITH_SHA256_OF_ACTUAL_SOURCE_FILE",
              "tile_ids": ["REPLACE_WITH_VALIDATION_TILE_ID"], "derived_from": []},
-            {"record_id": "holdout-source-001", "split": "holdout",
+            {"record_id": "holdout-source-001", "split": "holdout", "source_asset_filename": "holdout-source.tif",
              "source_asset_sha256": "REPLACE_WITH_SHA256_OF_ACTUAL_SOURCE_FILE",
              "tile_ids": ["REPLACE_WITH_HOLDOUT_TILE_ID"], "derived_from": []}
         ],
@@ -1471,27 +1471,40 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
         mime="application/json",
         key="nema_gated_evaluation_template",
     )
+    gated_source_uploads = st.file_uploader(
+        "Upload every source asset referenced by the lineage manifest",
+        accept_multiple_files=True,
+        key="nema_gated_lineage_source_assets",
+        help="Filenames must match source_asset_filename values and uploaded bytes must match each declared SHA-256.",
+    )
     gated_file = st.file_uploader(
         "Upload combined holdout evaluation JSON",
         type=["json"],
         key="nema_gated_evaluation_json",
-        help="Required: reference_review_package, split_manifests, evaluation_records, spatiotemporal_units, and asset_lineage_records. Replace every lineage placeholder with real file hashes and stable tile/parent IDs; the gate blocks metrics if the manifest is missing or has cross-split reuse.",
+        help="Required: review package, split manifests, evaluation records, spatial/temporal units, lineage records, and every referenced source file. Replace placeholders with actual filenames, SHA-256 values and stable tile/parent IDs; the gate hashes uploaded bytes and blocks missing/mismatched files or cross-split reuse.",
     )
     if st.button(
         "Run gated holdout evaluation",
         key="nema_run_gated_holdout_evaluation",
-        disabled=gated_file is None,
+        disabled=gated_file is None or not gated_source_uploads,
     ):
         try:
             payload = json.loads(gated_file.getvalue().decode("utf-8"))
             if not isinstance(payload, dict):
                 raise EvaluationGateError("upload must be a JSON object.")
+            source_bytes_by_name = {}
+            for uploaded in gated_source_uploads:
+                safe_name = Path(uploaded.name).name
+                if not safe_name or safe_name != uploaded.name or safe_name in source_bytes_by_name:
+                    raise EvaluationGateError("uploaded source filenames must be unique simple filenames.")
+                source_bytes_by_name[safe_name] = uploaded.getvalue()
             report = evaluate_holdout_package(
                 reference_review_package=payload.get("reference_review_package"),
                 split_manifests=payload.get("split_manifests"),
                 evaluation_records=payload.get("evaluation_records"),
                 spatiotemporal_units=payload.get("spatiotemporal_units"),
                 asset_lineage_records=payload.get("asset_lineage_records"),
+                asset_source_bytes=source_bytes_by_name,
                 min_area_ha=payload.get("min_area_ha", 0.1),
             )
             st.session_state["nema_gated_holdout_evaluation"] = report
@@ -1510,6 +1523,8 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
         st.write("**Spatial/temporal audit:**", gated_report["spatiotemporal_audit"]["state"])
         st.write("**Asset-lineage audit:**", gated_report["asset_lineage_audit"]["decision"])
         st.write("**Asset-lineage manifest SHA-256:**", gated_report["asset_lineage_audit"]["manifest_sha256"])
+        st.write("**Source-byte integrity:**", gated_report["asset_source_integrity"]["state"])
+        st.write("**Source files verified:**", gated_report["asset_source_integrity"]["verified_file_count"])
         for limitation in gated_report["limitations"]:
             st.caption("• " + limitation)
         st.download_button(
