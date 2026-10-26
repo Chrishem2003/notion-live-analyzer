@@ -139,3 +139,34 @@ def test_empty_health_check_set_is_not_reported_as_healthy():
     summary = health_summary(())
     assert summary["healthy"] is False
     assert summary["checks"] == []
+
+
+def test_module_import_failure_does_not_leak_exception_text(monkeypatch):
+    import nema_agora.deployment as deployment
+
+    def fail_import(name):
+        raise RuntimeError("private/path/config-password=do-not-leak")
+
+    monkeypatch.setattr(deployment.importlib, "import_module", fail_import)
+    checks = deployment._module_checks()
+
+    assert checks
+    assert all(not check.ok for check in checks)
+    assert all("do-not-leak" not in check.detail for check in checks)
+    assert all("private/path" not in check.detail for check in checks)
+    assert all(check.detail == "module import failed; inspect restricted server logs" for check in checks)
+
+
+def test_package_path_failure_does_not_leak_exception_text(monkeypatch):
+    import nema_agora.deployment as deployment
+
+    def fail_import(name):
+        raise RuntimeError("private/path/config-password=do-not-leak")
+
+    monkeypatch.setattr(deployment.importlib, "import_module", fail_import)
+    check = deployment._path_check()
+
+    assert check.ok is False
+    assert "do-not-leak" not in check.detail
+    assert "private/path" not in check.detail
+    assert check.detail == "package path could not be resolved; inspect restricted server logs"
