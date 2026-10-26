@@ -136,7 +136,7 @@ def list_cases(
 
 
 @router.get("/storage-readiness")
-def storage_readiness(_auth: bool = Depends(_require_nema_read_access)):
+def storage_readiness(_auth: dict[str, str] = Depends(_require_nema_read_access)):
     """Inspect configured storage without creating a database or changing records."""
     backend = os.environ.get("NEMA_CASE_STORAGE_BACKEND", "sqlite").strip().lower()
     if backend == "supabase_postgres":
