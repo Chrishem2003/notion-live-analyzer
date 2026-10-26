@@ -325,7 +325,7 @@ if active_section == "Submit observation":
         with c2:
             latitude = st.number_input("Latitude (optional)", min_value=-90.0, max_value=90.0, value=0.0, step=0.0001, format="%.5f")
             longitude = st.number_input("Longitude (optional)", min_value=-180.0, max_value=180.0, value=0.0, step=0.0001, format="%.5f")
-            evidence_reference = st.text_input("Evidence reference (optional)", placeholder="Non-sensitive file name or URL", max_chars=300)
+            evidence_reference = st.text_input("Evidence reference (optional; unverified pointer)", placeholder="Non-sensitive file name or URL", max_chars=300)
         description = st.text_area("Observation description", placeholder="Describe what was observed, when, and from what safe/public vantage point.", max_chars=1500)
         consent_confirmed = st.checkbox("I have permission to submit this test record and have removed unnecessary personal details.")
         submitted = st.form_submit_button("Save pilot record", type="primary", use_container_width=True)
@@ -409,6 +409,17 @@ if active_section == "Case management":
             st.markdown(f"**{selected['category']}** · {selected['severity']} · {selected['district_or_site']}")
             st.write(selected["description"])
             st.caption(f"Observed: {selected['observation_date']} · Created: {selected['created_at']}")
+            provenance = selected.get("evidence_provenance", "legacy_or_unknown")
+            verification = selected.get("evidence_verification_status", "unverified")
+            st.caption(
+                f"Evidence provenance: {provenance.replace('_', ' ')} · "
+                f"Verification: {verification.replace('_', ' ')}"
+            )
+            if selected.get("evidence_reference"):
+                st.info(
+                    "Evidence reference is a user-supplied pointer only. The referenced file or URL "
+                    "has not been independently verified by this pilot."
+                )
             quality = assess_observation(selected, peer_records=records)
             st.markdown(f"**Data quality:** {quality['quality_status']} · {', '.join(quality['flags'])}")
             st.caption(
