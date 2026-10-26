@@ -59,3 +59,17 @@ def test_duplicate_reference_units_are_rejected():
 def test_invalid_split_is_rejected():
     with pytest.raises(ReferenceReviewError, match="split"):
         validate_reference_review_package(package(split="final"))
+
+
+def test_workspace_exposes_reference_review_gate_and_report_digest():
+    from pathlib import Path
+
+    source = (
+        Path(__file__).resolve().parents[1]
+        / "pages"
+        / "19_NEMA_AGORA_Workspace.py"
+    ).read_text(encoding="utf-8")
+    assert "Independent reference-label review gate" in source
+    assert "Validate reference-review package" in source
+    assert "package_sha256" in source
+    assert "does not authenticate reviewers" in source
