@@ -6,6 +6,8 @@ prove scientific comparability, sensor equivalence, source authenticity, or lega
 from __future__ import annotations
 
 from datetime import datetime
+import math
+import re
 from typing import Any, Mapping
 
 
@@ -76,15 +78,18 @@ def assess_scene_comparability(
     if isinstance(baseline_ingestion, Mapping) and isinstance(comparison_ingestion, Mapping):
         baseline_aoi_hash = baseline_ingestion.get("aoi_sha256")
         comparison_aoi_hash = comparison_ingestion.get("aoi_sha256")
+        for label, value in (("BASELINE", baseline_aoi_hash), ("COMPARISON", comparison_aoi_hash)):
+            if not isinstance(value, str) or re.fullmatch(r"[0-9a-fA-F]{64}", value) is None:
+                blocking.append({"code": f"{label}_AOI_CHECKSUM_REQUIRED"})
         if baseline_aoi_hash != comparison_aoi_hash:
             blocking.append({"code": "AOI_GEOMETRY_FINGERPRINT_MISMATCH"})
         for label, metadata in (("BASELINE", baseline_ingestion), ("COMPARISON", comparison_ingestion)):
             if metadata.get("aoi_clipping_applied") is not True:
                 blocking.append({"code": f"{label}_AOI_CLIPPING_NOT_CONFIRMED"})
-            if not isinstance(metadata.get("raster_sha256"), str) or len(metadata["raster_sha256"]) != 64:
-                blocking.append({"code": f"{label}_RASTER_CHECKSUM_REQUIRED"})
-            if not isinstance(metadata.get("valid_mask_sha256"), str) or len(metadata["valid_mask_sha256"]) != 64:
-                blocking.append({"code": f"{label}_MASK_CHECKSUM_REQUIRED"})
+            for field, code in (("raster_sha256", "RASTER_CHECKSUM_REQUIRED"), ("valid_mask_sha256", "MASK_CHECKSUM_REQUIRED")):
+                value = metadata.get(field)
+                if not isinstance(value, str) or re.fullmatch(r"[0-9a-fA-F]{64}", value) is None:
+                    blocking.append({"code": f"{label}_{code}"})
 
     for name, scene in (("BASELINE", baseline), ("COMPARISON", comparison)):
         ingestion = scene.get("ingestion")
@@ -93,9 +98,18 @@ def assess_scene_comparability(
             continue
         scale = ingestion.get("reflectance_scale")
         offset = ingestion.get("reflectance_offset", 0.0)
-        if isinstance(scale, bool) or not isinstance(scale, (int, float)) or scale <= 0:
+        if (
+            isinstance(scale, bool)
+            or not isinstance(scale, (int, float))
+            or not math.isfinite(float(scale))
+            or scale <= 0
+        ):
             blocking.append({"code": f"{name}_INVALID_REFLECTANCE_SCALE"})
-        if isinstance(offset, bool) or not isinstance(offset, (int, float)):
+        if (
+            isinstance(offset, bool)
+            or not isinstance(offset, (int, float))
+            or not math.isfinite(float(offset))
+        ):
             blocking.append({"code": f"{name}_INVALID_REFLECTANCE_OFFSET"})
         if ingestion.get("band_mapping_confirmed_by_uploader") is not True:
             blocking.append({"code": f"{name}_BAND_MAPPING_NOT_CONFIRMED"})
@@ -104,7 +118,12 @@ def assess_scene_comparability(
         fraction = ingestion.get("aoi_valid_pixel_fraction")
         if fraction is None:
             fraction = scene.get("valid_fraction")
-        if isinstance(fraction, bool) or not isinstance(fraction, (int, float)) or not 0 <= fraction <= 1:
+        if (
+            isinstance(fraction, bool)
+            or not isinstance(fraction, (int, float))
+            or not math.isfinite(float(fraction))
+            or not 0 <= fraction <= 1
+        ):
             blocking.append({"code": f"{name}_INVALID_VALID_PIXEL_FRACTION"})
         elif fraction < min_valid_fraction:
             blocking.append({"code": f"{name}_VALID_PIXEL_FRACTION_BELOW_THRESHOLD"})
