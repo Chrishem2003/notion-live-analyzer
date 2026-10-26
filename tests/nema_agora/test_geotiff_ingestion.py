@@ -134,6 +134,8 @@ def test_aoi_geojson_clips_pixels_outside_polygon():
     )
     assert scene["valid_mask"] == [[True, False], [False, False]]
     assert scene["ingestion"]["aoi_clipping_applied"] is True
+    assert scene["ingestion"]["aoi_clipping_method"] == "pixel_center"
+    assert len(scene["ingestion"]["aoi_sha256"]) == 64
     assert scene["ingestion"]["valid_mask_pixels"] == 1
     assert scene["ingestion"]["aoi_validation"]["valid"] is True
 
