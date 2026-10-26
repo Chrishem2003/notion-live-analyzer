@@ -350,6 +350,7 @@ grant select on table public.nema_indicator_measurements to service_role;
 grant execute on function extensions.digest(bytea, text) to nema_measurement_writer;
 grant select on table public.nema_measurement_idempotency to service_role;
 grant select on table public.nema_measurement_audit to service_role;
+grant select on table public.nema_evidence_artifacts to service_role;
 
 revoke all on function public.submit_nema_indicator_measurement(text, text, text, text, jsonb)
     from public, anon, authenticated, service_role;
