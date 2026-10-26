@@ -373,6 +373,7 @@ def test_legacy_records_migrate_to_unowned_without_trusting_payload_owner(tmp_pa
 
     path = tmp_path / "legacy-observations.sqlite3"
     legacy = sample_record()
+    legacy["updated_at"] = legacy["created_at"]
     legacy["owner_id"] = "untrusted-legacy-owner"
     with sqlite3.connect(path) as connection:
         connection.execute(
