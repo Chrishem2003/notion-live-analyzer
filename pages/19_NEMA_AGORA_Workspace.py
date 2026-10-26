@@ -36,6 +36,7 @@ from nema_agora.spatial_temporal_quality import spatial_temporal_quality_evidenc
 from nema_agora.spatial_change_detection import detect_candidate
 from nema_agora.satellite_evaluation import SatelliteEvaluationError, evaluate_change_candidates
 from nema_agora.satellite_manifest import SatelliteManifestError, validate_dataset_manifest
+from nema_agora.reference_review import ReferenceReviewError, validate_reference_review_package
 from nema_agora.stac_discovery import StacDiscoveryError, discover_scenes
 from nema_agora.raster_ingestion import RasterIngestionError, process_uploaded_geotiff
 from nema_agora.paired_raster_ingestion import PairedRasterError, compare_uploaded_geotiff_pair
@@ -1249,6 +1250,80 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
             file_name="nema_satellite_manifest_validation_report.json",
             mime="application/json",
             key="nema_satellite_manifest_validation_report",
+        )
+
+
+if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
+    st.divider()
+    st.subheader("Independent reference-label review gate")
+    st.caption(
+        "Validate declared review traceability before an evaluation package is considered review-ready. "
+        "This does not authenticate reviewers, inspect evidence assets, or prove label accuracy."
+    )
+    st.info(
+        "Each unit must have a stable ID, a boolean reference label, at least two distinct reviewers, "
+        "a timezone-aware review timestamp, evidence references, and an explicit declaration that reviewers "
+        "were blinded to candidate detections."
+    )
+    reference_review_template = {
+        "reference_set_id": "uganda-wetland-reference",
+        "reference_set_version": "v1",
+        "split": "development",
+        "units": [{
+            "unit_id": "unit-001",
+            "reference_change": True,
+            "reviewer_ids": ["reviewer-a", "reviewer-b"],
+            "reviewed_at": "2026-02-01T10:30:00Z",
+            "evidence_refs": ["imagery:product-id", "field-note:record-id"],
+            "reviewers_blinded_to_candidate": True
+        }]
+    }
+    st.download_button(
+        "Download reference-review JSON template",
+        data=json.dumps(reference_review_template, indent=2),
+        file_name="nema_reference_review_template.json",
+        mime="application/json",
+        key="nema_reference_review_template",
+    )
+    reference_review_file = st.file_uploader(
+        "Upload reference-review package JSON",
+        type=["json"],
+        key="nema_reference_review_json",
+    )
+    if st.button(
+        "Validate reference-review package",
+        key="nema_validate_reference_review",
+        disabled=reference_review_file is None,
+    ):
+        try:
+            package = json.loads(reference_review_file.getvalue().decode("utf-8"))
+            result = validate_reference_review_package(package)
+            st.session_state["nema_reference_review_validation"] = result
+        except (UnicodeDecodeError, json.JSONDecodeError, ReferenceReviewError) as exc:
+            st.session_state.pop("nema_reference_review_validation", None)
+            st.error(f"Reference-review package rejected: {exc}")
+    reference_review_result = st.session_state.get("nema_reference_review_validation")
+    if reference_review_result:
+        st.warning(
+            "Metadata-complete only. Reviewer identities, evidence references, blinding and holdout independence "
+            "remain declarations requiring independent audit."
+        )
+        st.write(f"**State:** {reference_review_result['state']}")
+        st.write(
+            f"**Reference set:** {reference_review_result['reference_set_id']} "
+            f"· **Version:** {reference_review_result['reference_set_version']} "
+            f"· **Split:** {reference_review_result['split']}"
+        )
+        st.write(f"**Units reviewed:** {reference_review_result['reviewed_unit_count']}")
+        st.write(f"**Package SHA-256:** {reference_review_result['package_sha256']}")
+        for limitation in reference_review_result["limitations"]:
+            st.caption("• " + limitation)
+        st.download_button(
+            "Download reference-review validation report",
+            data=json.dumps(reference_review_result, indent=2, allow_nan=False),
+            file_name="nema_reference_review_validation_report.json",
+            mime="application/json",
+            key="nema_reference_review_validation_report",
         )
 
 
