@@ -3,7 +3,6 @@ from __future__ import annotations
 import hashlib
 import unittest
 
-from nema_agora.measurement_idempotency import canonical_payload_sha256
 from nema_agora.measurement_write_contract import (
     MeasurementWriteContractError,
     build_measurement_rpc_request,
@@ -47,7 +46,7 @@ class MeasurementWriteContractTests(unittest.TestCase):
         result = self.build()
         self.assertEqual(result["p_record"]["reporting_period_start"], "2026-10-01")
         self.assertEqual(result["p_record"]["source_refs"], ["field-log-001"])
-        self.assertEqual(result["p_payload_sha256"], canonical_payload_sha256(result["p_record"]))
+        self.assertNotIn("p_payload_sha256", result)
         self.assertTrue(result["evidence_artifact_bytes_verified"])
         self.assertFalse(result["evidence_authenticity_verified"])
 
@@ -70,11 +69,10 @@ class MeasurementWriteContractTests(unittest.TestCase):
         with self.assertRaisesRegex(MeasurementWriteContractError, "role"):
             self.build(authenticated_actor_role="admin\n")
 
-    def test_digest_changes_when_rpc_payload_changes(self):
-        first = self.build()
-        self.record["value"] = 13
-        second = self.build()
-        self.assertNotEqual(first["p_payload_sha256"], second["p_payload_sha256"])
+    def test_caller_cannot_supply_or_override_database_computed_digest(self):
+        result = self.build()
+        self.assertNotIn("p_payload_sha256", result)
+        self.assertIn("p_record", result)
 
 
 if __name__ == "__main__":
