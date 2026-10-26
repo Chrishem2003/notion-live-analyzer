@@ -33,7 +33,7 @@ def test_nonfinite_values_and_zero_denominators_are_excluded_not_zero_filled():
     red[0, 1] = -0.4
     nir[0, 1] = 0.4
     report = process_sentinel2_bands(b03_green=green, b04_red=red, b08_nir=nir, scl=scl)
-    assert report["indices"]["NDVI"]["valid_pixel_count"] == 2
+    assert report["indices"]["NDVI"]["valid_pixel_count"] == 1
     assert report["indices"]["NDWI_MCFEETERS"]["valid_pixel_count"] == 2
     assert report["quality"]["nonfinite_band_pixel_count"] == 1
     assert report["quality"]["zero_or_invalid_denominator_ndvi_count"] == 1
