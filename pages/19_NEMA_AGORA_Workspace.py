@@ -7,6 +7,8 @@ This remains an independent student-led prototype, not an official NEMA service.
 from __future__ import annotations
 
 from datetime import date, datetime, timedelta, timezone
+from pathlib import Path
+import tempfile
 import hashlib
 import io
 import json
@@ -39,6 +41,8 @@ from nema_agora.satellite_manifest import SatelliteManifestError, validate_datas
 from nema_agora.reference_review import ReferenceReviewError, validate_reference_review_package
 from nema_agora.split_audit import SplitAuditError, audit_dataset_splits
 from nema_agora.evaluation_gate import EvaluationGateError, evaluate_holdout_package
+from nema_agora.evidence_integrity import EvidenceIntegrityError, verify_evidence_assets
+from nema_agora.spatiotemporal_audit import SpatiotemporalAuditError, audit_spatiotemporal_separation
 from nema_agora.stac_discovery import StacDiscoveryError, discover_scenes
 from nema_agora.raster_ingestion import RasterIngestionError, process_uploaded_geotiff
 from nema_agora.paired_raster_ingestion import PairedRasterError, compare_uploaded_geotiff_pair
@@ -1490,6 +1494,156 @@ if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
             file_name="nema_gated_holdout_evaluation_report.json",
             mime="application/json",
             key="nema_gated_evaluation_report_download",
+        )
+
+
+if active_section == "Maps & metrics" and map_tool == "Pilot metrics":
+    st.divider()
+    st.subheader("Local evidence-file integrity")
+    st.caption(
+        "Upload the actual evidence files plus a JSON manifest containing each file's expected SHA-256. "
+        "The system hashes the uploaded bytes locally; it does not fetch remote links."
+    )
+    st.warning(
+        "A hash match is only a byte-integrity check against the digest you provide. "
+        "It does not prove who created the evidence, when it was captured, or whether its contents are true."
+    )
+    evidence_manifest_template = {
+        "evidence_assets": [
+            {"evidence_id": "field-note-001", "relative_path": "field-note.txt",
+             "sha256": "REPLACE_WITH_64_CHARACTER_SHA256"}
+        ]
+    }
+    st.download_button(
+        "Download evidence hash manifest template",
+        data=json.dumps(evidence_manifest_template, indent=2),
+        file_name="nema_evidence_hash_manifest_template.json",
+        mime="application/json",
+        key="nema_evidence_hash_template",
+    )
+    evidence_manifest_file = st.file_uploader(
+        "Upload evidence hash manifest JSON",
+        type=["json"],
+        key="nema_evidence_hash_manifest",
+    )
+    evidence_uploads = st.file_uploader(
+        "Upload evidence files to verify",
+        accept_multiple_files=True,
+        key="nema_evidence_hash_assets",
+        help="The manifest relative_path must match each uploaded filename. Files are processed in this session only.",
+    )
+    if st.button(
+        "Verify uploaded evidence hashes",
+        key="nema_verify_evidence_hashes",
+        disabled=evidence_manifest_file is None or not evidence_uploads,
+    ):
+        try:
+            manifest_payload = json.loads(evidence_manifest_file.getvalue().decode("utf-8"))
+            if not isinstance(manifest_payload, dict) or not isinstance(manifest_payload.get("evidence_assets"), list):
+                raise EvidenceIntegrityError("manifest must contain an 'evidence_assets' array.")
+            upload_by_name = {}
+            for uploaded in evidence_uploads:
+                safe_name = Path(uploaded.name).name
+                if not safe_name or safe_name in upload_by_name:
+                    raise EvidenceIntegrityError("uploaded filenames must be unique simple filenames.")
+                upload_by_name[safe_name] = uploaded.getvalue()
+            requested_names = {
+                item.get("relative_path") for item in manifest_payload["evidence_assets"]
+                if isinstance(item, dict)
+            }
+            if not requested_names.issubset(set(upload_by_name)):
+                missing = sorted(str(name) for name in requested_names - set(upload_by_name))
+                raise EvidenceIntegrityError("manifest files were not uploaded: " + ", ".join(missing))
+            with tempfile.TemporaryDirectory(prefix="nema-evidence-check-") as temp_dir:
+                root = Path(temp_dir)
+                for name, data in upload_by_name.items():
+                    if Path(name).name != name:
+                        raise EvidenceIntegrityError("only simple uploaded filenames are accepted.")
+                    (root / name).write_bytes(data)
+                evidence_report = verify_evidence_assets(
+                    root_directory=root,
+                    evidence_assets=manifest_payload["evidence_assets"],
+                )
+            st.session_state["nema_uploaded_evidence_integrity"] = evidence_report
+        except (UnicodeDecodeError, json.JSONDecodeError, EvidenceIntegrityError, OSError, TypeError) as exc:
+            st.session_state.pop("nema_uploaded_evidence_integrity", None)
+            st.error(f"Evidence integrity check rejected: {exc}")
+    evidence_report = st.session_state.get("nema_uploaded_evidence_integrity")
+    if evidence_report:
+        if evidence_report["decision"] == "HASHES_MATCH":
+            st.success("Uploaded file bytes match all supplied SHA-256 declarations.")
+        else:
+            st.error("Evidence hash mismatch found. Do not use the mismatched assets until reconciled.")
+        st.write(f"**State:** {evidence_report['state']}")
+        st.write(f"**Assets hashed:** {evidence_report['asset_count']} · **Bytes hashed:** {evidence_report['total_bytes_hashed']}")
+        st.dataframe(evidence_report["assets"], use_container_width=True, hide_index=True)
+        for limitation in evidence_report["limitations"]:
+            st.caption("• " + limitation)
+        st.download_button(
+            "Download evidence integrity report",
+            data=json.dumps(evidence_report, indent=2, allow_nan=False),
+            file_name="nema_evidence_integrity_report.json",
+            mime="application/json",
+            key="nema_evidence_integrity_report_download",
+        )
+
+    st.divider()
+    st.subheader("Spatial and temporal split-separation audit")
+    st.caption(
+        "Compare declared WGS84 bounding boxes and observation time intervals across splits. "
+        "Any intersection is a conservative warning that requires review before evaluation."
+    )
+    spatiotemporal_template = {
+        "units": [
+            {"unit_id": "development-001", "split": "development", "bbox_wgs84": [29.0, 0.0, 29.1, 0.1],
+             "observation_start": "2025-01-01T00:00:00Z", "observation_end": "2025-01-02T00:00:00Z"},
+            {"unit_id": "holdout-001", "split": "holdout", "bbox_wgs84": [31.0, 1.0, 31.1, 1.1],
+             "observation_start": "2025-06-01T00:00:00Z", "observation_end": "2025-06-02T00:00:00Z"}
+        ]
+    }
+    st.download_button(
+        "Download spatial/temporal audit template",
+        data=json.dumps(spatiotemporal_template, indent=2),
+        file_name="nema_spatiotemporal_audit_template.json",
+        mime="application/json",
+        key="nema_spatiotemporal_template",
+    )
+    spatiotemporal_file = st.file_uploader(
+        "Upload spatial/temporal split metadata JSON",
+        type=["json"],
+        key="nema_spatiotemporal_audit_json",
+    )
+    if st.button(
+        "Audit spatial/temporal separation",
+        key="nema_run_spatiotemporal_audit",
+        disabled=spatiotemporal_file is None,
+    ):
+        try:
+            spatial_payload = json.loads(spatiotemporal_file.getvalue().decode("utf-8"))
+            if not isinstance(spatial_payload, dict) or not isinstance(spatial_payload.get("units"), list):
+                raise SpatiotemporalAuditError("upload must be an object containing a 'units' array.")
+            spatial_report = audit_spatiotemporal_separation(spatial_payload["units"])
+            st.session_state["nema_spatiotemporal_audit_report"] = spatial_report
+        except (UnicodeDecodeError, json.JSONDecodeError, SpatiotemporalAuditError) as exc:
+            st.session_state.pop("nema_spatiotemporal_audit_report", None)
+            st.error(f"Spatial/temporal audit rejected: {exc}")
+    spatial_report = st.session_state.get("nema_spatiotemporal_audit_report")
+    if spatial_report:
+        if spatial_report["finding_count"]:
+            st.error("Potential cross-split spatial/temporal leakage found. Review and resolve before evaluation.")
+        else:
+            st.success("No declared bounding-box or observation-interval overlap was found.")
+        st.write(f"**State:** {spatial_report['state']} · **Units:** {spatial_report['unit_count']}")
+        if spatial_report["findings"]:
+            st.dataframe(spatial_report["findings"], use_container_width=True, hide_index=True)
+        for limitation in spatial_report["limitations"]:
+            st.caption("• " + limitation)
+        st.download_button(
+            "Download spatial/temporal audit report",
+            data=json.dumps(spatial_report, indent=2, allow_nan=False),
+            file_name="nema_spatiotemporal_audit_report.json",
+            mime="application/json",
+            key="nema_spatiotemporal_report_download",
         )
 
 
