@@ -1,0 +1,756 @@
+"""SQLite persistence layer for NEMA-AGORA.
+
+The pilot Streamlit workspace uses this repository only when persistent mode is
+explicitly enabled and a server-side authenticated principal and database path
+are configured. Production use additionally requires approved retention, backup,
+filesystem access controls, and operational recovery procedures.
+"""
+from __future__ import annotations
+
+import hashlib
+import json
+import sqlite3
+from datetime import datetime
+from contextlib import contextmanager
+from pathlib import Path
+from typing import Any, Iterator
+
+from nema_agora.access import can_read_observation, has_permission, require_permission
+from nema_agora.core import STATUSES
+from nema_agora.workflow import apply_status_update
+from nema_agora.quality import assess_observation
+
+
+def _payload_fingerprint(payload: dict[str, Any]) -> str:
+    canonical = json.dumps(
+        payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False
+    )
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def _timestamp(value: str, field: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{field} must be an ISO 8601 timestamp with timezone.")
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise ValueError(f"{field} must be an ISO 8601 timestamp with timezone.") from exc
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise ValueError(f"{field} must be an ISO 8601 timestamp with timezone.")
+    return value
+
+
+def _actor(value: str) -> str:
+    actor = (value or "").strip()
+    if not actor:
+        raise ValueError("An authenticated actor identifier is required.")
+    if len(actor) > 128:
+        raise ValueError("Actor identifier must be 128 characters or fewer.")
+    return actor
+
+
+class NemaAgoraRepository:
+    """Small SQLite repository with transactional status changes and audit events."""
+
+    def __init__(self, database_path: str | Path):
+        path = str(database_path)
+        if not path.strip():
+            raise ValueError("An explicit database path is required.")
+        self.database_path = path
+        self._initialise()
+
+    def _connect(self) -> sqlite3.Connection:
+        connection = sqlite3.connect(self.database_path, timeout=10)
+        connection.row_factory = sqlite3.Row
+        connection.execute("PRAGMA foreign_keys = ON")
+        return connection
+
+    @contextmanager
+    def _session(self) -> Iterator[sqlite3.Connection]:
+        connection = self._connect()
+        try:
+            yield connection
+            if connection.in_transaction:
+                connection.commit()
+        except Exception:
+            if connection.in_transaction:
+                connection.rollback()
+            raise
+        finally:
+            connection.close()
+
+    def _initialise(self) -> None:
+        with self._session() as connection:
+            connection.executescript(
+                """
+                CREATE TABLE IF NOT EXISTS observations (
+                    case_id TEXT PRIMARY KEY,
+                    owner_id TEXT NOT NULL,
+                    status TEXT NOT NULL CHECK (status IN (
+                        'Received', 'Under review', 'Referred',
+                        'Action recorded', 'Closed'
+                    )),
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    record_json TEXT NOT NULL
+                );
+
+                CREATE TABLE IF NOT EXISTS operation_events (
+                    event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    actor_id TEXT NOT NULL,
+                    operation TEXT NOT NULL,
+                    occurred_at TEXT NOT NULL,
+                    details_json TEXT NOT NULL DEFAULT '{}'
+                );
+
+                CREATE TABLE IF NOT EXISTS audit_events (
+                    event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    case_id TEXT NOT NULL REFERENCES observations(case_id),
+                    actor_id TEXT NOT NULL,
+                    event_type TEXT NOT NULL CHECK (event_type IN (
+                        'record_created', 'status_changed', 'review_updated'
+                    )),
+                    from_status TEXT,
+                    to_status TEXT NOT NULL,
+                    occurred_at TEXT NOT NULL,
+                    details_json TEXT NOT NULL DEFAULT '{}'
+                );
+
+                CREATE TRIGGER IF NOT EXISTS audit_events_no_update
+                BEFORE UPDATE ON audit_events
+                BEGIN
+                    SELECT RAISE(ABORT, 'audit events are immutable');
+                END;
+
+                CREATE TRIGGER IF NOT EXISTS audit_events_no_delete
+                BEFORE DELETE ON audit_events
+                BEGIN
+                    SELECT RAISE(ABORT, 'audit events are immutable');
+                END;
+
+                CREATE TRIGGER IF NOT EXISTS operation_events_no_update
+                BEFORE UPDATE ON operation_events
+                BEGIN
+                    SELECT RAISE(ABORT, 'operation events are immutable');
+                END;
+
+                CREATE TRIGGER IF NOT EXISTS operation_events_no_delete
+                BEFORE DELETE ON operation_events
+                BEGIN
+                    SELECT RAISE(ABORT, 'operation events are immutable');
+                END;
+
+                CREATE TABLE IF NOT EXISTS evidence_cases (
+                    case_id TEXT PRIMARY KEY REFERENCES observations(case_id),
+                    state TEXT NOT NULL CHECK (state IN ('READY_FOR_REVIEW', 'REVIEWED', 'EXPORTED')),
+                    bundle_json TEXT NOT NULL,
+                    bundle_fingerprint TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+
+                CREATE TABLE IF NOT EXISTS evidence_case_events (
+                    event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    case_id TEXT NOT NULL REFERENCES observations(case_id),
+                    actor_id TEXT NOT NULL,
+                    actor_role TEXT NOT NULL,
+                    event_type TEXT NOT NULL CHECK (event_type IN (
+                        'evidence_case_prepared', 'evidence_case_reviewed', 'evidence_case_exported'
+                    )),
+                    from_state TEXT,
+                    to_state TEXT NOT NULL,
+                    occurred_at TEXT NOT NULL,
+                    bundle_fingerprint TEXT NOT NULL,
+                    details_json TEXT NOT NULL DEFAULT '{}'
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_evidence_case_events_case_time
+                    ON evidence_case_events(case_id, occurred_at, event_id);
+
+                CREATE TRIGGER IF NOT EXISTS evidence_case_events_no_update
+                BEFORE UPDATE ON evidence_case_events
+                BEGIN
+                    SELECT RAISE(ABORT, 'evidence case events are immutable');
+                END;
+
+                CREATE TRIGGER IF NOT EXISTS evidence_case_events_no_delete
+                BEFORE DELETE ON evidence_case_events
+                BEGIN
+                    SELECT RAISE(ABORT, 'evidence case events are immutable');
+                END;
+
+                CREATE TABLE IF NOT EXISTS intelligence_events (
+                    event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    case_id TEXT NOT NULL REFERENCES observations(case_id),
+                    actor_id TEXT NOT NULL,
+                    event_type TEXT NOT NULL CHECK (event_type IN (
+                        'analysis_run', 'feedback_recorded'
+                    )),
+                    occurred_at TEXT NOT NULL,
+                    details_json TEXT NOT NULL DEFAULT '{}'
+                );
+
+                CREATE TRIGGER IF NOT EXISTS intelligence_events_no_update
+                BEFORE UPDATE ON intelligence_events
+                BEGIN
+                    SELECT RAISE(ABORT, 'intelligence events are immutable');
+                END;
+
+                CREATE TRIGGER IF NOT EXISTS intelligence_events_no_delete
+                BEFORE DELETE ON intelligence_events
+                BEGIN
+                    SELECT RAISE(ABORT, 'intelligence events are immutable');
+                END;
+
+                CREATE INDEX IF NOT EXISTS idx_observations_status
+                    ON observations(status);
+                CREATE INDEX IF NOT EXISTS idx_observations_owner
+                    ON observations(owner_id);
+                CREATE INDEX IF NOT EXISTS idx_operation_time
+                    ON operation_events(occurred_at, event_id);
+                CREATE INDEX IF NOT EXISTS idx_audit_case_time
+                    ON audit_events(case_id, occurred_at, event_id);
+                CREATE INDEX IF NOT EXISTS idx_intelligence_case_time
+                    ON intelligence_events(case_id, occurred_at, event_id);
+
+
+                CREATE TABLE IF NOT EXISTS shadow_runs (
+                    run_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    case_id TEXT NOT NULL REFERENCES observations(case_id),
+                    actor_id TEXT NOT NULL,
+                    provider TEXT NOT NULL,
+                    model_version TEXT NOT NULL,
+                    status TEXT NOT NULL CHECK (status IN ('SHADOW_OK', 'SHADOW_ERROR')),
+                    latency_ms REAL NOT NULL,
+                    result_json TEXT,
+                    error_text TEXT,
+                    occurred_at TEXT NOT NULL
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_shadow_case_time
+                    ON shadow_runs(case_id, occurred_at, run_id);
+                """
+            )
+            columns = {row["name"] for row in connection.execute("PRAGMA table_info(observations)")}
+            if "owner_id" not in columns:
+                # Legacy records have no trustworthy owner. Keep them inaccessible
+                # to submitters; privileged reviewer/coordinator roles can review
+                # and reassign them through an approved migration workflow.
+                connection.execute(
+                    "ALTER TABLE observations ADD COLUMN owner_id TEXT NOT NULL DEFAULT 'legacy-unowned'"
+                )
+            connection.execute(
+                "CREATE INDEX IF NOT EXISTS idx_observations_owner ON observations(owner_id)"
+            )
+
+    def create_observation(self, record: dict[str, Any], *, actor_id: str, role: str) -> dict[str, Any]:
+        actor = _actor(actor_id)
+        require_permission(role, "observation:create")
+        case_id = str(record.get("case_id", "")).strip()
+        status = record.get("status")
+        created_at = str(record.get("created_at", "")).strip()
+        if not case_id or len(case_id) > 64:
+            raise ValueError("A valid case identifier is required.")
+        if status not in STATUSES:
+            raise ValueError("A valid initial status is required.")
+        _timestamp(created_at, "created_at")
+
+        stored = dict(record)
+        # Ownership is always derived from the authenticated actor at the
+        # repository boundary; never trust a caller-supplied owner_id.
+        stored["owner_id"] = actor
+        updated_at = str(stored.get("updated_at") or created_at)
+        _timestamp(updated_at, "updated_at")
+        stored["updated_at"] = updated_at
+        payload = json.dumps(stored, ensure_ascii=False, sort_keys=True)
+
+        with self._session() as connection:
+            connection.execute(
+                """INSERT INTO observations
+                   (case_id, status, owner_id, created_at, updated_at, record_json)
+                   VALUES (?, ?, ?, ?, ?, ?)""",
+                (case_id, status, actor, created_at, updated_at, payload),
+            )
+            connection.execute(
+                """INSERT INTO audit_events
+                   (case_id, actor_id, event_type, from_status, to_status,
+                    occurred_at, details_json)
+                   VALUES (?, ?, 'record_created', NULL, ?, ?, '{}')""",
+                (case_id, actor, status, created_at),
+            )
+        return stored
+
+    def get_observation(self, case_id: str, *, actor_id: str, role: str) -> dict[str, Any] | None:
+        actor = _actor(actor_id)
+        with self._session() as connection:
+            row = connection.execute(
+                "SELECT record_json, owner_id FROM observations WHERE case_id = ?",
+                (case_id,),
+            ).fetchone()
+        if not row:
+            return None
+        if not can_read_observation(role, actor, row["owner_id"]):
+            raise PermissionError("You are not permitted to read this observation.")
+        return json.loads(row["record_json"])
+
+    def list_observations(self, *, actor_id: str, role: str, status: str | None = None) -> list[dict[str, Any]]:
+        actor = _actor(actor_id)
+        if status is not None and status not in STATUSES:
+            raise ValueError("Unknown case status.")
+        if has_permission(role, "observation:read_all"):
+            query = "SELECT record_json FROM observations"
+            parameters: tuple[str, ...] = ()
+        else:
+            require_permission(role, "observation:read_own")
+            query = "SELECT record_json FROM observations WHERE owner_id = ?"
+            parameters = (actor,)
+        if status is not None:
+            query += " AND status = ?" if " WHERE " in query else " WHERE status = ?"
+            parameters += (status,)
+        query += " ORDER BY created_at, case_id"
+        with self._session() as connection:
+            rows = connection.execute(query, parameters).fetchall()
+        return [json.loads(row["record_json"]) for row in rows]
+
+    def update_review(
+        self,
+        case_id: str,
+        *,
+        actor_id: str,
+        role: str,
+        new_status: str,
+        review_notes: str,
+        changed_at: str,
+    ) -> dict[str, Any]:
+        actor = _actor(actor_id)
+        require_permission(role, "observation:review")
+        _timestamp(changed_at, "changed_at")
+
+        with self._session() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            row = connection.execute(
+                "SELECT record_json FROM observations WHERE case_id = ?",
+                (case_id,),
+            ).fetchone()
+            if row is None:
+                raise KeyError(f"Case not found: {case_id}")
+            current = json.loads(row["record_json"])
+            updated, event = apply_status_update(
+                current,
+                new_status=new_status,
+                review_notes=review_notes,
+                changed_at=changed_at,
+            )
+            connection.execute(
+                """UPDATE observations
+                   SET status = ?, updated_at = ?, record_json = ?
+                   WHERE case_id = ?""",
+                (
+                    updated["status"],
+                    updated["updated_at"],
+                    json.dumps(updated, ensure_ascii=False, sort_keys=True),
+                    case_id,
+                ),
+            )
+            connection.execute(
+                """INSERT INTO audit_events
+                   (case_id, actor_id, event_type, from_status, to_status,
+                    occurred_at, details_json)
+                   VALUES (?, ?, ?, ?, ?, ?, '{}')""",
+                (
+                    case_id,
+                    actor,
+                    "status_changed" if event else "review_updated",
+                    current["status"] if event else None,
+                    updated["status"],
+                    changed_at,
+                ),
+            )
+        return updated
+
+    def create_evidence_case(
+        self, bundle: dict[str, Any], *, actor_id: str, role: str,
+        occurred_at: str, bundle_fingerprint: str,
+    ) -> dict[str, Any]:
+        actor = _actor(actor_id)
+        require_permission(role, "observation:review")
+        case_id = str(bundle.get("case_id", "")).strip()
+        state = bundle.get("state")
+        created_at = str(bundle.get("created_at", "")).strip()
+        if not case_id or state != "READY_FOR_REVIEW" or not created_at:
+            raise ValueError("A valid ready-for-review evidence bundle is required.")
+        _timestamp(occurred_at, "occurred_at")
+        _timestamp(created_at, "created_at")
+        if not bundle_fingerprint.strip():
+            raise ValueError("A bundle fingerprint is required.")
+        if _payload_fingerprint(bundle) != bundle_fingerprint:
+            raise ValueError("Evidence bundle fingerprint does not match its content.")
+        payload = json.dumps(bundle, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False)
+        with self._session() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            if connection.execute("SELECT 1 FROM observations WHERE case_id = ?", (case_id,)).fetchone() is None:
+                raise KeyError(f"Case not found: {case_id}")
+            current = connection.execute(
+                "SELECT state, bundle_fingerprint FROM evidence_cases WHERE case_id = ?",
+                (case_id,),
+            ).fetchone()
+            if current is not None:
+                if current["state"] == state and current["bundle_fingerprint"] == bundle_fingerprint:
+                    return {
+                        "case_id": case_id,
+                        "state": current["state"],
+                        "bundle_fingerprint": current["bundle_fingerprint"],
+                        "already_exists": True,
+                    }
+                raise ValueError("An evidence case already exists in a different state or version.")
+            connection.execute(
+                """INSERT INTO evidence_cases
+                   (case_id, state, bundle_json, bundle_fingerprint, created_at, updated_at)
+                   VALUES (?, ?, ?, ?, ?, ?)""",
+                (case_id, state, payload, bundle_fingerprint, created_at, occurred_at),
+            )
+            connection.execute(
+                """INSERT INTO evidence_case_events
+                   (case_id, actor_id, actor_role, event_type, from_state, to_state,
+                    occurred_at, bundle_fingerprint, details_json)
+                   VALUES (?, ?, ?, 'evidence_case_prepared', NULL, ?, ?, ?, '{}')""",
+                (case_id, actor, role, state, occurred_at, bundle_fingerprint),
+            )
+        return {"case_id": case_id, "state": state, "bundle_fingerprint": bundle_fingerprint, "already_exists": False}
+
+    def get_evidence_case(
+        self, case_id: str, *, actor_id: str, role: str
+    ) -> dict[str, Any] | None:
+        actor = _actor(actor_id)
+        require_permission(role, "observation:review")
+        with self._session() as connection:
+            row = connection.execute(
+                """SELECT ec.bundle_json, ec.state, ec.bundle_fingerprint, o.owner_id
+                   FROM evidence_cases ec JOIN observations o ON o.case_id = ec.case_id
+                   WHERE ec.case_id = ?""",
+                (case_id,),
+            ).fetchone()
+        if row is None:
+            return None
+        if not can_read_observation(role, actor, row["owner_id"]):
+            raise PermissionError("You are not permitted to read this evidence case.")
+        bundle = json.loads(row["bundle_json"])
+        if _payload_fingerprint(bundle) != row["bundle_fingerprint"]:
+            raise ValueError("Persisted evidence bundle fingerprint mismatch.")
+        if bundle.get("state") != row["state"]:
+            raise ValueError("Persisted evidence state does not match its stored index.")
+        return {
+            "bundle": bundle,
+            "state": row["state"],
+            "bundle_fingerprint": row["bundle_fingerprint"],
+        }
+
+    def transition_evidence_case(
+        self, case_id: str, bundle: dict[str, Any], *, actor_id: str, role: str,
+        expected_state: str, event_type: str, occurred_at: str,
+        bundle_fingerprint: str, expected_fingerprint: str,
+    ) -> dict[str, Any]:
+        actor = _actor(actor_id)
+        required_permission = "case:export" if event_type == "evidence_case_exported" else "observation:review"
+        require_permission(role, required_permission)
+        transitions = {
+            ("READY_FOR_REVIEW", "REVIEWED", "evidence_case_reviewed"),
+            ("REVIEWED", "EXPORTED", "evidence_case_exported"),
+        }
+        new_state = bundle.get("state")
+        if (expected_state, new_state, event_type) not in transitions:
+            raise ValueError("Invalid evidence-case state transition.")
+        _timestamp(occurred_at, "occurred_at")
+        if not bundle_fingerprint.strip() or not expected_fingerprint.strip():
+            raise ValueError("Transition fingerprints are required.")
+        if _payload_fingerprint(bundle) != bundle_fingerprint:
+            raise ValueError("Evidence bundle fingerprint does not match its content.")
+        payload = json.dumps(bundle, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False)
+        with self._session() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            row = connection.execute(
+                """SELECT ec.state, ec.bundle_fingerprint, o.record_json
+                   FROM evidence_cases ec
+                   JOIN observations o ON o.case_id = ec.case_id
+                   WHERE ec.case_id = ?""",
+                (case_id,),
+            ).fetchone()
+            if row is None:
+                raise KeyError(f"Evidence case not found: {case_id}")
+            if row["state"] != expected_state or row["bundle_fingerprint"] != expected_fingerprint:
+                raise ValueError("Evidence case changed or was already transitioned; reload before retrying.")
+            # Recheck source provenance under the same write lock as the state
+            # transition. A service-level precheck alone leaves a race where an
+            # observation can change between validation and export/review.
+            source_record = json.loads(row["record_json"])
+            source_snapshot = dict(source_record)
+            source_snapshot["quality_assessment"] = assess_observation(source_record)
+            if _payload_fingerprint(source_snapshot) != bundle.get("observation_fingerprint"):
+                raise ValueError("Observation changed since evidence preparation; reload and prepare a governed amendment.")
+            connection.execute(
+                """UPDATE evidence_cases
+                   SET state = ?, bundle_json = ?, bundle_fingerprint = ?, updated_at = ?
+                   WHERE case_id = ?""",
+                (new_state, payload, bundle_fingerprint, occurred_at, case_id),
+            )
+            connection.execute(
+                """INSERT INTO evidence_case_events
+                   (case_id, actor_id, actor_role, event_type, from_state, to_state,
+                    occurred_at, bundle_fingerprint, details_json)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, '{}')""",
+                (case_id, actor, role, event_type, expected_state, new_state,
+                 occurred_at, bundle_fingerprint),
+            )
+        return {"case_id": case_id, "state": new_state, "bundle_fingerprint": bundle_fingerprint}
+
+    def list_evidence_case_events(
+        self, case_id: str, *, actor_id: str, role: str
+    ) -> list[dict[str, Any]]:
+        _actor(actor_id)
+        require_permission(role, "audit:read")
+        with self._session() as connection:
+            rows = connection.execute(
+                """SELECT event_id, case_id, actor_id, actor_role, event_type,
+                          from_state, to_state, occurred_at, bundle_fingerprint, details_json
+                   FROM evidence_case_events WHERE case_id = ? ORDER BY event_id""",
+                (case_id,),
+            ).fetchall()
+        return [{**dict(row), "details": json.loads(row["details_json"])} for row in rows]
+
+    def verify_evidence_case_history(
+        self, case_id: str, *, actor_id: str, role: str
+    ) -> dict[str, Any]:
+        """Check that immutable lifecycle events form a valid chain to stored state."""
+        actor = _actor(actor_id)
+        require_permission(role, "audit:read")
+        with self._session() as connection:
+            current = connection.execute(
+                """SELECT ec.state, ec.bundle_fingerprint, o.owner_id
+                   FROM evidence_cases ec
+                   JOIN observations o ON o.case_id = ec.case_id
+                   WHERE ec.case_id = ?""",
+                (case_id,),
+            ).fetchone()
+            if current is None:
+                raise KeyError(f"Evidence case not found: {case_id}")
+            if not can_read_observation(role, actor, current["owner_id"]):
+                raise PermissionError("You are not permitted to verify this evidence history.")
+            rows = connection.execute(
+                """SELECT actor_id, actor_role, event_type, from_state, to_state,
+                          occurred_at, bundle_fingerprint
+                   FROM evidence_case_events WHERE case_id = ? ORDER BY event_id""",
+                (case_id,),
+            ).fetchall()
+
+        issues: list[str] = []
+        expected = [
+            (None, "READY_FOR_REVIEW", "evidence_case_prepared"),
+            ("READY_FOR_REVIEW", "REVIEWED", "evidence_case_reviewed"),
+            ("REVIEWED", "EXPORTED", "evidence_case_exported"),
+        ]
+        if not rows:
+            issues.append("missing_lifecycle_events")
+        prior_state = None
+        prior_timestamp: datetime | None = None
+        for index, row in enumerate(rows):
+            if index >= len(expected):
+                issues.append("unexpected_extra_lifecycle_event")
+                break
+            from_state, to_state, event_type = expected[index]
+            if (row["from_state"], row["to_state"], row["event_type"]) != (
+                from_state, to_state, event_type
+            ):
+                issues.append(f"invalid_transition_at_event_{index + 1}")
+            if not isinstance(row["actor_id"], str) or not row["actor_id"].strip():
+                issues.append(f"missing_actor_at_event_{index + 1}")
+            if not isinstance(row["actor_role"], str) or not row["actor_role"].strip():
+                issues.append(f"missing_actor_role_at_event_{index + 1}")
+            try:
+                _timestamp(row["occurred_at"], "occurred_at")
+                event_timestamp = datetime.fromisoformat(row["occurred_at"].replace("Z", "+00:00"))
+                if prior_timestamp is not None and event_timestamp < prior_timestamp:
+                    issues.append(f"non_monotonic_timestamp_at_event_{index + 1}")
+                prior_timestamp = event_timestamp
+            except (ValueError, TypeError, AttributeError):
+                issues.append(f"invalid_timestamp_at_event_{index + 1}")
+            if not isinstance(row["bundle_fingerprint"], str) or not row["bundle_fingerprint"].strip():
+                issues.append(f"missing_fingerprint_at_event_{index + 1}")
+            prior_state = row["to_state"]
+        if prior_state != current["state"]:
+            issues.append("final_event_state_mismatch")
+        if rows and rows[-1]["bundle_fingerprint"] != current["bundle_fingerprint"]:
+            issues.append("final_event_fingerprint_mismatch")
+        return {
+            "valid": not issues,
+            "case_id": case_id,
+            "state": current["state"],
+            "event_count": len(rows),
+            "issues": issues,
+        }
+
+    def record_operation(self, *, actor_id: str, role: str, operation: str, occurred_at: str, details: dict[str, Any] | None = None) -> None:
+        actor = _actor(actor_id)
+        require_permission(role, "user:manage")
+        operation = operation.strip()
+        if not operation or len(operation) > 100:
+            raise ValueError("A valid operation name is required.")
+        if not occurred_at.strip():
+            raise ValueError("An operation timestamp is required.")
+        payload = json.dumps(details or {}, ensure_ascii=False, sort_keys=True)
+        with self._session() as connection:
+            connection.execute(
+                "INSERT INTO operation_events (actor_id, operation, occurred_at, details_json) VALUES (?, ?, ?, ?)",
+                (actor, operation, occurred_at, payload),
+            )
+
+    def list_operation_events(self, *, actor_id: str, role: str, limit: int = 100) -> list[dict[str, Any]]:
+        _actor(actor_id)
+        require_permission(role, "user:manage")
+        if not isinstance(limit, int) or isinstance(limit, bool) or not 1 <= limit <= 500:
+            raise ValueError("Operation event limit must be between 1 and 500.")
+        with self._session() as connection:
+            rows = connection.execute(
+                "SELECT event_id, actor_id, operation, occurred_at, details_json FROM operation_events ORDER BY event_id DESC LIMIT ?",
+                (limit,),
+            ).fetchall()
+        return [{**dict(row), "details": json.loads(row["details_json"])} for row in rows]
+
+    def list_audit_events(self, case_id: str, *, actor_id: str, role: str) -> list[dict[str, Any]]:
+        _actor(actor_id)
+        require_permission(role, "audit:read")
+        with self._session() as connection:
+            rows = connection.execute(
+                """SELECT event_id, case_id, actor_id, event_type, from_status,
+                          to_status, occurred_at, details_json
+                   FROM audit_events
+                   WHERE case_id = ?
+                   ORDER BY event_id""",
+                (case_id,),
+            ).fetchall()
+        return [
+            {
+                **dict(row),
+                "details": json.loads(row["details_json"]),
+            }
+            for row in rows
+        ]
+
+    def record_intelligence_event(
+        self, case_id: str, *, actor_id: str, role: str, event_type: str,
+        occurred_at: str, details: dict[str, Any] | None = None,
+    ) -> None:
+        actor = _actor(actor_id)
+        require_permission(role, "intelligence:use")
+        if not case_id or len(case_id.strip()) > 64:
+            raise ValueError("A valid case identifier is required.")
+        if event_type not in {"analysis_run", "feedback_recorded"}:
+            raise ValueError("Unknown intelligence event type.")
+        if not occurred_at.strip():
+            raise ValueError("An intelligence event timestamp is required.")
+        payload = json.dumps(details or {}, ensure_ascii=False, sort_keys=True)
+        with self._session() as connection:
+            if connection.execute("SELECT 1 FROM observations WHERE case_id = ?", (case_id,)).fetchone() is None:
+                raise KeyError(f"Case not found: {case_id}")
+            connection.execute(
+                "INSERT INTO intelligence_events (case_id, actor_id, event_type, occurred_at, details_json) VALUES (?, ?, ?, ?, ?)",
+                (case_id, actor, event_type, occurred_at, payload),
+            )
+
+    def record_intelligence_feedback(
+        self, case_id: str, *, actor_id: str, role: str,
+        feedback: dict[str, Any], occurred_at: str,
+    ) -> None:
+        actor = _actor(actor_id)
+        require_permission(role, "intelligence:feedback")
+        if not case_id or len(case_id.strip()) > 64:
+            raise ValueError("A valid case identifier is required.")
+        if not occurred_at.strip():
+            raise ValueError("A feedback timestamp is required.")
+        feedback_type = str(feedback.get("feedback_type", "")).strip()
+        if feedback_type not in {"accepted", "rejected", "corrected"}:
+            raise ValueError("Feedback must be accepted, rejected, or corrected.")
+        corrected_category = str(feedback.get("corrected_category", "")).strip()
+        if feedback_type == "corrected" and not corrected_category:
+            raise ValueError("Corrected feedback requires a corrected category.")
+        if len(corrected_category) > 120:
+            raise ValueError("Corrected category is too long.")
+        notes = str(feedback.get("notes", "")).strip()
+        if len(notes) > 1000:
+            raise ValueError("Feedback notes must be 1000 characters or fewer.")
+        payload = {
+            "feedback_type": feedback_type,
+            "corrected_category": corrected_category,
+            "notes": notes,
+            "copilot_version": str(feedback.get("copilot_version", "phase10-v1")).strip()[:50],
+        }
+        with self._session() as connection:
+            if connection.execute("SELECT 1 FROM observations WHERE case_id = ?", (case_id,)).fetchone() is None:
+                raise KeyError(f"Case not found: {case_id}")
+            connection.execute(
+                "INSERT INTO intelligence_events (case_id, actor_id, event_type, occurred_at, details_json) VALUES (?, ?, 'feedback_recorded', ?, ?)",
+                (case_id, actor, occurred_at, json.dumps(payload, ensure_ascii=False, sort_keys=True)),
+            )
+
+    def list_intelligence_events(
+        self, case_id: str, *, actor_id: str, role: str
+    ) -> list[dict[str, Any]]:
+        _actor(actor_id)
+        require_permission(role, "audit:read")
+        with self._session() as connection:
+            rows = connection.execute(
+                "SELECT event_id, case_id, actor_id, event_type, occurred_at, details_json FROM intelligence_events WHERE case_id = ? ORDER BY event_id",
+                (case_id,),
+            ).fetchall()
+        return [{**dict(row), "details": json.loads(row["details_json"])} for row in rows]
+
+
+    def record_shadow_run(
+        self, case_id: str, *, actor_id: str, role: str,
+        result: dict[str, Any], occurred_at: str,
+    ) -> None:
+        actor = _actor(actor_id)
+        require_permission(role, "intelligence:shadow")
+        if not case_id or len(case_id.strip()) > 64:
+            raise ValueError("A valid case identifier is required.")
+        if not occurred_at.strip():
+            raise ValueError("A shadow-run timestamp is required.")
+        if result.get("source_case_id") != case_id:
+            raise ValueError("Shadow result source_case_id must match case_id.")
+        status = str(result.get("status", ""))
+        if status not in {"SHADOW_OK", "SHADOW_ERROR"}:
+            raise ValueError("Unknown shadow-run status.")
+        provider = str(result.get("provider", "")).strip()[:80]
+        model_version = str(result.get("model_version", "")).strip()[:120]
+        if not provider or not model_version:
+            raise ValueError("Shadow provider and model version are required.")
+        latency_ms = float(result.get("latency_ms", 0.0))
+        if latency_ms < 0:
+            raise ValueError("Shadow latency cannot be negative.")
+        with self._session() as connection:
+            if connection.execute("SELECT 1 FROM observations WHERE case_id = ?", (case_id,)).fetchone() is None:
+                raise KeyError(f"Case not found: {case_id}")
+            connection.execute(
+                """INSERT INTO shadow_runs
+                   (case_id, actor_id, provider, model_version, status, latency_ms,
+                    result_json, error_text, occurred_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (case_id, actor, provider, model_version, status, latency_ms,
+                 json.dumps(result.get("output"), ensure_ascii=False, sort_keys=True)
+                 if result.get("output") is not None else None,
+                 str(result.get("error") or "")[:500] or None, occurred_at),
+            )
+
+    def list_shadow_runs(self, case_id: str, *, actor_id: str, role: str) -> list[dict[str, Any]]:
+        _actor(actor_id)
+        require_permission(role, "intelligence:shadow")
+        with self._session() as connection:
+            rows = connection.execute(
+                """SELECT run_id, case_id, actor_id, provider, model_version, status,
+                          latency_ms, result_json, error_text, occurred_at
+                   FROM shadow_runs WHERE case_id = ? ORDER BY run_id""",
+                (case_id,),
+            ).fetchall()
+        return [
+            {**dict(row), "result": json.loads(row["result_json"]) if row["result_json"] else None}
+            for row in rows
+        ]

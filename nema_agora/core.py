@@ -5,7 +5,6 @@ No Streamlit dependency: validation can be tested independently.
 from __future__ import annotations
 
 from datetime import date
-import math
 import uuid
 
 STATUSES = ("Received", "Under review", "Referred", "Action recorded", "Closed")
@@ -31,41 +30,9 @@ def validate_observation(*, site: str, description: str, consent_confirmed: bool
         errors.append("An observation description is required.")
     if len(description or "") > 1500:
         errors.append("The observation description must be 1,500 characters or fewer.")
-    if consent_confirmed is not True:
+    if not consent_confirmed:
         errors.append("Permission and data minimisation must be confirmed.")
     return errors
-
-
-ALLOWED_STATUS_TRANSITIONS = {
-    "Received": {"Under review"},
-    "Under review": {"Referred", "Action recorded", "Closed"},
-    "Referred": {"Under review", "Action recorded", "Closed"},
-    "Action recorded": {"Under review", "Closed"},
-    "Closed": {"Under review"},
-}
-
-
-def validate_status_transition(
-    current_status: str,
-    new_status: str,
-    *,
-    reason: str = "",
-) -> list[str]:
-    """Validate a case-state change; reopening a closed case needs an audit reason."""
-    if current_status not in STATUSES:
-        return ["Current status is not recognised."]
-    if new_status not in STATUSES:
-        return ["New status is not recognised."]
-    if current_status == new_status:
-        return []
-    if new_status not in ALLOWED_STATUS_TRANSITIONS[current_status]:
-        return [f"Transition from {current_status} to {new_status} is not allowed."]
-    if current_status == "Closed" and new_status == "Under review":
-        if not reason.strip():
-            return ["A reason is required to reopen a closed case."]
-        if len(reason.strip()) < 10:
-            return ["The reopening reason must be at least 10 characters."]
-    return []
 
 
 def new_case_id() -> str:
@@ -74,19 +41,7 @@ def new_case_id() -> str:
 
 
 def normalise_coordinates(latitude: float, longitude: float) -> tuple[float, float] | None:
-    """Return finite, in-range coordinates, or None when the zero pair means omitted."""
-    if (
-        isinstance(latitude, bool)
-        or not isinstance(latitude, (int, float))
-        or not math.isfinite(float(latitude))
-    ):
-        raise ValueError("Latitude must be a finite number.")
-    if (
-        isinstance(longitude, bool)
-        or not isinstance(longitude, (int, float))
-        or not math.isfinite(float(longitude))
-    ):
-        raise ValueError("Longitude must be a finite number.")
+    """Return valid non-default coordinates, or None when the UI's zero pair means omitted."""
     if not (-90 <= latitude <= 90):
         raise ValueError("Latitude must be between -90 and 90.")
     if not (-180 <= longitude <= 180):

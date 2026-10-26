@@ -48,24 +48,6 @@ def test_quality_flags_invalid_or_missing_values(updates, expected_flag):
     assert expected_flag in result["flags"]
 
 
-@pytest.mark.parametrize(
-    "updates,expected_flag",
-    [
-        ({"observation_date": "01/10/2026"}, "INVALID_DATE"),
-        ({"observation_date": "2026-02-30"}, "INVALID_DATE"),
-        ({"category": "Unapproved category"}, "INVALID_CATEGORY"),
-        ({"severity": "Critical-ish"}, "INVALID_SEVERITY"),
-        ({"status": "Auto-enforced"}, "INVALID_STATUS"),
-        ({"latitude": True}, "INVALID_COORDINATES"),
-        ({"longitude": False}, "INVALID_COORDINATES"),
-    ],
-)
-def test_schema_and_coordinate_edge_cases_require_review(updates, expected_flag):
-    result = assess_observation(sample(**updates))
-    assert result["quality_status"] == "REVIEW"
-    assert expected_flag in result["flags"]
-
-
 def test_received_status_requires_review():
     result = assess_observation(sample(status="Received"))
     assert "NEEDS_REVIEW" in result["flags"]

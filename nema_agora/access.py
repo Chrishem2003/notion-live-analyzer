@@ -1,23 +1,72 @@
-"""Access guard helpers for Streamlit pages that rely on the main portal login."""
+"""Role-based permission policy for NEMA-AGORA.
+
+This module evaluates permissions for an identity that has already been
+authenticated by a trusted identity provider. It does not authenticate users,
+create sessions, or establish that a supplied actor ID is genuine.
+"""
 from __future__ import annotations
 
-from collections.abc import Mapping
-from typing import Any
+from types import MappingProxyType
+from typing import Final
 
+PERMISSIONS: Final = frozenset({
+    "observation:create", "observation:read_own", "observation:read_all",
+    "observation:review", "case:export", "metrics:read",
+    "intelligence:use", "intelligence:feedback", "intelligence:shadow",
+    "intelligence:lab", "intelligence:comparison", "intelligence:admit_model",
+    "intelligence:controlled_shadow", "intelligence:monitor",
+    "intelligence:provenance", "intelligence:field_eval", "intelligence:impact",
+    "intelligence:evidence", "intelligence:reproducibility", "intelligence:pilot_readiness",
+    "intelligence:review_shadow", "intelligence:govern_shadow", "intelligence:attest", "intelligence:attestation_lifecycle",
+    "annotation:create", "annotation:read_own", "annotation:read_all",
+    "annotation:adjudicate", "audit:read", "user:manage",
+})
 
-def has_authenticated_portal_session(state: Mapping[str, Any]) -> bool:
-    """Require the server-side identity populated by the main portal auth flow.
+_ROLE_PERMISSIONS = {
+    "submitter": frozenset({"observation:create", "observation:read_own"}),
+    "reviewer": frozenset({
+        "observation:read_all", "observation:review", "metrics:read",
+        "intelligence:use", "intelligence:feedback", "intelligence:shadow",
+        "intelligence:lab", "intelligence:comparison", "intelligence:controlled_shadow",
+        "intelligence:monitor", "intelligence:provenance", "intelligence:field_eval",
+        "intelligence:impact", "intelligence:evidence", "intelligence:reproducibility", "intelligence:pilot_readiness",
+        "annotation:create", "annotation:read_own", "intelligence:review_shadow",
+    }),
+    "coordinator": frozenset({
+        "observation:read_all", "observation:review", "case:export", "metrics:read",
+        "audit:read", "intelligence:use", "intelligence:feedback", "intelligence:shadow",
+        "intelligence:lab", "intelligence:comparison", "intelligence:admit_model",
+        "intelligence:controlled_shadow", "intelligence:monitor", "intelligence:provenance",
+        "intelligence:field_eval", "intelligence:impact", "intelligence:evidence",
+        "intelligence:reproducibility", "intelligence:pilot_readiness", "annotation:create", "annotation:read_own",
+        "annotation:read_all", "annotation:adjudicate", "intelligence:review_shadow",
+        "intelligence:govern_shadow", "intelligence:pilot_readiness", "intelligence:attestation_lifecycle",
+    }),
+    "admin": PERMISSIONS,
+}
+ROLE_PERMISSIONS: Final = MappingProxyType(_ROLE_PERMISSIONS)
 
-    This is a page access gate, not a replacement for authenticating the user.
-    The main app must remain the only code path that establishes these session
-    fields after validating credentials or completing a trusted OAuth callback.
-    """
-    if not isinstance(state, Mapping):
+def has_permission(role: str | None, permission: str) -> bool:
+    """Return False for unknown roles or permissions (deny by default)."""
+    if not isinstance(role, str) or not isinstance(permission, str):
         return False
-    if state.get("portal_unlocked") is not True:
+    if permission not in PERMISSIONS:
         return False
-    identity = state.get("user_identity")
-    if not isinstance(identity, Mapping):
+    return permission in ROLE_PERMISSIONS.get(role.strip().lower(), frozenset())
+
+def require_permission(role: str | None, permission: str) -> None:
+    """Raise PermissionError unless the role is explicitly allowed."""
+    if not has_permission(role, permission):
+        raise PermissionError(f"Role is not permitted to perform: {permission}")
+
+def can_read_observation(role: str | None, actor_id: str | None, owner_id: str | None) -> bool:
+    """Check record-read policy after identity has been authenticated."""
+    if has_permission(role, "observation:read_all"):
+        return True
+    if not has_permission(role, "observation:read_own"):
         return False
-    email = identity.get("email")
-    return isinstance(email, str) and bool(email.strip())
+    return (
+        isinstance(actor_id, str) and isinstance(owner_id, str)
+        and bool(actor_id.strip()) and bool(owner_id.strip())
+        and actor_id == owner_id
+    )

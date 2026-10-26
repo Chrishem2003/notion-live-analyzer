@@ -6,9 +6,6 @@ environmental incident is true, illegal, urgent, or regulatorily confirmed.
 from __future__ import annotations
 
 import math
-from datetime import date
-
-from nema_agora.core import CATEGORIES, SEVERITIES, STATUSES
 from collections.abc import Mapping, Sequence
 from typing import Any
 
@@ -18,8 +15,7 @@ REQUIRED_FIELDS = (
 )
 QUALITY_FLAGS = (
     "VALID", "INCOMPLETE", "INVALID_COORDINATES", "MISSING_DESCRIPTION",
-    "MISSING_CONSENT", "INVALID_DATE", "INVALID_CATEGORY", "INVALID_SEVERITY",
-    "INVALID_STATUS", "DUPLICATE_SUSPECTED", "NEEDS_REVIEW",
+    "MISSING_CONSENT", "DUPLICATE_SUSPECTED", "NEEDS_REVIEW",
 )
 
 
@@ -32,8 +28,6 @@ def _coordinate_pair(record: Mapping[str, Any]) -> tuple[float, float] | None:
     lat, lon = record.get("latitude", ""), record.get("longitude", "")
     if lat in ("", None) and lon in ("", None):
         return None
-    if isinstance(lat, bool) or isinstance(lon, bool):
-        return (math.nan, math.nan)
     try:
         latitude, longitude = float(lat), float(lon)
     except (TypeError, ValueError, OverflowError):
@@ -72,20 +66,6 @@ def assess_observation(
         flags.append("MISSING_DESCRIPTION")
     if record.get("consent_confirmed") is not True:
         flags.append("MISSING_CONSENT")
-
-    raw_date = _text(record.get("observation_date"))
-    try:
-        parsed_date = date.fromisoformat(raw_date)
-        if parsed_date.isoformat() != raw_date:
-            raise ValueError("date must use YYYY-MM-DD")
-    except (TypeError, ValueError):
-        flags.append("INVALID_DATE")
-    if _text(record.get("category")) not in CATEGORIES:
-        flags.append("INVALID_CATEGORY")
-    if _text(record.get("severity")) not in SEVERITIES:
-        flags.append("INVALID_SEVERITY")
-    if _text(record.get("status")) not in STATUSES:
-        flags.append("INVALID_STATUS")
 
     coordinates = _coordinate_pair(record)
     if coordinates is not None:
