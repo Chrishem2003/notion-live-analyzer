@@ -16,7 +16,7 @@ import pandas as pd
 import streamlit as st
 
 from nema_agora.access import has_permission
-from nema_agora.client import NemaApiError, get_case, get_review_packet, get_storage_readiness, list_cases
+from nema_agora.client import NemaApiError, get_case, get_connection_diagnostics, get_review_packet, get_storage_readiness, list_cases
 from nema_agora.auth import resolve_principal
 from nema_agora.config import (
     backup_dir_from_secrets,
@@ -259,8 +259,23 @@ if active_section == "Persisted cases & audit":
             metrics[3].metric("Durability verified", "Yes" if readiness.get("storage_durability_verified") else "Not yet")
             if not readiness.get("production_writes_enabled"):
                 st.info("Read-only safety mode is active. Storage connectivity does not certify production write readiness or backup/restore.")
-        except NemaApiError:
-            st.error("The persisted case API is not ready. Check the server-side API key and storage configuration, then retry.")
+        except NemaApiError as exc:
+            st.error(str(exc))
+            st.markdown("#### Safe connection diagnostics")
+            diagnostics = get_connection_diagnostics()
+            checks = [
+                ("NEMA_CASE_API_BASE_URL", diagnostics["api_base_url_configured"]),
+                ("PLATFORM_API_KEY", diagnostics["platform_api_key_configured"]),
+                ("NEMA_PORTAL_SIGNING_SECRET (separate, 32+ characters)", diagnostics["portal_signing_secret_valid"]),
+            ]
+            st.table([
+                {"Check": label, "Status": "Configured" if configured else "Missing / invalid"}
+                for label, configured in checks
+            ])
+            health = diagnostics["api_health"]
+            health_status = f"HTTP {diagnostics['api_health_http_status']}" if diagnostics["api_health_http_status"] is not None else health.replace("_", " ").title()
+            st.metric("API health probe", health_status)
+            st.caption("Diagnostics report configuration presence only. Secret values and API response bodies are never displayed.")
             st.stop()
 
         case_left, case_right = st.columns([1.1, 1])
