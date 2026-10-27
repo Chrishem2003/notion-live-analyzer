@@ -25,6 +25,7 @@ def prepare_authenticated_measurement_submission(
     record: Mapping[str, Any],
     indicator: Mapping[str, Any],
     evidence_bytes: bytes,
+    verified_evidence_object: Mapping[str, Any],
     measurement_id: str,
     idempotency_key: str,
 ) -> dict[str, Any]:
@@ -56,6 +57,7 @@ def prepare_authenticated_measurement_submission(
         record=record,
         indicator=indicator,
         evidence_bytes=evidence_bytes,
+        verified_evidence_object=verified_evidence_object,
         authenticated_actor_id=actor_id,
         authenticated_actor_role=role,
     )
