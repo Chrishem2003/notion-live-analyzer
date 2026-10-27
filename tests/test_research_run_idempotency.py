@@ -15,6 +15,15 @@ def _reserve_from_worker(database_path, run_id, payload):
     return ledger.reserve(run_id, payload)["action"]
 
 
+def _reserve_or_conflict_from_worker(database_path, run_id, payload):
+    """Return a conflict marker when concurrent payloads reuse one run ID."""
+    ledger = RunIdempotencyLedger(database_path)
+    try:
+        return ledger.reserve(run_id, payload)["action"]
+    except IdempotencyConflictError:
+        return "conflict"
+
+
 def test_reservation_serializes_duplicate_requests_and_reuses_completed_result(tmp_path):
     ledger = RunIdempotencyLedger(str(tmp_path / "shared" / "runs.sqlite3"))
     payload = {"run_name": "Synthetic run", "project": "project-1"}
@@ -24,7 +33,8 @@ def test_reservation_serializes_duplicate_requests_and_reuses_completed_result(t
 
     ledger.mark_complete("run-1", "notion-page-1")
     assert ledger.reserve("run-1", payload) == {
-        "action": "complete", "page_id": "notion-page-1"
+        "action": "complete",
+        "page_id": "notion-page-1",
     }
 
 
@@ -101,3 +111,25 @@ def test_concurrent_processes_reserve_a_run_id_only_once(tmp_path):
 
     assert actions.count("reserved") == 1
     assert actions.count("in_progress") == 1
+
+
+def test_concurrent_different_payloads_cannot_claim_the_same_run_id(tmp_path):
+    """A racing payload conflict must be rejected atomically across processes."""
+    path = str(tmp_path / "conflicting" / "runs.sqlite3")
+    payloads = [
+        {"run_name": "First competing payload", "project": "demo-a"},
+        {"run_name": "Second competing payload", "project": "demo-b"},
+    ]
+
+    with ProcessPoolExecutor(max_workers=2) as pool:
+        outcomes = list(
+            pool.map(
+                _reserve_or_conflict_from_worker,
+                [path, path],
+                ["run-conflict-race", "run-conflict-race"],
+                payloads,
+            )
+        )
+
+    assert outcomes.count("reserved") == 1
+    assert outcomes.count("conflict") == 1
