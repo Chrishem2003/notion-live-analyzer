@@ -37,6 +37,11 @@ class AuthenticatedMeasurementBoundaryTests(unittest.TestCase):
             record=self.record,
             indicator=self.indicator,
             evidence_bytes=self.artifact,
+            verified_evidence_object={
+                "bucket": "nema-evidence",
+                "object_key": f"sha256/{hashlib.sha256(self.artifact).hexdigest()[:2]}/{hashlib.sha256(self.artifact).hexdigest()}",
+                "sha256": hashlib.sha256(self.artifact).hexdigest(),
+            },
             measurement_id="measurement-001",
             idempotency_key="submission-001",
         )
