@@ -17,6 +17,10 @@ services:
         sync: false
       - key: PLATFORM_API_KEY
         sync: false
+      - key: NEMA_PORTAL_SIGNING_SECRET
+        sync: false
+      - key: NEMA_CASE_API_BASE_URL
+        value: https://notion-live-analyzer-api.onrender.com
       - key: RESEARCH_RUN_API_URL
         value: https://notion-live-analyzer-api.onrender.com
       - key: AUTO_FIX_DEPS
@@ -42,6 +46,14 @@ services:
       - key: PYTHON_VERSION
         value: 3.11.9
       - key: PLATFORM_API_KEY
+        sync: false
+      - key: NEMA_PORTAL_SIGNING_SECRET
+        sync: false
+      - key: NEMA_CASE_STORAGE_BACKEND
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
       - key: NOTION_TOKEN
         sync: false

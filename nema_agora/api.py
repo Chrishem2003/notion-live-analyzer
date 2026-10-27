@@ -5,6 +5,7 @@ per-actor authorization model are implemented and deployed.
 """
 from __future__ import annotations
 
+import hashlib
 import hmac
 import os
 import sqlite3
@@ -28,6 +29,103 @@ def _require_nema_api_key(x_api_key: Optional[str] = Header(default=None)) -> bo
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or missing API key.")
     return True
 
+
+def _require_nema_read_access(
+    x_api_key: Optional[str] = Header(default=None),
+    x_nema_actor: Optional[str] = Header(default=None),
+    x_nema_role: Optional[str] = Header(default=None),
+    x_nema_signature: Optional[str] = Header(default=None),
+) -> dict[str, str]:
+    """Require service authentication plus a signed, server-resolved portal identity.
+
+    The Streamlit service signs the OIDC subject and role after resolving the role
+    from trusted server-side bindings. Submitters may use only owner-scoped Supabase reads. SQLite remains unavailable to submitters because its case schema does not yet enforce owner-scoped access.
+    """
+    _require_nema_api_key(x_api_key=x_api_key)
+    actor = x_nema_actor.strip() if isinstance(x_nema_actor, str) else ""
+    role = x_nema_role.strip().lower() if isinstance(x_nema_role, str) else ""
+    signature = x_nema_signature.strip() if isinstance(x_nema_signature, str) else ""
+    if not actor or len(actor) > 512 or not signature:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="A signed portal identity is required.")
+    if role not in {"reviewer", "coordinator", "admin"}:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="This role cannot access cross-case records.")
+    signing_secret = os.environ.get("NEMA_PORTAL_SIGNING_SECRET", "").strip()
+    if len(signing_secret) < 32 or hmac.compare_digest(signing_secret, os.environ.get("PLATFORM_API_KEY", "")):
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="NEMA portal identity signing must use a separate secret of at least 32 characters.",
+        )
+    message = f"{actor}\n{role}".encode("utf-8")
+    expected = hmac.new(signing_secret.encode("utf-8"), message, hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(signature, expected):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="The signed portal identity is invalid.")
+    return {"actor": actor, "role": role}
+
+
+
+
+
+def _require_measurement_submission_access(
+    x_api_key: Optional[str] = Header(default=None),
+    x_nema_actor: Optional[str] = Header(default=None),
+    x_nema_role: Optional[str] = Header(default=None),
+    x_nema_signature: Optional[str] = Header(default=None),
+) -> dict[str, str | bool]:
+    """Authenticate a measurement-write principal without enabling a write route.
+
+    The actor/role are trusted only because the portal service signs them with
+    NEMA_PORTAL_SIGNING_SECRET. Never construct this principal from request JSON.
+    This dependency is deliberately separate from cross-case read authorization.
+    """
+    _require_nema_api_key(x_api_key=x_api_key)
+    actor = x_nema_actor.strip() if isinstance(x_nema_actor, str) else ""
+    role = x_nema_role.strip().lower() if isinstance(x_nema_role, str) else ""
+    signature = x_nema_signature.strip() if isinstance(x_nema_signature, str) else ""
+    if not actor or len(actor) > 512 or "\n" in actor or "\r" in actor or not signature:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="A signed portal identity is required for measurement submission.",
+        )
+    if role not in {"submitter", "coordinator", "admin"}:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This role cannot submit indicator measurements.",
+        )
+    signing_secret = os.environ.get("NEMA_PORTAL_SIGNING_SECRET", "").strip()
+    platform_key = os.environ.get("PLATFORM_API_KEY", "")
+    if len(signing_secret) < 32 or hmac.compare_digest(signing_secret, platform_key):
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="NEMA portal identity signing is not safely configured.",
+        )
+    message = f"{actor}\n{role}".encode("utf-8")
+    expected = hmac.new(signing_secret.encode("utf-8"), message, hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(signature, expected):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="The signed portal identity is invalid.",
+        )
+    return {"authenticated": True, "subject": actor, "role": role}
+
+def _require_submitter_scope(identity: dict[str, str]) -> str | None:
+    """Return a verified owner scope or deny submitters on unscoped storage."""
+    if identity.get("role") != "submitter":
+        return None
+    backend = os.environ.get("NEMA_CASE_STORAGE_BACKEND", "sqlite").strip().lower()
+    if backend != "supabase_postgres":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Submitter access requires owner-scoped Supabase storage.",
+        )
+    actor = identity.get("actor", "").strip()
+    if not actor or len(actor) > 512:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="A valid owner identity is required.")
+    return actor
+
+
+def _require_reviewer_role(identity: dict[str, str]) -> None:
+    if identity.get("role") not in {"reviewer", "coordinator", "admin"}:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="This operation requires a reviewer role.")
 
 def _database_path() -> Path:
     raw = os.environ.get("NEMA_CASE_DATABASE_PATH", "").strip()
@@ -86,14 +184,18 @@ def _remote_storage_error(exc: Exception) -> HTTPException:
 @router.get("")
 def list_cases(
     limit: int = Query(default=100, ge=1, le=1000),
-    _auth: bool = Depends(_require_nema_api_key),
+    _auth: dict[str, str] = Depends(_require_nema_read_access),
 ):
     """List persisted case summaries; no write or enforcement operation is exposed."""
     from nema_agora.supabase_repository import NemaStorageUnavailableError
 
+    owner_id = _require_submitter_scope(_auth)
     repository = _repository()
     try:
-        rows = repository.list_cases(limit=limit)
+        if owner_id is not None:
+            rows = repository.list_cases(limit=limit, owner_id=owner_id)
+        else:
+            rows = repository.list_cases(limit=limit)
         return {
             "items": [{"record": record, "version": version} for record, version in rows],
             "count": len(rows),
@@ -107,8 +209,9 @@ def list_cases(
 
 
 @router.get("/storage-readiness")
-def storage_readiness(_auth: bool = Depends(_require_nema_api_key)):
+def storage_readiness(_auth: dict[str, str] = Depends(_require_nema_read_access)):
     """Inspect configured storage without creating a database or changing records."""
+    _require_reviewer_role(_auth)
     backend = os.environ.get("NEMA_CASE_STORAGE_BACKEND", "sqlite").strip().lower()
     if backend == "supabase_postgres":
         from nema_agora.supabase_repository import NemaStorageUnavailableError
@@ -178,13 +281,17 @@ def storage_readiness(_auth: bool = Depends(_require_nema_api_key)):
 
 
 @router.get("/{case_id}")
-def get_case(case_id: str, _auth: bool = Depends(_require_nema_api_key)):
+def get_case(case_id: str, _auth: dict[str, str] = Depends(_require_nema_read_access)):
     """Read one persisted case and its audit history."""
     from nema_agora.supabase_repository import NemaStorageUnavailableError
 
     repository = _repository()
     try:
-        found = repository.get_case(case_id)
+        owner_id = _require_submitter_scope(_auth)
+        if owner_id is not None:
+            found = repository.get_case(case_id, owner_id=owner_id)
+        else:
+            found = repository.get_case(case_id)
         if found is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Case not found.")
         record, version = found
@@ -200,14 +307,18 @@ def get_case(case_id: str, _auth: bool = Depends(_require_nema_api_key)):
         repository.close()
 
 @router.get("/{case_id}/review-packet")
-def review_packet(case_id: str, _auth: bool = Depends(_require_nema_api_key)):
+def review_packet(case_id: str, _auth: dict[str, str] = Depends(_require_nema_read_access)):
     """Build a deterministic read-only preview; this does not submit an automation job."""
     from nema_agora.supabase_repository import NemaStorageUnavailableError
     from nema_agora.workflows import build_case_review_packet
 
     repository = _repository()
     try:
-        found = repository.get_case(case_id)
+        owner_id = _require_submitter_scope(_auth)
+        if owner_id is not None:
+            found = repository.get_case(case_id, owner_id=owner_id)
+        else:
+            found = repository.get_case(case_id)
         if found is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Case not found.")
         record, version = found
