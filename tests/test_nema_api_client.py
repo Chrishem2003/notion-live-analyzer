@@ -111,3 +111,17 @@ def test_connection_diagnostics_marks_api_unreachable_without_exposing_exception
 
     assert result["api_health"] == "unreachable"
     assert "never-return-this" not in repr(result)
+
+def test_client_reads_streamlit_secrets_when_process_environment_is_missing():
+    from nema_agora.client import _configured_value
+
+    with patch.dict("os.environ", {}, clear=True), patch(
+        "streamlit.secrets",
+        {
+            "NEMA_CASE_API_BASE_URL": "https://staging-api.example.test",
+            "PLATFORM_API_KEY": "staging-key",
+        },
+    ):
+        assert _configured_value("NEMA_CASE_API_BASE_URL") == "https://staging-api.example.test"
+        assert _configured_value("PLATFORM_API_KEY") == "staging-key"
+        assert _configured_value("NEMA_PORTAL_SIGNING_SECRET") == ""
