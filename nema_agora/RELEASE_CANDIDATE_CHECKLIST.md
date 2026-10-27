@@ -85,3 +85,13 @@ Current CI must run against the final integration-branch head before this phase 
 ## Phase 192 — uploaded artifact digest consistency
 
 The evidence validator accepts optional evidence bytes and independently computes SHA-256. The one-page Pilot metrics workspace now lets reviewers supply both the measurement JSON and the referenced artifact; a digest mismatch is rejected, while omission of artifact bytes is explicitly reported as unchecked. Automated tests cover match, mismatch, and omission. This is byte-integrity checking only—not source authenticity, reviewer authentication, or institutional verification. No persistence or registry status mutation is enabled.
+
+
+## Phase 221 — operator-visible case API diagnostics
+
+- Added a safe, unauthenticated health probe that is independent from case API authentication.
+- The case workspace now shows the specific failed configuration checks for `NEMA_CASE_API_BASE_URL`, `PLATFORM_API_KEY`, and the distinct `NEMA_PORTAL_SIGNING_SECRET`.
+- Diagnostics expose only booleans, health status, and HTTP status; they never return secret values, request headers, response bodies, or exception text.
+- Added regression tests for missing configuration, no probing when the URL is missing/invalid, healthy API with missing credentials, and network failure without exception leakage.
+- This is an operator-diagnostics improvement, not a deployment repair. The Render staging services still need the correct branch and environment bindings; no secrets, deployments, or database rows are changed by this phase.
+- Acceptance: focused NEMA/API client tests and repository CI must pass on the final candidate head; then verify on the actual staging URL.
