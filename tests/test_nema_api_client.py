@@ -81,7 +81,7 @@ def test_connection_diagnostics_report_missing_secrets_without_revealing_values(
         "api_health": "reachable",
         "api_health_http_status": 200,
     }
-    assert "secret" not in repr(result).lower()
+    assert "never-return-this" not in repr(result)
     mock_get.assert_called_once_with(
         "https://api.example.test/api/v1/health", timeout=(2.0, 5.0)
     )
