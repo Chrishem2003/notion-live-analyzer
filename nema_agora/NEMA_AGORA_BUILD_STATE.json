@@ -10,12 +10,12 @@
   "base_branch": "main",
   "draft_pr": true,
   "merge_allowed": false,
-  "current_head": "94e6dcf9fdeb42505186d9608cb0bb3a822663a3",
+  "current_head": "a60b35b97da51563070b9abc6b9abf8da95b339c",
   "last_verified_head": "a0710c81cd422bb36ace0de51b4cb56f89ea4d60",
   "last_verified_phase": 213,
   "architecture_checkpoint_after": 174,
-  "last_action": "Phase 221 safe API diagnostics implemented. CI identified malformed evidence provenance test assertions and outdated evidence-reference fixtures; repaired the provenance test file and aligned API-boundary/PostgreSQL fixtures with read-back-verified content-addressed evidence. Latest commit is pending focused NEMA tests, full CI, and auth-role security checks. No deployment, secret changes, database writes, or write-path enablement performed.",
-  "validation_status": "PHASE_221_DIAGNOSTICS_IMPLEMENTED_EVIDENCE_TEST_FIXES_CI_PENDING",
+  "last_action": "Phase 221 safe diagnostics are implemented. Corrected authenticated measurement boundary to require and pass the verified evidence-storage read-back object; corrected PostgreSQL test evidence identifiers to be unique per independent record. Final-head focused NEMA, full repository CI, and auth-role security checks are running. Staging branch/configuration remains unverified; no deployment, secrets, database writes, migrations, or write-path enablement.",
+  "validation_status": "PHASE_221_DIAGNOSTICS_AND_EVIDENCE_BOUNDARY_FIXES_FINAL_HEAD_CI_RUNNING",
   "stop_conditions": [
     "destructive_or_irreversible_action",
     "missing_credentials",
@@ -35,7 +35,6 @@
     "institutional_approval",
     "staging_environment_binding_and_authenticated_read_validation",
     "mandatory_lineage_gate_test_results",
-    "staging_platform_api_key_missing",
     "staging_signing_secret_configuration_unverified",
     "staging_api_base_url_binding_unverified",
     "staging_owner_scope_migration_002_pending",
@@ -69,7 +68,10 @@
     "staging_portal_signing_secret_unverified",
     "staging_supabase_credentials_unverified",
     "latest_candidate_head_ci_pending",
-    "phase_220_221_postgres_and_evidence_integration_tests_pending"
+    "phase_220_221_postgres_and_evidence_integration_tests_pending",
+    "staging_api_platform_api_key_same_value_confirmation_pending",
+    "staging_portal_signing_secret_configuration_unverified",
+    "final_head_phase_221_ci_running"
   ],
   "validation_evidence": {
     "candidate_sha": "6416723d338b13d7a5db05ba822630cc11c0c273",
@@ -155,13 +157,15 @@
     "phase_220_evidence_provenance": "IMPLEMENTED_IN_PROPOSED_MIGRATION_CI_PENDING_NO_LIVE_DB",
     "phase_220_doc_commit": "2b98120eeb11181f1648ad9435943f7415039f16",
     "phase_221": {
-      "candidate_sha": "c9ce013abff5f0e9c94f926bc3dfceec6e77425c",
-      "implementation": "safe_case_api_connection_diagnostics_and_regression_tests_added",
-      "focused_ci": "PENDING",
-      "repository_ci": "PENDING",
+      "candidate_sha": "a60b35b97da51563070b9abc6b9abf8da95b339c",
+      "implementation": "safe_case_api_connection_diagnostics_and_verified_evidence_readback_boundary",
+      "focused_ci": "RUNNING",
+      "repository_ci": "RUNNING",
+      "auth_role_ci": "RUNNING",
       "staging_live_verification": "PENDING",
       "secrets_changed": false,
-      "database_writes": false
+      "database_writes": false,
+      "write_path_enabled": false
     }
   },
   "safety_boundary": "Independent student-led prototype; not an official NEMA service or endorsement. No official ELMIS/SWIMS integration, autonomous enforcement, or production approval is claimed."
