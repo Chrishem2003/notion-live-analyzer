@@ -93,7 +93,16 @@ def test_evidence_artifact_provenance_is_transactional_and_restricted():
     assert "grant insert on table public.nema_evidence_artifacts to nema_measurement_writer" in sql
     assert "grant select on table public.nema_evidence_artifacts to service_role" in sql
     assert "insert into public.nema_evidence_artifacts" in sql
-    assert "sha256/<first-two>/<sha256>" in sql
+    assert "object_key ~ '^sha256/[0-9a-f]{2}/[0-9a-f]{64}
+    assert sql.index("insert into public.nema_indicator_measurements") < sql.index("insert into public.nema_evidence_artifacts") < sql.index("insert into public.nema_measurement_idempotency") < sql.index("insert into public.nema_measurement_audit")
+
+
+def test_evidence_reference_must_be_content_addressed_and_match_digest():
+    sql = MIGRATION.read_text(encoding="utf-8").lower()
+    assert "reference') !~ '^[a-z0-9][a-z0-9._-]{1,62}/sha256/[0-9a-f]{2}/[0-9a-f]{64}$'" in sql
+    assert "split_part(evidence_ref.item->>'reference', '/', 3) <> substr" in sql
+    assert "split_part(evidence_ref.item->>'reference', '/', 4) <> pg_catalog.lower" in sql
+" in sql
     assert sql.index("insert into public.nema_indicator_measurements") < sql.index("insert into public.nema_evidence_artifacts") < sql.index("insert into public.nema_measurement_idempotency") < sql.index("insert into public.nema_measurement_audit")
 
 
