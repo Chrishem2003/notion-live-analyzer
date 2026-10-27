@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import os
 import threading
 import uuid
@@ -41,7 +42,8 @@ def migrated_postgres():
         _setup_done = True
 
 
-def record(value=12):
+def record(value=12, evidence_digest=None):
+    digest = evidence_digest or hashlib.sha256(uuid.uuid4().hex.encode("utf-8")).hexdigest()
     return {
         "indicator_id": "community_reports",
         "definition_version": "1.0",
@@ -55,7 +57,7 @@ def record(value=12):
         "denominator": None,
         "exclusions": [],
         "source_refs": ["field-log-001"],
-        "evidence_refs": [{"reference": "nema-evidence/sha256/aa/" + "a" * 64, "sha256": "a" * 64}],
+        "evidence_refs": [{"reference": f"nema-evidence/sha256/{digest[:2]}/{digest}", "sha256": digest}],
         "calculation_method": "field-count-v1",
         "reviewer_id": None,
         "verified_at": None,
@@ -85,14 +87,15 @@ def scalar(sql, args=()):
 def test_postgres_new_submission_and_identical_retry_are_atomic(migrated_postgres):
     measurement_id = "pg-new-" + uuid.uuid4().hex
     key = "pg-key-" + uuid.uuid4().hex
-    first = call_rpc(measurement_id, key, record())
-    replay = call_rpc(measurement_id, key, record())
+    payload = record()
+    first = call_rpc(measurement_id, key, payload)
+    replay = call_rpc(measurement_id, key, payload)
     assert first["decision"] == "new"
     assert replay["decision"] == "replay"
     assert first["payload_sha256"] == replay["payload_sha256"]
     expected_digest = scalar(
         """SELECT encode(extensions.digest(convert_to(jsonb_build_object('measurement_id', %s, 'record', %s::jsonb)::text, 'UTF8'), 'sha256'), 'hex')""",
-        (measurement_id, Json(record())),
+        (measurement_id, Json(payload)),
     )
     assert first["payload_sha256"] == expected_digest
     assert scalar("SELECT count(*) FROM public.nema_indicator_measurements WHERE measurement_id=%s", (measurement_id,)) == 1
@@ -144,10 +147,11 @@ def test_postgres_parallel_same_key_submissions_create_one_measurement(migrated_
     measurement_id = "pg-parallel-" + uuid.uuid4().hex
     key = "pg-key-" + uuid.uuid4().hex
     barrier = threading.Barrier(2)
+    payload = record()
 
     def submit():
         barrier.wait(timeout=10)
-        return call_rpc(measurement_id, key, record())
+        return call_rpc(measurement_id, key, payload)
 
     with ThreadPoolExecutor(max_workers=2) as pool:
         results = list(pool.map(lambda _: submit(), range(2)))
