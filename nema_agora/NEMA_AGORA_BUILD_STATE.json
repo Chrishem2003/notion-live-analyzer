@@ -10,12 +10,12 @@
   "base_branch": "main",
   "draft_pr": true,
   "merge_allowed": false,
-  "current_head": "c9ce013abff5f0e9c94f926bc3dfceec6e77425c",
+  "current_head": "94e6dcf9fdeb42505186d9608cb0bb3a822663a3",
   "last_verified_head": "a0710c81cd422bb36ace0de51b4cb56f89ea4d60",
   "last_verified_phase": 213,
   "architecture_checkpoint_after": 174,
-  "last_action": "Phase 221 adds safe operator-visible NEMA API diagnostics: validates API URL configuration, reports presence/validity of the service key and distinct portal signing secret without revealing values, and probes the unauthenticated API health endpoint with bounded timeouts. Added regression tests for missing configuration, healthy API with missing credentials, invalid/missing URL, and network failure without exception leakage. CI and live staging verification are pending; no secrets, deployment settings, or database rows were changed.",
-  "validation_status": "PHASE_221_IMPLEMENTED_CI_AND_STAGING_VERIFICATION_PENDING",
+  "last_action": "Phase 221 safe API diagnostics implemented. CI identified malformed evidence provenance test assertions and outdated evidence-reference fixtures; repaired the provenance test file and aligned API-boundary/PostgreSQL fixtures with read-back-verified content-addressed evidence. Latest commit is pending focused NEMA tests, full CI, and auth-role security checks. No deployment, secret changes, database writes, or write-path enablement performed.",
+  "validation_status": "PHASE_221_DIAGNOSTICS_IMPLEMENTED_EVIDENCE_TEST_FIXES_CI_PENDING",
   "stop_conditions": [
     "destructive_or_irreversible_action",
     "missing_credentials",
@@ -67,7 +67,9 @@
     "phase_221_staging_diagnostics_not_live_verified",
     "staging_render_branch_mismatch",
     "staging_portal_signing_secret_unverified",
-    "staging_supabase_credentials_unverified"
+    "staging_supabase_credentials_unverified",
+    "latest_candidate_head_ci_pending",
+    "phase_220_221_postgres_and_evidence_integration_tests_pending"
   ],
   "validation_evidence": {
     "candidate_sha": "6416723d338b13d7a5db05ba822630cc11c0c273",
