@@ -55,7 +55,7 @@ def record(value=12):
         "denominator": None,
         "exclusions": [],
         "source_refs": ["field-log-001"],
-        "evidence_refs": [{"reference": "evidence/field-log-001.txt", "sha256": "a" * 64}],
+        "evidence_refs": [{"reference": "nema-evidence/sha256/aa/" + "a" * 64, "sha256": "a" * 64}],
         "calculation_method": "field-count-v1",
         "reviewer_id": None,
         "verified_at": None,
