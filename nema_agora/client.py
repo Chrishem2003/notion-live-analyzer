@@ -11,6 +11,25 @@ class NemaApiError(RuntimeError):
     """Safe-to-display API error; never includes request headers or secrets."""
 
 
+def _configured_value(name: str) -> str:
+    """Read a setting from the process environment or Streamlit secrets.
+
+    Render service environment variables take precedence. Streamlit Cloud stores
+    app secrets separately, so checking only os.environ can falsely report that
+    a value is missing even after it was added to the app's Secrets panel.
+    """
+    value = os.getenv(name, "").strip()
+    if value:
+        return value
+    try:
+        import streamlit as st
+
+        secret_value = st.secrets.get(name, "")
+    except Exception:
+        return ""
+    return secret_value.strip() if isinstance(secret_value, str) else ""
+
+
 def get_connection_diagnostics() -> dict[str, Any]:
     """Return safe NEMA API configuration diagnostics without revealing secret values.
 
@@ -18,9 +37,9 @@ def get_connection_diagnostics() -> dict[str, Any]:
     distinguish an unreachable API from missing credentials. No API request body,
     response body, credential, or signing secret is returned or logged.
     """
-    base_url = os.getenv("NEMA_CASE_API_BASE_URL", "").strip().rstrip("/")
-    api_key = os.getenv("PLATFORM_API_KEY", "").strip()
-    signing_secret = os.getenv("NEMA_PORTAL_SIGNING_SECRET", "").strip()
+    base_url = _configured_value("NEMA_CASE_API_BASE_URL").rstrip("/")
+    api_key = _configured_value("PLATFORM_API_KEY")
+    signing_secret = _configured_value("NEMA_PORTAL_SIGNING_SECRET")
     parsed = urlparse(base_url)
     url_valid = bool(
         parsed.scheme == "https"
@@ -51,11 +70,11 @@ def get_connection_diagnostics() -> dict[str, Any]:
     return diagnostics
 
 def _settings() -> tuple[str, str, str]:
-    base_url = os.getenv("NEMA_CASE_API_BASE_URL", "").strip().rstrip("/")
+    base_url = _configured_value("NEMA_CASE_API_BASE_URL").rstrip("/")
     if not base_url:
         raise NemaApiError("NEMA_CASE_API_BASE_URL must be explicitly configured; the client will not fall back to a production API.")
-    api_key = os.getenv("PLATFORM_API_KEY", "").strip()
-    signing_secret = os.getenv("NEMA_PORTAL_SIGNING_SECRET", "").strip()
+    api_key = _configured_value("PLATFORM_API_KEY")
+    signing_secret = _configured_value("NEMA_PORTAL_SIGNING_SECRET")
     parsed = urlparse(base_url)
     if parsed.scheme != "https" or not parsed.netloc or parsed.username or parsed.password:
         raise NemaApiError("NEMA API URL must be a valid HTTPS URL.")
