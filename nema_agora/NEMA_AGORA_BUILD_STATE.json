@@ -2,20 +2,20 @@
   "project": "NEMA-AGORA",
   "mode": "AUTONOMOUS_BUILD",
   "status": "INTEGRATION_VALIDATION",
-  "current_phase": 220,
-  "next_phase": 221,
+  "current_phase": 221,
+  "next_phase": 222,
   "completed_through": 219,
   "pr_number": 115,
   "branch": "integration/nema-agora-mainline-20261026",
   "base_branch": "main",
   "draft_pr": true,
   "merge_allowed": false,
-  "current_head": "PENDING_CI_FINAL_HEAD",
+  "current_head": "c9ce013abff5f0e9c94f926bc3dfceec6e77425c",
   "last_verified_head": "a0710c81cd422bb36ace0de51b4cb56f89ea4d60",
   "last_verified_phase": 213,
   "architecture_checkpoint_after": 174,
-  "last_action": "Phase 220 adds a database evidence artifact registry and binds content-addressed references to the measurement/idempotency/audit transaction; the trusted RPC adapter now requires read-back-verified storage reference. CI and isolated PostgreSQL validation pending; no live migrations or routes enabled.",
-  "validation_status": "PHASE_220_IMPLEMENTED_CI_AND_ISOLATED_POSTGRES_VALIDATION_PENDING",
+  "last_action": "Phase 221 adds safe operator-visible NEMA API diagnostics: validates API URL configuration, reports presence/validity of the service key and distinct portal signing secret without revealing values, and probes the unauthenticated API health endpoint with bounded timeouts. Added regression tests for missing configuration, healthy API with missing credentials, invalid/missing URL, and network failure without exception leakage. CI and live staging verification are pending; no secrets, deployment settings, or database rows were changed.",
+  "validation_status": "PHASE_221_IMPLEMENTED_CI_AND_STAGING_VERIFICATION_PENDING",
   "stop_conditions": [
     "destructive_or_irreversible_action",
     "missing_credentials",
@@ -62,7 +62,12 @@
     "evidence_storage_live_bucket_not_verified",
     "phase_220_final_head_ci_pending",
     "phase_220_evidence_registry_postgres_integration_tests_not_verified",
-    "migration_006_not_applied_requires_isolated_validation"
+    "migration_006_not_applied_requires_isolated_validation",
+    "phase_221_final_head_ci_pending",
+    "phase_221_staging_diagnostics_not_live_verified",
+    "staging_render_branch_mismatch",
+    "staging_portal_signing_secret_unverified",
+    "staging_supabase_credentials_unverified"
   ],
   "validation_evidence": {
     "candidate_sha": "6416723d338b13d7a5db05ba822630cc11c0c273",
@@ -146,7 +151,16 @@
     "phase_219_evidence_readback": "IMPLEMENTED_MOCK_TESTS_ADDED_CI_PENDING_NO_LIVE_BUCKET",
     "phase_219_doc_commit": "1bafb3fad9f183ce37233cbc910c08c55e24fdd1",
     "phase_220_evidence_provenance": "IMPLEMENTED_IN_PROPOSED_MIGRATION_CI_PENDING_NO_LIVE_DB",
-    "phase_220_doc_commit": "2b98120eeb11181f1648ad9435943f7415039f16"
+    "phase_220_doc_commit": "2b98120eeb11181f1648ad9435943f7415039f16",
+    "phase_221": {
+      "candidate_sha": "c9ce013abff5f0e9c94f926bc3dfceec6e77425c",
+      "implementation": "safe_case_api_connection_diagnostics_and_regression_tests_added",
+      "focused_ci": "PENDING",
+      "repository_ci": "PENDING",
+      "staging_live_verification": "PENDING",
+      "secrets_changed": false,
+      "database_writes": false
+    }
   },
   "safety_boundary": "Independent student-led prototype; not an official NEMA service or endorsement. No official ELMIS/SWIMS integration, autonomous enforcement, or production approval is claimed."
 }
