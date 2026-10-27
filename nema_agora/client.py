@@ -10,6 +10,46 @@ import requests
 class NemaApiError(RuntimeError):
     """Safe-to-display API error; never includes request headers or secrets."""
 
+
+def get_connection_diagnostics() -> dict[str, Any]:
+    """Return safe NEMA API configuration diagnostics without revealing secret values.
+
+    Health is checked independently from service authentication so operators can
+    distinguish an unreachable API from missing credentials. No API request body,
+    response body, credential, or signing secret is returned or logged.
+    """
+    base_url = os.getenv("NEMA_CASE_API_BASE_URL", "").strip().rstrip("/")
+    api_key = os.getenv("PLATFORM_API_KEY", "").strip()
+    signing_secret = os.getenv("NEMA_PORTAL_SIGNING_SECRET", "").strip()
+    parsed = urlparse(base_url)
+    url_valid = bool(
+        parsed.scheme == "https"
+        and parsed.netloc
+        and not parsed.username
+        and not parsed.password
+    )
+    diagnostics: dict[str, Any] = {
+        "api_base_url_configured": url_valid,
+        "platform_api_key_configured": bool(api_key),
+        "portal_signing_secret_valid": bool(
+            len(signing_secret) >= 32
+            and api_key
+            and not hmac.compare_digest(signing_secret, api_key)
+        ),
+        "api_health": "not_checked",
+        "api_health_http_status": None,
+    }
+    if not url_valid:
+        diagnostics["api_health"] = "not_checked_invalid_or_missing_url"
+        return diagnostics
+    try:
+        response = requests.get(f"{base_url}/api/v1/health", timeout=(2.0, 5.0))
+        diagnostics["api_health_http_status"] = int(response.status_code)
+        diagnostics["api_health"] = "reachable" if response.status_code == 200 else "http_error"
+    except requests.RequestException:
+        diagnostics["api_health"] = "unreachable"
+    return diagnostics
+
 def _settings() -> tuple[str, str, str]:
     base_url = os.getenv("NEMA_CASE_API_BASE_URL", "").strip().rstrip("/")
     if not base_url:
