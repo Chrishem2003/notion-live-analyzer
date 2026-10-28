@@ -172,3 +172,10 @@ def test_whitespace_only_run_id_is_rejected(tmp_path):
     ledger = RunIdempotencyLedger(str(tmp_path / "invalid-id" / "runs.sqlite3"))
     with pytest.raises(ValueError, match="run_id must be a non-empty stable string"):
         ledger.reserve("   ", {"run_name": "Synthetic invalid-ID fixture"})
+
+
+def test_cannot_mark_unreserved_run_complete(tmp_path):
+    """A completion marker must never be created without a reservation."""
+    ledger = RunIdempotencyLedger(str(tmp_path / "unreserved" / "runs.sqlite3"))
+    with pytest.raises(RuntimeError, match="Cannot complete an unreserved run_id"):
+        ledger.mark_complete("never-reserved", "notion-unexpected-page")
