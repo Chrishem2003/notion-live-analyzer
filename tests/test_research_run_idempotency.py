@@ -133,3 +133,42 @@ def test_concurrent_different_payloads_cannot_claim_the_same_run_id(tmp_path):
 
     assert outcomes.count("reserved") == 1
     assert outcomes.count("conflict") == 1
+
+
+def test_payload_fingerprint_is_independent_of_nested_mapping_key_order(tmp_path):
+    """Equivalent JSON objects should replay rather than trigger false conflicts."""
+    ledger = RunIdempotencyLedger(str(tmp_path / "canonical" / "runs.sqlite3"))
+    first_payload = {
+        "run_name": "Canonical synthetic payload",
+        "metadata": {
+            "project": "demo-project",
+            "labels": ["alpha", "beta"],
+            "details": {"z": 1, "a": "μ"},
+        },
+    }
+    reordered_payload = {
+        "metadata": {
+            "details": {"a": "μ", "z": 1},
+            "labels": ["alpha", "beta"],
+            "project": "demo-project",
+        },
+        "run_name": "Canonical synthetic payload",
+    }
+
+    assert ledger.fingerprint(first_payload) == ledger.fingerprint(reordered_payload)
+    assert ledger.reserve("run-canonical", first_payload) == {
+        "action": "reserved",
+        "page_id": None,
+    }
+    ledger.mark_complete("run-canonical", "notion-canonical-page")
+    assert ledger.reserve("run-canonical", reordered_payload) == {
+        "action": "complete",
+        "page_id": "notion-canonical-page",
+    }
+
+
+def test_whitespace_only_run_id_is_rejected(tmp_path):
+    """A blank identifier must never create an unaddressable ledger entry."""
+    ledger = RunIdempotencyLedger(str(tmp_path / "invalid-id" / "runs.sqlite3"))
+    with pytest.raises(ValueError, match="run_id must be a non-empty stable string"):
+        ledger.reserve("   ", {"run_name": "Synthetic invalid-ID fixture"})
