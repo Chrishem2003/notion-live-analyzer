@@ -56,3 +56,26 @@ def test_stale_pending_reservation_moves_to_recovery_state(tmp_path):
             ("run-stale",),
         )
     assert ledger.reserve("run-stale", payload)["action"] == "recover"
+
+def test_run_id_mutations_use_the_same_canonical_identifier(tmp_path):
+    """Reservation and state transitions must address the same normalized row."""
+    ledger = RunIdempotencyLedger(str(tmp_path / "normalized-id" / "runs.sqlite3"))
+    payload = {"run_name": "Synthetic run-ID normalization"}
+
+    assert ledger.reserve("  run-normalized  ", payload) == {
+        "action": "reserved",
+        "page_id": None,
+    }
+    ledger.mark_ambiguous("  run-normalized  ")
+    assert ledger.reserve("run-normalized", payload)["action"] == "recover"
+
+    ledger.mark_failed("  run-normalized  ")
+    assert ledger.reserve("run-normalized", payload) == {
+        "action": "reserved",
+        "page_id": None,
+    }
+    ledger.mark_complete("  run-normalized  ", "notion-synthetic-page")
+    assert ledger.reserve("run-normalized", payload) == {
+        "action": "complete",
+        "page_id": "notion-synthetic-page",
+    }
