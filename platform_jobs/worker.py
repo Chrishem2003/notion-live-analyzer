@@ -37,8 +37,14 @@ def _execute(job: dict[str, Any]) -> dict[str, Any]:
         "governance": {"accepted": getattr(assessment, "accepted", None), "action": getattr(action, "value", None)},
     }
 
+def _worker_enabled() -> bool:
+    return os.environ.get("PLATFORM_JOB_WORKER_ENABLED", "false").strip().lower() in {"1", "true", "yes", "on"}
+
+
 def run_once() -> str:
     """Claim and process at most one job; return a sanitized outcome label."""
+    if not _worker_enabled():
+        return "disabled"
     repo = None
     try:
         repo = SupabaseJobRepository()
@@ -75,6 +81,9 @@ def run() -> None:
     signal.signal(signal.SIGTERM, _stop)
     signal.signal(signal.SIGINT, _stop)
     poll_seconds = max(1.0, min(float(os.environ.get("PLATFORM_JOB_POLL_SECONDS", "3")), 30.0))
+    if not _worker_enabled():
+        log.warning("Worker is disabled; set PLATFORM_JOB_WORKER_ENABLED=true only in an approved environment")
+        return
     while not _STOP:
         outcome = run_once()
         if outcome in {"idle", "unavailable", "error"} and not _STOP:
@@ -87,7 +96,7 @@ def main() -> int:
     if args.once:
         outcome = run_once()
         log.info("One-shot worker outcome=%s", outcome)
-        return 0 if outcome in {"idle", "succeeded"} else 1
+        return 0 if outcome in {"idle", "succeeded", "disabled"} else 1
     run()
     return 0
 

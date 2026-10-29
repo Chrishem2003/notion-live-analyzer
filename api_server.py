@@ -25,7 +25,7 @@ import json
 import os
 from typing import Optional
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Request, WebSocket, WebSocketDisconnect, status
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, WebSocket, WebSocketDisconnect, status
 from pydantic import BaseModel, Field, validator
 
 from celery_app import celery_app
@@ -55,6 +55,16 @@ app.include_router(intelligence_router)
 # Durable service-owned job queue; not exposed as per-user auth.
 from platform_jobs.api import router as platform_jobs_router
 app.include_router(platform_jobs_router)
+
+# User-scoped durable jobs are separately opt-in. They verify Supabase Auth
+# and derive ownership from the verified UUID; legacy service routes stay separate.
+if os.environ.get("USER_JOB_API_ENABLED", "false").strip().lower() in {"1", "true", "yes", "on"}:
+    from platform_jobs.user_api import router as user_jobs_router
+    app.include_router(user_jobs_router)
+
+# Shared multi-user AI gateway; disabled by default and fail-closed until staged.
+from shared_ai_gateway import router as shared_ai_router
+app.include_router(shared_ai_router)
 
 
 def require_api_key(x_api_key: Optional[str] = Header(None)):
@@ -526,17 +536,30 @@ async def chat_websocket(websocket: WebSocket, room_id: str, token: str):
 
 
 @app.post("/api/v1/chat/token")
-def issue_chat_token_endpoint(email: str, _auth: bool = Depends(require_api_key)):
+def issue_chat_token_endpoint(
+    email: str,
+    ttl_seconds: int = Query(default=300, ge=60, le=900),
+    _auth: bool = Depends(require_api_key),
+):
     """
-    Streamlit calls this server-to-server (using the platform API key, not
-    exposed to the browser) for its already-authenticated user, then hands
-    the resulting short-lived token to the browser-side WebSocket JS. The
-    platform API key itself never reaches the browser.
+    Issue a short-lived HMAC token for a trusted, already-authenticated
+    server-side caller. The platform API key must never reach the browser.
     """
+    # This legacy issuer accepts an email supplied by a trusted server, but
+    # cannot independently prove which human is signed in. Keep it disabled
+    # unless a controlled migration/staging environment explicitly opts in.
+    if os.environ.get("SHARED_AI_LEGACY_EMAIL_TOKEN_ISSUER_ENABLED", "false").strip().lower() != "true":
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Legacy email token issuance is disabled; use a verified user identity token.",
+        )
     from chat_auth import issue_chat_token
+    normalized_email = email.strip().lower()
+    if not normalized_email or len(normalized_email) > 320 or "@" not in normalized_email:
+        raise HTTPException(status_code=422, detail="A valid email address is required.")
     try:
-        token = issue_chat_token(email)
-        return {"token": token, "expires_in_seconds": 3600}
+        token = issue_chat_token(normalized_email, ttl_seconds=ttl_seconds)
+        return {"token": token, "expires_in_seconds": ttl_seconds}
     except ChatAuthError as e:
         raise HTTPException(status_code=503, detail=str(e))
 

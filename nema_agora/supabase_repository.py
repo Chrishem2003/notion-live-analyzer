@@ -7,11 +7,15 @@ this backend can be used for production changes.
 """
 from __future__ import annotations
 
+import logging
 import os
 from typing import Any
 from urllib.parse import urlparse
 
 import requests
+
+
+logger = logging.getLogger(__name__)
 
 
 class NemaStorageUnavailableError(RuntimeError):
@@ -26,9 +30,12 @@ class SupabaseReadOnlyNemaRepository:
         service_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
         parsed = urlparse(base_url)
         if parsed.scheme != "https" or not parsed.netloc:
+            logger.error("NEMA storage preflight failed: reason=invalid_or_missing_supabase_url")
             raise NemaStorageUnavailableError("NEMA remote storage URL is not configured with HTTPS.")
         if not service_key:
+            logger.error("NEMA storage preflight failed: reason=missing_supabase_service_role_key")
             raise NemaStorageUnavailableError("NEMA remote storage credentials are not configured.")
+        logger.info("NEMA storage preflight passed: url_configured=true service_role_key_present=true")
         self._base_url = base_url
         self._timeout = timeout
         self._session = session or requests.Session()
@@ -54,7 +61,26 @@ class SupabaseReadOnlyNemaRepository:
             )
             response.raise_for_status()
             payload = response.json()
+        except requests.HTTPError as exc:
+            status_code = exc.response.status_code if exc.response is not None else None
+            logger.error(
+                "NEMA storage read failed: table=%s failure=http_error status_code=%s",
+                table,
+                status_code if status_code is not None else "unknown",
+            )
+            raise NemaStorageUnavailableError("NEMA remote storage read failed.") from exc
+        except requests.Timeout as exc:
+            logger.error("NEMA storage read failed: table=%s failure=timeout", table)
+            raise NemaStorageUnavailableError("NEMA remote storage read failed.") from exc
+        except requests.ConnectionError as exc:
+            logger.error("NEMA storage read failed: table=%s failure=connection_error", table)
+            raise NemaStorageUnavailableError("NEMA remote storage read failed.") from exc
         except (requests.RequestException, ValueError, TypeError) as exc:
+            logger.error(
+                "NEMA storage read failed: table=%s failure=%s",
+                table,
+                type(exc).__name__,
+            )
             raise NemaStorageUnavailableError("NEMA remote storage read failed.") from exc
         if not isinstance(payload, list) or any(not isinstance(row, dict) for row in payload):
             raise NemaStorageUnavailableError("NEMA remote storage returned an invalid response.")
