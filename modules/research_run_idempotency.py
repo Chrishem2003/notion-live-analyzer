@@ -58,9 +58,7 @@ class RunIdempotencyLedger:
         return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
     def reserve(self, run_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
-        if not isinstance(run_id, str) or not run_id.strip():
-            raise ValueError("run_id must be a non-empty stable string.")
-        stable_id = run_id.strip()
+        stable_id = self._normalize_run_id(run_id)
         payload_hash = self.fingerprint(payload)
         connection = self._connect()
         try:
