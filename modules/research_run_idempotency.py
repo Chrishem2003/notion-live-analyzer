@@ -116,27 +116,30 @@ class RunIdempotencyLedger:
             connection.close()
 
     def mark_complete(self, run_id: str, page_id: str) -> None:
+        stable_id = self._normalize_run_id(run_id)
         with closing(self._connect()) as connection:
             cursor = connection.execute(
                 "UPDATE research_run_idempotency SET state='complete', notion_page_id=?, "
                 "updated_at=CURRENT_TIMESTAMP WHERE run_id=?",
-                (page_id, run_id),
+                (page_id, stable_id),
             )
             if cursor.rowcount != 1:
                 raise RuntimeError("Cannot complete an unreserved run_id.")
 
     def mark_ambiguous(self, run_id: str) -> None:
+        stable_id = self._normalize_run_id(run_id)
         with closing(self._connect()) as connection:
             connection.execute(
                 "UPDATE research_run_idempotency SET state='ambiguous', "
                 "updated_at=CURRENT_TIMESTAMP WHERE run_id=?",
-                (run_id,),
+                (stable_id,),
             )
 
     def mark_failed(self, run_id: str) -> None:
+        stable_id = self._normalize_run_id(run_id)
         with closing(self._connect()) as connection:
             connection.execute(
                 "UPDATE research_run_idempotency SET state='failed', "
                 "updated_at=CURRENT_TIMESTAMP WHERE run_id=?",
-                (run_id,),
+                (stable_id,),
             )
