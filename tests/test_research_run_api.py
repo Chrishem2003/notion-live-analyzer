@@ -247,10 +247,12 @@ def test_endpoint_validates_private_relations_and_returns_verified_run(api, monk
 
     monkeypatch.setattr(adapter_module, "ResearchRunAdapter", FakeAdapter)
     monkeypatch.setattr(ledger_module, "RunIdempotencyLedger", FakeLedger)
+    padded_payload = request_payload()
+    padded_payload["run_id"] = "  synthetic-api-test-001  "
     response = client.post(
         "/api/v1/research-runs",
         headers={"X-API-Key": "test-platform-key"},
-        json=request_payload(),
+        json=padded_payload,
     )
     assert response.status_code == 200, response.text
     body = response.json()
@@ -402,3 +404,16 @@ def test_endpoint_rejects_protocol_not_linked_to_selected_project(api, monkeypat
     )
     assert response.status_code == 422
     assert "Protocol → Project" in response.json()["detail"]
+
+def test_whitespace_only_run_id_is_rejected_before_safe_mode(api):
+    """Invalid stable IDs fail request validation before write-back is considered."""
+    _, client, _ = api
+    payload = request_payload()
+    payload["run_id"] = "   "
+    response = client.post(
+        "/api/v1/research-runs",
+        headers={"X-API-Key": "test-platform-key"},
+        json=payload,
+    )
+    assert response.status_code == 422
+    assert "run_id" in response.text
