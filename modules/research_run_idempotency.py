@@ -45,6 +45,14 @@ class RunIdempotencyLedger:
         return connection
 
     @staticmethod
+    @staticmethod
+    def _normalize_run_id(run_id: str) -> str:
+        """Use one canonical key for reservations and every state transition."""
+        if not isinstance(run_id, str) or not run_id.strip():
+            raise ValueError("run_id must be a non-empty stable string.")
+        return run_id.strip()
+
+    @staticmethod
     def fingerprint(payload: Dict[str, Any]) -> str:
         encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
         return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
