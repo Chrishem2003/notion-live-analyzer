@@ -45,7 +45,6 @@ class RunIdempotencyLedger:
         return connection
 
     @staticmethod
-    @staticmethod
     def _normalize_run_id(run_id: str) -> str:
         """Use one canonical key for reservations and every state transition."""
         if not isinstance(run_id, str) or not run_id.strip():
