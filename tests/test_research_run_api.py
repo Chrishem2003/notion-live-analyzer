@@ -418,3 +418,77 @@ def test_whitespace_only_run_id_is_rejected_before_safe_mode(api):
     )
     assert response.status_code == 422
     assert "run_id" in response.text
+
+
+def test_padded_run_id_replay_uses_single_canonical_ledger_entry(api, monkeypatch):
+    """A padded first request and canonical retry must share one durable ledger key."""
+    _, client, required = api
+    import sqlite3
+    import modules.research_run_adapter as adapter_module
+
+    created_pages = []
+    verified_pages = []
+
+    class FakeAdapter:
+        def __init__(self, token, data_source_id):
+            assert token == "test-notion-token"
+            assert data_source_id == "private-runs"
+
+        def validate_page_parent(self, page_id, expected_data_source_id, label):
+            return {"id": page_id, "properties": {}}
+
+        def validate_relation_membership(
+            self, page, property_name, expected_page_ids, label, *, require_all=True
+        ):
+            return None
+
+        def validate_record_classification(self, page, label, allowed=("Demo", "Synthetic/Test")):
+            return None
+
+        def create_or_get_run(self, run_id, properties):
+            assert run_id == "synthetic-api-test-001"
+            page = {
+                "id": "synthetic-notion-page",
+                "url": "https://notion.example/synthetic-page",
+            }
+            created_pages.append((run_id, properties, page["id"]))
+            return {"created": True, "page": page}
+
+        def get_and_verify_existing_run(self, page_id, run_id, properties):
+            assert page_id == "synthetic-notion-page"
+            assert run_id == "synthetic-api-test-001"
+            verified_pages.append((page_id, run_id))
+            return {
+                "id": page_id,
+                "url": "https://notion.example/synthetic-page",
+            }
+
+    monkeypatch.setattr(adapter_module, "ResearchRunAdapter", FakeAdapter)
+
+    padded = request_payload()
+    padded["run_id"] = "  synthetic-api-test-001  "
+    first = client.post(
+        "/api/v1/research-runs",
+        headers={"X-API-Key": "test-platform-key"},
+        json=padded,
+    )
+    second = client.post(
+        "/api/v1/research-runs",
+        headers={"X-API-Key": "test-platform-key"},
+        json=request_payload(),
+    )
+
+    assert first.status_code == 200, first.text
+    assert second.status_code == 200, second.text
+    assert first.json()["created"] is True
+    assert second.json()["created"] is False
+    assert first.json()["run_id"] == second.json()["run_id"] == "synthetic-api-test-001"
+    assert first.json()["page_id"] == second.json()["page_id"] == "synthetic-notion-page"
+    assert len(created_pages) == 1
+    assert verified_pages == [("synthetic-notion-page", "synthetic-api-test-001")]
+
+    with sqlite3.connect(required["RESEARCH_RUN_IDEMPOTENCY_DB"]) as connection:
+        rows = connection.execute(
+            "SELECT run_id, state, notion_page_id FROM research_run_idempotency"
+        ).fetchall()
+    assert rows == [("synthetic-api-test-001", "complete", "synthetic-notion-page")]
