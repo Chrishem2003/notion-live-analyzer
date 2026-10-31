@@ -492,3 +492,69 @@ def test_padded_run_id_replay_uses_single_canonical_ledger_entry(api, monkeypatc
             "SELECT run_id, state, notion_page_id FROM research_run_idempotency"
         ).fetchall()
     assert rows == [("synthetic-api-test-001", "complete", "synthetic-notion-page")]
+
+
+def test_reusing_run_id_with_changed_payload_returns_http_409_without_second_write(api, monkeypatch):
+    """A completed run ID cannot be reused for changed inputs or create a second page."""
+    _, client, required = api
+    import sqlite3
+    import modules.research_run_adapter as adapter_module
+
+    created_pages = []
+
+    class FakeAdapter:
+        def __init__(self, token, data_source_id):
+            assert token == "test-notion-token"
+            assert data_source_id == "private-runs"
+
+        def validate_page_parent(self, page_id, expected_data_source_id, label):
+            return {"id": page_id, "properties": {}}
+
+        def validate_relation_membership(
+            self, page, property_name, expected_page_ids, label, *, require_all=True
+        ):
+            return None
+
+        def validate_record_classification(
+            self, page, label, allowed=("Demo", "Synthetic/Test")
+        ):
+            return None
+
+        def create_or_get_run(self, run_id, properties):
+            assert run_id == "synthetic-api-test-001"
+            page = {
+                "id": "synthetic-notion-page",
+                "url": "https://notion.example/synthetic-page",
+            }
+            created_pages.append((run_id, properties, page["id"]))
+            return {"created": True, "page": page}
+
+        def get_and_verify_existing_run(self, page_id, run_id, properties):
+            raise AssertionError("A changed payload must conflict before existing-page replay.")
+
+    monkeypatch.setattr(adapter_module, "ResearchRunAdapter", FakeAdapter)
+
+    first = client.post(
+        "/api/v1/research-runs",
+        headers={"X-API-Key": "test-platform-key"},
+        json=request_payload(),
+    )
+    changed_payload = request_payload()
+    changed_payload["run_name"] = "Changed synthetic payload"
+    second = client.post(
+        "/api/v1/research-runs",
+        headers={"X-API-Key": "test-platform-key"},
+        json=changed_payload,
+    )
+
+    assert first.status_code == 200, first.text
+    assert first.json()["created"] is True
+    assert second.status_code == 409, second.text
+    assert "different payload" in second.json()["detail"]
+    assert len(created_pages) == 1
+
+    with sqlite3.connect(required["RESEARCH_RUN_IDEMPOTENCY_DB"]) as connection:
+        rows = connection.execute(
+            "SELECT run_id, state, notion_page_id FROM research_run_idempotency"
+        ).fetchall()
+    assert rows == [("synthetic-api-test-001", "complete", "synthetic-notion-page")]
