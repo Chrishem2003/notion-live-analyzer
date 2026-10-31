@@ -45,14 +45,19 @@ class RunIdempotencyLedger:
         return connection
 
     @staticmethod
+    def _normalize_run_id(run_id: str) -> str:
+        """Use one canonical key for reservations and every state transition."""
+        if not isinstance(run_id, str) or not run_id.strip():
+            raise ValueError("run_id must be a non-empty stable string.")
+        return run_id.strip()
+
+    @staticmethod
     def fingerprint(payload: Dict[str, Any]) -> str:
         encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
         return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
     def reserve(self, run_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
-        if not isinstance(run_id, str) or not run_id.strip():
-            raise ValueError("run_id must be a non-empty stable string.")
-        stable_id = run_id.strip()
+        stable_id = self._normalize_run_id(run_id)
         payload_hash = self.fingerprint(payload)
         connection = self._connect()
         try:
@@ -110,27 +115,34 @@ class RunIdempotencyLedger:
             connection.close()
 
     def mark_complete(self, run_id: str, page_id: str) -> None:
+        stable_id = self._normalize_run_id(run_id)
         with closing(self._connect()) as connection:
             cursor = connection.execute(
                 "UPDATE research_run_idempotency SET state='complete', notion_page_id=?, "
                 "updated_at=CURRENT_TIMESTAMP WHERE run_id=?",
-                (page_id, run_id),
+                (page_id, stable_id),
             )
             if cursor.rowcount != 1:
                 raise RuntimeError("Cannot complete an unreserved run_id.")
 
     def mark_ambiguous(self, run_id: str) -> None:
+        stable_id = self._normalize_run_id(run_id)
         with closing(self._connect()) as connection:
-            connection.execute(
+            cursor = connection.execute(
                 "UPDATE research_run_idempotency SET state='ambiguous', "
                 "updated_at=CURRENT_TIMESTAMP WHERE run_id=?",
-                (run_id,),
+                (stable_id,),
             )
+            if cursor.rowcount != 1:
+                raise RuntimeError("Cannot mark an unreserved run_id ambiguous.")
 
     def mark_failed(self, run_id: str) -> None:
+        stable_id = self._normalize_run_id(run_id)
         with closing(self._connect()) as connection:
-            connection.execute(
+            cursor = connection.execute(
                 "UPDATE research_run_idempotency SET state='failed', "
                 "updated_at=CURRENT_TIMESTAMP WHERE run_id=?",
-                (run_id,),
+                (stable_id,),
             )
+            if cursor.rowcount != 1:
+                raise RuntimeError("Cannot mark an unreserved run_id failed.")

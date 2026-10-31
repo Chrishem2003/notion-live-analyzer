@@ -83,6 +83,16 @@ class ResearchRunWriteRequest(BaseModel):
     manifest_hash: str = Field("", max_length=256)
     parameters_json: str = Field("", max_length=10000)
 
+    @validator("run_id", pre=True)
+    def normalize_run_id(cls, value: str) -> str:
+        """Canonicalize run IDs before hashing, reserving, and writing them."""
+        if not isinstance(value, str):
+            return value
+        normalized = value.strip()
+        if not normalized:
+            raise ValueError("run_id must be a non-empty stable string.")
+        return normalized
+
     @validator("parameters_json")
     def parameters_json_must_be_object(cls, value: str) -> str:
         """Reject malformed/non-object parameters before any external side effect."""
