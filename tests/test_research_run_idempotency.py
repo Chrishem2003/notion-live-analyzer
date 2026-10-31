@@ -79,3 +79,18 @@ def test_run_id_mutations_use_the_same_canonical_identifier(tmp_path):
         "action": "complete",
         "page_id": "notion-synthetic-page",
     }
+
+
+@pytest.mark.parametrize("transition", ["mark_ambiguous", "mark_failed"])
+def test_ledger_state_transition_rejects_unreserved_run_id(tmp_path, transition):
+    """Recovery/failure transitions must not silently succeed without a ledger row."""
+    ledger = RunIdempotencyLedger(str(tmp_path / "unreserved" / "runs.sqlite3"))
+
+    with pytest.raises(RuntimeError, match="unreserved run_id"):
+        getattr(ledger, transition)("missing-run")
+
+    with sqlite3.connect(ledger.database_path) as connection:
+        count = connection.execute(
+            "SELECT COUNT(*) FROM research_run_idempotency"
+        ).fetchone()[0]
+    assert count == 0
