@@ -128,17 +128,21 @@ class RunIdempotencyLedger:
     def mark_ambiguous(self, run_id: str) -> None:
         stable_id = self._normalize_run_id(run_id)
         with closing(self._connect()) as connection:
-            connection.execute(
+            cursor = connection.execute(
                 "UPDATE research_run_idempotency SET state='ambiguous', "
                 "updated_at=CURRENT_TIMESTAMP WHERE run_id=?",
                 (stable_id,),
             )
+            if cursor.rowcount != 1:
+                raise RuntimeError("Cannot mark an unreserved run_id ambiguous.")
 
     def mark_failed(self, run_id: str) -> None:
         stable_id = self._normalize_run_id(run_id)
         with closing(self._connect()) as connection:
-            connection.execute(
+            cursor = connection.execute(
                 "UPDATE research_run_idempotency SET state='failed', "
                 "updated_at=CURRENT_TIMESTAMP WHERE run_id=?",
                 (stable_id,),
             )
+            if cursor.rowcount != 1:
+                raise RuntimeError("Cannot mark an unreserved run_id failed.")
