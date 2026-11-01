@@ -94,3 +94,60 @@ def test_ledger_state_transition_rejects_unreserved_run_id(tmp_path, transition)
             "SELECT COUNT(*) FROM research_run_idempotency"
         ).fetchone()[0]
     assert count == 0
+
+
+@pytest.mark.parametrize("transition", ["mark_ambiguous", "mark_failed"])
+def test_late_transition_cannot_downgrade_completed_run(tmp_path, transition):
+    """A late worker result must not erase an already completed ledger entry."""
+    ledger = RunIdempotencyLedger(str(tmp_path / "completed" / "runs.sqlite3"))
+    payload = {"run_name": "Immutable completed result"}
+    ledger.reserve("run-complete", payload)
+    ledger.mark_complete("run-complete", "notion-page-original")
+
+    # A stale worker may report a timeout/failure after another worker completed.
+    getattr(ledger, transition)("run-complete")
+
+    with sqlite3.connect(ledger.database_path) as connection:
+        row = connection.execute(
+            "SELECT state, notion_page_id FROM research_run_idempotency WHERE run_id=?",
+            ("run-complete",),
+        ).fetchone()
+    assert row == ("complete", "notion-page-original")
+    assert ledger.reserve("run-complete", payload) == {
+        "action": "complete",
+        "page_id": "notion-page-original",
+    }
+
+
+def test_completed_run_page_id_is_immutable_but_same_result_is_idempotent(tmp_path):
+    """Repeated completion may confirm the same page, never replace it."""
+    ledger = RunIdempotencyLedger(str(tmp_path / "page-id" / "runs.sqlite3"))
+    payload = {"run_name": "Page identity protection"}
+    ledger.reserve("run-page-id", payload)
+    ledger.mark_complete("run-page-id", "notion-page-original")
+
+    # A duplicate completion for the same external page is safe and idempotent.
+    ledger.mark_complete("run-page-id", "notion-page-original")
+    with pytest.raises(RuntimeError, match="Cannot replace the Notion page ID"):
+        ledger.mark_complete("run-page-id", "notion-page-different")
+
+    with sqlite3.connect(ledger.database_path) as connection:
+        row = connection.execute(
+            "SELECT state, notion_page_id FROM research_run_idempotency WHERE run_id=?",
+            ("run-page-id",),
+        ).fetchone()
+    assert row == ("complete", "notion-page-original")
+
+
+def test_mark_complete_rejects_unreserved_run_id_without_creating_row(tmp_path):
+    """Completion cannot manufacture a ledger row without a prior reservation."""
+    ledger = RunIdempotencyLedger(str(tmp_path / "missing-reservation" / "runs.sqlite3"))
+
+    with pytest.raises(RuntimeError, match="Cannot complete an unreserved run_id"):
+        ledger.mark_complete("missing-run", "notion-page-should-not-exist")
+
+    with sqlite3.connect(ledger.database_path) as connection:
+        count = connection.execute(
+            "SELECT COUNT(*) FROM research_run_idempotency"
+        ).fetchone()[0]
+    assert count == 0
