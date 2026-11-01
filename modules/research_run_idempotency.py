@@ -115,34 +115,78 @@ class RunIdempotencyLedger:
             connection.close()
 
     def mark_complete(self, run_id: str, page_id: str) -> None:
+        """Complete a reserved run without replacing a completed result."""
         stable_id = self._normalize_run_id(run_id)
         with closing(self._connect()) as connection:
             cursor = connection.execute(
                 "UPDATE research_run_idempotency SET state='complete', notion_page_id=?, "
-                "updated_at=CURRENT_TIMESTAMP WHERE run_id=?",
+                "updated_at=CURRENT_TIMESTAMP WHERE run_id=? AND state IN ('pending', 'ambiguous')",
                 (page_id, stable_id),
             )
-            if cursor.rowcount != 1:
+            if cursor.rowcount == 1:
+                return
+
+            row = connection.execute(
+                "SELECT state, notion_page_id FROM research_run_idempotency WHERE run_id=?",
+                (stable_id,),
+            ).fetchone()
+            if row is None:
                 raise RuntimeError("Cannot complete an unreserved run_id.")
 
+            state, existing_page_id = row
+            if state == "complete" and existing_page_id == page_id:
+                # Concurrent/retried completion for the same external record is idempotent.
+                return
+            if state == "complete":
+                raise RuntimeError(
+                    "Cannot replace the Notion page ID for a completed run_id."
+                )
+            raise RuntimeError(f"Cannot complete run_id from state '{state}'.")
+
     def mark_ambiguous(self, run_id: str) -> None:
+        """Mark uncertain delivery without downgrading an already-complete run."""
         stable_id = self._normalize_run_id(run_id)
         with closing(self._connect()) as connection:
             cursor = connection.execute(
                 "UPDATE research_run_idempotency SET state='ambiguous', "
-                "updated_at=CURRENT_TIMESTAMP WHERE run_id=?",
+                "updated_at=CURRENT_TIMESTAMP WHERE run_id=? "
+                "AND state IN ('pending', 'ambiguous', 'failed')",
                 (stable_id,),
             )
-            if cursor.rowcount != 1:
+            if cursor.rowcount == 1:
+                return
+
+            row = connection.execute(
+                "SELECT state FROM research_run_idempotency WHERE run_id=?",
+                (stable_id,),
+            ).fetchone()
+            if row is None:
                 raise RuntimeError("Cannot mark an unreserved run_id ambiguous.")
+            if row[0] == "complete":
+                # A late timeout must not erase proof of an already-completed write.
+                return
+            raise RuntimeError(f"Cannot mark run_id ambiguous from state '{row[0]}'.")
 
     def mark_failed(self, run_id: str) -> None:
+        """Record failure while preserving a completed run's immutable result."""
         stable_id = self._normalize_run_id(run_id)
         with closing(self._connect()) as connection:
             cursor = connection.execute(
                 "UPDATE research_run_idempotency SET state='failed', "
-                "updated_at=CURRENT_TIMESTAMP WHERE run_id=?",
+                "updated_at=CURRENT_TIMESTAMP WHERE run_id=? "
+                "AND state IN ('pending', 'ambiguous', 'failed')",
                 (stable_id,),
             )
-            if cursor.rowcount != 1:
+            if cursor.rowcount == 1:
+                return
+
+            row = connection.execute(
+                "SELECT state FROM research_run_idempotency WHERE run_id=?",
+                (stable_id,),
+            ).fetchone()
+            if row is None:
                 raise RuntimeError("Cannot mark an unreserved run_id failed.")
+            if row[0] == "complete":
+                # A late failure from an older worker must not downgrade completion.
+                return
+            raise RuntimeError(f"Cannot mark run_id failed from state '{row[0]}'.")
