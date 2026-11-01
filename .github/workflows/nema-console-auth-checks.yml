@@ -1,0 +1,51 @@
+name: NEMA Console Authentication Regression
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "nema_agora/access.py"
+      - "pages/18_NEMA_AGORA_Case_Console.py"
+      - "tests/test_nema_console_access.py"
+      - "tests/test_nema_console_page_access.py"
+      - ".github/workflows/nema-console-auth-checks.yml"
+  push:
+    branches: [main]
+    paths:
+      - "nema_agora/access.py"
+      - "pages/18_NEMA_AGORA_Case_Console.py"
+      - "tests/test_nema_console_access.py"
+      - "tests/test_nema_console_page_access.py"
+      - ".github/workflows/nema-console-auth-checks.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  console-auth-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install focused test dependencies
+        run: python -m pip install pytest numpy pandas requests streamlit==1.63.0
+
+      - name: Test portal-session guard and page gate
+        run: |
+          python -m pytest -q \
+            tests/test_nema_console_access.py \
+            tests/test_nema_console_page_access.py
+
+      - name: Compile access guard and console page
+        run: |
+          python -m compileall -q \
+            nema_agora/access.py \
+            pages/18_NEMA_AGORA_Case_Console.py
