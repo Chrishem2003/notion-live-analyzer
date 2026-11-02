@@ -52,6 +52,13 @@ class RunIdempotencyLedger:
         return run_id.strip()
 
     @staticmethod
+    def _validate_page_id(page_id: str) -> str:
+        """Reject missing or padded external page IDs before completing a run."""
+        if not isinstance(page_id, str) or not page_id.strip() or page_id != page_id.strip():
+            raise RuntimeError("page_id must be a non-empty, unpadded string.")
+        return page_id
+
+    @staticmethod
     def fingerprint(payload: Dict[str, Any]) -> str:
         encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
         return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
@@ -117,11 +124,12 @@ class RunIdempotencyLedger:
     def mark_complete(self, run_id: str, page_id: str) -> None:
         """Complete a reserved run without replacing a completed result."""
         stable_id = self._normalize_run_id(run_id)
+        stable_page_id = self._validate_page_id(page_id)
         with closing(self._connect()) as connection:
             cursor = connection.execute(
                 "UPDATE research_run_idempotency SET state='complete', notion_page_id=?, "
                 "updated_at=CURRENT_TIMESTAMP WHERE run_id=? AND state IN ('pending', 'ambiguous')",
-                (page_id, stable_id),
+                (stable_page_id, stable_id),
             )
             if cursor.rowcount == 1:
                 return
@@ -134,7 +142,7 @@ class RunIdempotencyLedger:
                 raise RuntimeError("Cannot complete an unreserved run_id.")
 
             state, existing_page_id = row
-            if state == "complete" and existing_page_id == page_id:
+            if state == "complete" and existing_page_id == stable_page_id:
                 # Concurrent/retried completion for the same external record is idempotent.
                 return
             if state == "complete":
