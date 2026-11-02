@@ -151,3 +151,20 @@ def test_mark_complete_rejects_unreserved_run_id_without_creating_row(tmp_path):
             "SELECT COUNT(*) FROM research_run_idempotency"
         ).fetchone()[0]
     assert count == 0
+
+@pytest.mark.parametrize("page_id", [None, "", "   ", " notion-page-padded ", 42])
+def test_mark_complete_rejects_invalid_page_id_without_changing_reservation(tmp_path, page_id):
+    """A malformed external page ID must not create a false completed ledger result."""
+    ledger = RunIdempotencyLedger(str(tmp_path / "invalid-page-id" / "runs.sqlite3"))
+    ledger.reserve("run-invalid-page-id", {"run_name": "Page ID validation"})
+
+    with pytest.raises(RuntimeError, match="page_id must be a non-empty, unpadded string"):
+        ledger.mark_complete("run-invalid-page-id", page_id)
+
+    with sqlite3.connect(ledger.database_path) as connection:
+        row = connection.execute(
+            "SELECT state, notion_page_id FROM research_run_idempotency WHERE run_id=?",
+            ("run-invalid-page-id",),
+        ).fetchone()
+    assert row == ("pending", None)
+
