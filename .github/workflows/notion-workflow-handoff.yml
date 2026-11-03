@@ -1,0 +1,38 @@
+name: Notion Workflow Handoff Contract
+
+on:
+  push:
+    branches:
+      - test/notion-handoff-focused-ci-20261103
+    paths:
+      - "modules/notion_workflow_handoff.py"
+      - "tests/test_notion_workflow_handoff.py"
+      - ".github/workflows/notion-workflow-handoff.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  notion-handoff-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install focused test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest requests
+
+      - name: Run Notion workflow handoff contract tests
+        run: python -m pytest -q tests/test_notion_workflow_handoff.py
+
+      - name: Compile handoff adapter
+        run: python -m compileall -q modules/notion_workflow_handoff.py
