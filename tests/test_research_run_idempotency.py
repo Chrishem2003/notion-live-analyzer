@@ -168,3 +168,84 @@ def test_mark_complete_rejects_invalid_page_id_without_changing_reservation(tmp_
         ).fetchone()
     assert row == ("pending", None)
 
+
+def test_concurrent_reservations_share_one_pending_ledger_row(tmp_path):
+    """Independent ledger instances must serialize concurrent same-payload reservations."""
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Barrier
+
+    path = str(tmp_path / "concurrent-same-payload" / "runs.sqlite3")
+    worker_count = 6
+    ledgers = [RunIdempotencyLedger(path) for _ in range(worker_count)]
+    barrier = Barrier(worker_count)
+    payload = {"run_name": "Concurrent synthetic reservation"}
+
+    def reserve(ledger):
+        barrier.wait(timeout=10)
+        return ledger.reserve("run-concurrent-same", payload)["action"]
+
+    with ThreadPoolExecutor(max_workers=worker_count) as executor:
+        actions = [future.result(timeout=20) for future in [
+            executor.submit(reserve, ledger) for ledger in ledgers
+        ]]
+
+    assert actions.count("reserved") == 1
+    assert actions.count("in_progress") == worker_count - 1
+
+    with sqlite3.connect(path) as connection:
+        rows = connection.execute(
+            "SELECT run_id, payload_hash, state, notion_page_id "
+            "FROM research_run_idempotency"
+        ).fetchall()
+    assert rows == [
+        (
+            "run-concurrent-same",
+            RunIdempotencyLedger.fingerprint(payload),
+            "pending",
+            None,
+        )
+    ]
+
+
+def test_concurrent_conflicting_payload_reservations_have_one_winner(tmp_path):
+    """Concurrent conflicting payloads must not create competing reservations."""
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Barrier
+
+    path = str(tmp_path / "concurrent-conflict" / "runs.sqlite3")
+    worker_count = 6
+    ledgers = [RunIdempotencyLedger(path) for _ in range(worker_count)]
+    barrier = Barrier(worker_count)
+    payloads = [{"run_name": f"Concurrent payload {index}"} for index in range(worker_count)]
+
+    def reserve(index):
+        barrier.wait(timeout=10)
+        try:
+            result = ledgers[index].reserve("run-concurrent-conflict", payloads[index])
+            return result["action"], payloads[index]
+        except IdempotencyConflictError:
+            return "conflict", payloads[index]
+
+    with ThreadPoolExecutor(max_workers=worker_count) as executor:
+        outcomes = [future.result(timeout=20) for future in [
+            executor.submit(reserve, index) for index in range(worker_count)
+        ]]
+
+    actions = [action for action, _ in outcomes]
+    assert actions.count("reserved") == 1
+    assert actions.count("conflict") == worker_count - 1
+
+    winner_payload = next(payload for action, payload in outcomes if action == "reserved")
+    with sqlite3.connect(path) as connection:
+        rows = connection.execute(
+            "SELECT run_id, payload_hash, state, notion_page_id "
+            "FROM research_run_idempotency"
+        ).fetchall()
+    assert rows == [
+        (
+            "run-concurrent-conflict",
+            RunIdempotencyLedger.fingerprint(winner_payload),
+            "pending",
+            None,
+        )
+    ]
