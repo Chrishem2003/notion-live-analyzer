@@ -1,6 +1,7 @@
 """Deterministic FASTA syntax and alphabet screening; not biological interpretation."""
 from __future__ import annotations
 
+from collections import Counter
 from typing import Any, Mapping
 
 from modules.workflow_contract import WorkflowContractError
@@ -96,17 +97,16 @@ def validate_fasta(payload: Mapping[str, Any]) -> Mapping[str, Any]:
     if not records:
         raise WorkflowContractError("FASTA input contains no records")
 
-    seen: set[str] = set()
-    duplicates: list[str] = []
+    id_counts = Counter(record["record_id"] for record in records)
+    duplicates = sorted(record_id for record_id, count in id_counts.items() if count > 1)
+    duplicate_ids = set(duplicates)
     for record in records:
-        record_id = record["record_id"]
-        if record_id in seen:
-            duplicates.append(record_id)
+        if record["record_id"] in duplicate_ids:
             record["valid_record"] = False
-            record["errors"].append("Duplicate FASTA record ID.")
-        seen.add(record_id)
+            if "Duplicate FASTA record ID." not in record["errors"]:
+                record["errors"].append("Duplicate FASTA record ID.")
     if duplicates:
-        errors.append("Duplicate record IDs: " + ", ".join(sorted(set(duplicates))[:50]))
+        errors.append("Duplicate record IDs: " + ", ".join(duplicates[:50]))
 
     # Recompute aggregate validity after duplicate-ID checks.
     return {
