@@ -237,7 +237,7 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
         self.assertEqual(sum(1 for result in results if result["created"]), 1)
         self.assertEqual(sum(1 for result in results if not result["created"]), 1)
         create_calls = [
-            call for call in session.posts
+            call for call in session.calls
             if call[0] == "POST" and call[1].endswith("/pages")
         ]
         self.assertEqual(len(create_calls), 1)
