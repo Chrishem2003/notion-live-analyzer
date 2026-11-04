@@ -4,9 +4,23 @@ on:
   push:
     branches:
       - test/notion-handoff-focused-ci-20261103
+      - bio-research/append-only-portal-event-trail
     paths:
       - "modules/notion_workflow_handoff.py"
       - "tests/test_notion_workflow_handoff.py"
+      - "tests/helpers.py"
+      - "conftest.py"
+      - "pytest.ini"
+      - ".github/workflows/notion-workflow-handoff.yml"
+  pull_request:
+    branches:
+      - bio-research/append-only-portal-event-trail
+    paths:
+      - "modules/notion_workflow_handoff.py"
+      - "tests/test_notion_workflow_handoff.py"
+      - "tests/helpers.py"
+      - "conftest.py"
+      - "pytest.ini"
       - ".github/workflows/notion-workflow-handoff.yml"
   workflow_dispatch:
 
