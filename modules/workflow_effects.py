@@ -57,8 +57,9 @@ def _connect(database: str | Path) -> sqlite3.Connection:
 class EffectJournal:
     """Append-aware state journal for external actions, stored in SQLite.
 
-    States: pending -> confirmed, or pending -> uncertain. Uncertain/pending
-    records are never silently replayed. Reconciliation is an explicit operation.
+    States: pending -> confirmed, or pending -> uncertain. An explicit downstream
+    reconciliation that confirms absence grants one retry permit; prepare consumes
+    that permit atomically. Uncertain/pending records otherwise fail closed.
     """
 
     def __init__(self, database: str | Path):
@@ -75,10 +76,19 @@ class EffectJournal:
                     state TEXT NOT NULL CHECK(state IN ('pending', 'confirmed', 'uncertain')),
                     result_json TEXT,
                     created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL
+                    updated_at TEXT NOT NULL,
+                    reconciled INTEGER NOT NULL DEFAULT 0
                 )
                 """
             )
+            columns = {
+                row["name"] for row in connection.execute("PRAGMA table_info(workflow_effects)").fetchall()
+            }
+            if "reconciled" not in columns:
+                # Additive migration: legacy rows receive reconciled=0 and remain fail-closed.
+                connection.execute(
+                    "ALTER TABLE workflow_effects ADD COLUMN reconciled INTEGER NOT NULL DEFAULT 0"
+                )
             connection.execute(
                 "CREATE INDEX IF NOT EXISTS idx_workflow_effects_run ON workflow_effects(workflow_id, run_id)"
             )
@@ -124,6 +134,20 @@ class EffectJournal:
                 if existing["state"] == "confirmed":
                     connection.execute("COMMIT")
                     return EffectPreparation(effect_key, "confirmed", False, result)
+                if existing["state"] == "pending" and bool(existing["reconciled"]):
+                    # Consume the one-time permit granted by reconcile(confirmed=False).
+                    cursor = connection.execute(
+                        """UPDATE workflow_effects
+                        SET reconciled=0, updated_at=?
+                        WHERE effect_key=? AND state='pending' AND reconciled=1""",
+                        (now, effect_key),
+                    )
+                    if cursor.rowcount != 1:
+                        raise EffectOutcomeUnknown(
+                            f"effect {effect_key!r} retry permit was already consumed"
+                        )
+                    connection.execute("COMMIT")
+                    return EffectPreparation(effect_key, "pending", True)
                 connection.execute("COMMIT")
                 raise EffectOutcomeUnknown(
                     f"effect {effect_key!r} is {existing['state']}; reconcile with the downstream system before retrying"
@@ -140,7 +164,7 @@ class EffectJournal:
             connection.execute("BEGIN IMMEDIATE")
             try:
                 row = connection.execute(
-                    "SELECT state, result_json FROM workflow_effects WHERE effect_key = ?", (effect_key,)
+                    "SELECT state, result_json, reconciled FROM workflow_effects WHERE effect_key = ?", (effect_key,)
                 ).fetchone()
                 if row is None:
                     raise EffectJournalError("cannot confirm an effect that was not prepared")
@@ -149,8 +173,10 @@ class EffectJournal:
                         raise EffectIdentityConflict("confirmed effect cannot be overwritten with a different result")
                     connection.execute("COMMIT")
                     return
-                if row["state"] != "pending":
-                    raise EffectOutcomeUnknown("uncertain effect requires reconciliation before confirmation")
+                if row["state"] != "pending" or bool(row["reconciled"]):
+                    raise EffectOutcomeUnknown(
+                        "effect requires a fresh prepared attempt before confirmation"
+                    )
                 connection.execute(
                     "UPDATE workflow_effects SET state='confirmed', result_json=?, updated_at=? WHERE effect_key=? AND state='pending'",
                     (encoded, now, effect_key),
@@ -174,7 +200,7 @@ class EffectJournal:
                     connection.execute("COMMIT")
                     return
                 connection.execute(
-                    "UPDATE workflow_effects SET state='uncertain', updated_at=? WHERE effect_key=? AND state IN ('pending', 'uncertain')",
+                    "UPDATE workflow_effects SET state='uncertain', reconciled=0, updated_at=? WHERE effect_key=? AND state IN ('pending', 'uncertain')",
                     (_now(), effect_key),
                 )
                 connection.execute("COMMIT")
@@ -212,8 +238,8 @@ class EffectJournal:
                     connection.execute("COMMIT")
                     return
                 connection.execute(
-                    "UPDATE workflow_effects SET state=?, result_json=?, updated_at=? WHERE effect_key=?",
-                    (target, encoded, _now(), effect_key),
+                    "UPDATE workflow_effects SET state=?, result_json=?, reconciled=?, updated_at=? WHERE effect_key=?",
+                    (target, encoded, 0 if confirmed else 1, _now(), effect_key),
                 )
                 connection.execute("COMMIT")
             except Exception:
