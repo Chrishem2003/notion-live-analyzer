@@ -1,4 +1,7 @@
 """Regression tests for durable workflow side-effect idempotency journal."""
+import hashlib
+import json
+import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
@@ -55,6 +58,60 @@ class WorkflowEffectJournalTests(unittest.TestCase):
         self.assertEqual(calls, ["effect-2"])
         self.assertEqual(self.journal.get("effect-2")["state"], "uncertain")
 
+    def test_initial_pending_effect_cannot_be_replayed_without_reconciliation(self):
+        self.journal.prepare(
+            effect_key="effect-pending", workflow_id="p1", run_id="r-pending",
+            effect_name="publish", request={"sample": "synthetic"},
+        )
+        with self.assertRaises(EffectOutcomeUnknown):
+            self.journal.prepare(
+                effect_key="effect-pending", workflow_id="p1", run_id="r-pending",
+                effect_name="publish", request={"sample": "synthetic"},
+            )
+
+    def test_legacy_journal_migration_preserves_pending_rows_as_not_reconciled(self):
+        legacy_db = Path(self.tempdir.name) / "legacy-effects.sqlite3"
+        request = {"sample": "legacy"}
+        encoded = json.dumps(
+            request, sort_keys=True, separators=(",", ":"),
+            ensure_ascii=False, allow_nan=False,
+        )
+        digest = hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+        timestamp = "2026-11-04T00:00:00+00:00"
+        with sqlite3.connect(legacy_db) as connection:
+            connection.execute(
+                """
+                CREATE TABLE workflow_effects (
+                    effect_key TEXT PRIMARY KEY,
+                    workflow_id TEXT NOT NULL,
+                    run_id TEXT NOT NULL,
+                    effect_name TEXT NOT NULL,
+                    request_digest TEXT NOT NULL,
+                    state TEXT NOT NULL CHECK(state IN ('pending', 'confirmed', 'uncertain')),
+                    result_json TEXT,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                )
+                """
+            )
+            connection.execute(
+                """INSERT INTO workflow_effects
+                (effect_key, workflow_id, run_id, effect_name, request_digest,
+                 state, result_json, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, 'pending', NULL, ?, ?)""",
+                ("legacy-effect", "p1", "r-legacy", "publish", digest, timestamp, timestamp),
+            )
+
+        migrated = EffectJournal(legacy_db)
+        row = migrated.get("legacy-effect")
+        self.assertEqual(row["state"], "pending")
+        self.assertEqual(row["reconciled"], 0)
+        with self.assertRaises(EffectOutcomeUnknown):
+            migrated.prepare(
+                effect_key="legacy-effect", workflow_id="p1", run_id="r-legacy",
+                effect_name="publish", request=request,
+            )
+
     def test_reusing_key_for_different_request_is_rejected(self):
         self.journal.prepare(
             effect_key="effect-3", workflow_id="p1", run_id="r3",
@@ -87,12 +144,21 @@ class WorkflowEffectJournalTests(unittest.TestCase):
         )
         self.journal.mark_uncertain("effect-5")
         self.journal.reconcile("effect-5", confirmed=False)
+        with self.assertRaises(EffectOutcomeUnknown):
+            self.journal.confirm("effect-5", {"remote_id": "not-yet-performed"})
         next_attempt = self.journal.prepare(
             effect_key="effect-5", workflow_id="p1", run_id="r5",
             effect_name="publish", request={"sample": "synthetic"},
         )
         self.assertTrue(next_attempt.newly_prepared)
         self.assertEqual(next_attempt.state, "pending")
+        with self.assertRaises(EffectOutcomeUnknown):
+            self.journal.prepare(
+                effect_key="effect-5", workflow_id="p1", run_id="r5",
+                effect_name="publish", request={"sample": "synthetic"},
+            )
+        self.journal.confirm("effect-5", {"remote_id": "verified-after-retry"})
+        self.assertEqual(self.journal.get("effect-5")["state"], "confirmed")
 
 
     def test_confirmed_result_cannot_be_overwritten_by_reconciliation(self):
