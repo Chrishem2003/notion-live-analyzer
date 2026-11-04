@@ -3,7 +3,9 @@ import hashlib
 import json
 import sqlite3
 import tempfile
+import threading
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from modules.workflow_effects import (
@@ -111,6 +113,36 @@ class WorkflowEffectJournalTests(unittest.TestCase):
                 effect_key="legacy-effect", workflow_id="p1", run_id="r-legacy",
                 effect_name="publish", request=request,
             )
+
+    def test_reconciliation_retry_permit_is_consumed_once_under_concurrency(self):
+        self.journal.prepare(
+            effect_key="effect-concurrent", workflow_id="p1", run_id="r-concurrent",
+            effect_name="publish", request={"sample": "synthetic"},
+        )
+        self.journal.mark_uncertain("effect-concurrent")
+        self.journal.reconcile("effect-concurrent", confirmed=False)
+
+        barrier = threading.Barrier(3)
+
+        def attempt():
+            barrier.wait(timeout=5)
+            try:
+                result = self.journal.prepare(
+                    effect_key="effect-concurrent", workflow_id="p1", run_id="r-concurrent",
+                    effect_name="publish", request={"sample": "synthetic"},
+                )
+                return ("prepared", result)
+            except EffectOutcomeUnknown:
+                return ("blocked", None)
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            futures = [executor.submit(attempt) for _ in range(2)]
+            barrier.wait(timeout=5)
+            results = [future.result(timeout=10) for future in futures]
+
+        self.assertEqual(sum(state == "prepared" for state, _ in results), 1)
+        self.assertEqual(sum(state == "blocked" for state, _ in results), 1)
+        self.assertEqual(self.journal.get("effect-concurrent")["reconciled"], 0)
 
     def test_reusing_key_for_different_request_is_rejected(self):
         self.journal.prepare(
