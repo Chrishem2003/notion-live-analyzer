@@ -211,6 +211,60 @@ class WorkflowEffectJournalTests(unittest.TestCase):
         self.assertEqual(self.journal.get("effect-5")["state"], "confirmed")
 
 
+    def test_late_worker_cannot_confirm_or_downgrade_a_reconciled_retry(self):
+        effect_key = "effect-late-worker"
+        request = {"sample": "synthetic"}
+        started = threading.Event()
+        release = threading.Event()
+
+        def slow_first_attempt(_key):
+            started.set()
+            if not release.wait(timeout=5):
+                raise TimeoutError("synthetic first attempt was not released")
+            return {"remote_id": "late-first-attempt"}
+
+        def fast_retry(_key):
+            return {"remote_id": "second-attempt"}
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            first_future = executor.submit(
+                execute_idempotent_effect,
+                self.journal,
+                effect_key=effect_key,
+                workflow_id="p1",
+                run_id="r-late-worker",
+                effect_name="publish",
+                request=request,
+                perform=slow_first_attempt,
+            )
+            self.assertTrue(started.wait(timeout=5))
+            try:
+                self.journal.mark_uncertain(effect_key, attempt=1)
+                self.journal.reconcile(effect_key, attempt=1, confirmed=False)
+                retry_future = executor.submit(
+                    execute_idempotent_effect,
+                    self.journal,
+                    effect_key=effect_key,
+                    workflow_id="p1",
+                    run_id="r-late-worker",
+                    effect_name="publish",
+                    request=request,
+                    perform=fast_retry,
+                )
+                self.assertEqual(
+                    retry_future.result(timeout=10), {"remote_id": "second-attempt"}
+                )
+            finally:
+                release.set()
+
+            with self.assertRaisesRegex(EffectOutcomeUnknown, "stale effect attempt"):
+                first_future.result(timeout=10)
+
+        row = self.journal.get(effect_key)
+        self.assertEqual(row["state"], "confirmed")
+        self.assertEqual(row["attempt"], 2)
+        self.assertEqual(row["result"], {"remote_id": "second-attempt"})
+
     def test_stale_worker_cannot_mark_newer_attempt_uncertain(self):
         first = self.journal.prepare(
             effect_key="effect-fence-uncertain", workflow_id="p1", run_id="r-fence",
