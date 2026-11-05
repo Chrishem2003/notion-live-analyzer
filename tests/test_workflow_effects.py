@@ -116,12 +116,14 @@ class WorkflowEffectJournalTests(unittest.TestCase):
             )
 
     def test_reconciliation_retry_permit_is_consumed_once_under_concurrency(self):
-        self.journal.prepare(
+        initial = self.journal.prepare(
             effect_key="effect-concurrent", workflow_id="p1", run_id="r-concurrent",
             effect_name="publish", request={"sample": "synthetic"},
         )
-        self.journal.mark_uncertain("effect-concurrent")
-        self.journal.reconcile("effect-concurrent", confirmed=False)
+        self.journal.mark_uncertain("effect-concurrent", attempt=initial.attempt)
+        self.journal.reconcile(
+            "effect-concurrent", attempt=initial.attempt, confirmed=False
+        )
 
         barrier = threading.Barrier(3)
 
