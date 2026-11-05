@@ -108,6 +108,7 @@ class WorkflowEffectJournalTests(unittest.TestCase):
         row = migrated.get("legacy-effect")
         self.assertEqual(row["state"], "pending")
         self.assertEqual(row["reconciled"], 0)
+        self.assertEqual(row["attempt"], 1)
         with self.assertRaises(EffectOutcomeUnknown):
             migrated.prepare(
                 effect_key="legacy-effect", workflow_id="p1", run_id="r-legacy",
@@ -156,12 +157,15 @@ class WorkflowEffectJournalTests(unittest.TestCase):
             )
 
     def test_uncertain_effect_can_be_reconciled_as_confirmed(self):
-        self.journal.prepare(
+        initial = self.journal.prepare(
             effect_key="effect-4", workflow_id="p1", run_id="r4",
             effect_name="publish", request={"sample": "synthetic"},
         )
-        self.journal.mark_uncertain("effect-4")
-        self.journal.reconcile("effect-4", confirmed=True, result={"remote_id": "verified-1"})
+        self.journal.mark_uncertain("effect-4", attempt=initial.attempt)
+        self.journal.reconcile(
+            "effect-4", attempt=initial.attempt,
+            confirmed=True, result={"remote_id": "verified-1"},
+        )
         prepared = self.journal.prepare(
             effect_key="effect-4", workflow_id="p1", run_id="r4",
             effect_name="publish", request={"sample": "synthetic"},
@@ -170,38 +174,99 @@ class WorkflowEffectJournalTests(unittest.TestCase):
         self.assertEqual(prepared.result, {"remote_id": "verified-1"})
 
     def test_unconfirmed_reconciliation_returns_to_pending_only_after_check(self):
-        self.journal.prepare(
+        first_attempt = self.journal.prepare(
             effect_key="effect-5", workflow_id="p1", run_id="r5",
             effect_name="publish", request={"sample": "synthetic"},
         )
-        self.journal.mark_uncertain("effect-5")
-        self.journal.reconcile("effect-5", confirmed=False)
+        self.journal.mark_uncertain("effect-5", attempt=first_attempt.attempt)
+        self.journal.reconcile(
+            "effect-5", attempt=first_attempt.attempt, confirmed=False
+        )
         with self.assertRaises(EffectOutcomeUnknown):
-            self.journal.confirm("effect-5", {"remote_id": "not-yet-performed"})
+            self.journal.confirm(
+                "effect-5", {"remote_id": "not-yet-performed"}, attempt=first_attempt.attempt
+            )
         next_attempt = self.journal.prepare(
             effect_key="effect-5", workflow_id="p1", run_id="r5",
             effect_name="publish", request={"sample": "synthetic"},
         )
         self.assertTrue(next_attempt.newly_prepared)
         self.assertEqual(next_attempt.state, "pending")
+        self.assertEqual(next_attempt.attempt, first_attempt.attempt + 1)
         with self.assertRaises(EffectOutcomeUnknown):
             self.journal.prepare(
                 effect_key="effect-5", workflow_id="p1", run_id="r5",
                 effect_name="publish", request={"sample": "synthetic"},
             )
-        self.journal.confirm("effect-5", {"remote_id": "verified-after-retry"})
+        with self.assertRaisesRegex(EffectOutcomeUnknown, "stale effect attempt"):
+            self.journal.confirm(
+                "effect-5", {"remote_id": "late-first-attempt"}, attempt=first_attempt.attempt
+            )
+        self.assertEqual(self.journal.get("effect-5")["state"], "pending")
+        self.journal.confirm(
+            "effect-5", {"remote_id": "verified-after-retry"}, attempt=next_attempt.attempt
+        )
         self.assertEqual(self.journal.get("effect-5")["state"], "confirmed")
 
 
+    def test_stale_worker_cannot_mark_newer_attempt_uncertain(self):
+        first = self.journal.prepare(
+            effect_key="effect-fence-uncertain", workflow_id="p1", run_id="r-fence",
+            effect_name="publish", request={"sample": "synthetic"},
+        )
+        self.journal.mark_uncertain("effect-fence-uncertain", attempt=first.attempt)
+        self.journal.reconcile(
+            "effect-fence-uncertain", attempt=first.attempt, confirmed=False
+        )
+        retry = self.journal.prepare(
+            effect_key="effect-fence-uncertain", workflow_id="p1", run_id="r-fence",
+            effect_name="publish", request={"sample": "synthetic"},
+        )
+
+        with self.assertRaisesRegex(EffectOutcomeUnknown, "stale effect attempt"):
+            self.journal.mark_uncertain("effect-fence-uncertain", attempt=first.attempt)
+
+        row = self.journal.get("effect-fence-uncertain")
+        self.assertEqual(row["state"], "pending")
+        self.assertEqual(row["attempt"], retry.attempt)
+        self.assertEqual(row["reconciled"], 0)
+
+    def test_stale_reconciliation_cannot_mutate_newer_attempt(self):
+        first = self.journal.prepare(
+            effect_key="effect-fence-reconcile", workflow_id="p1", run_id="r-fence",
+            effect_name="publish", request={"sample": "synthetic"},
+        )
+        self.journal.mark_uncertain("effect-fence-reconcile", attempt=first.attempt)
+        self.journal.reconcile(
+            "effect-fence-reconcile", attempt=first.attempt, confirmed=False
+        )
+        retry = self.journal.prepare(
+            effect_key="effect-fence-reconcile", workflow_id="p1", run_id="r-fence",
+            effect_name="publish", request={"sample": "synthetic"},
+        )
+
+        with self.assertRaisesRegex(EffectOutcomeUnknown, "stale reconciliation"):
+            self.journal.reconcile(
+                "effect-fence-reconcile", attempt=first.attempt, confirmed=False
+            )
+
+        row = self.journal.get("effect-fence-reconcile")
+        self.assertEqual(row["state"], "pending")
+        self.assertEqual(row["attempt"], retry.attempt)
+        self.assertEqual(row["reconciled"], 0)
+
     def test_confirmed_result_cannot_be_overwritten_by_reconciliation(self):
-        self.journal.prepare(
+        prepared = self.journal.prepare(
             effect_key="effect-6", workflow_id="p1", run_id="r6",
             effect_name="publish", request={"sample": "synthetic"},
         )
-        self.journal.confirm("effect-6", {"remote_id": "verified-original"})
+        self.journal.confirm(
+            "effect-6", {"remote_id": "verified-original"}, attempt=prepared.attempt
+        )
         with self.assertRaises(EffectIdentityConflict):
             self.journal.reconcile(
-                "effect-6", confirmed=True, result={"remote_id": "different-result"}
+                "effect-6", attempt=prepared.attempt,
+                confirmed=True, result={"remote_id": "different-result"},
             )
         self.assertEqual(
             self.journal.get("effect-6")["result"], {"remote_id": "verified-original"}
