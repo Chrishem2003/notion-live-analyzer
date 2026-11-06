@@ -290,6 +290,15 @@ def _sync_run_to_notion_unlocked(
             "Notion page creation outcome is unknown after a transport failure; "
             "retry the handoff action to reconcile by manifest hash before creating again"
         ) from exc
+    create_status = getattr(created_response, "status_code", 500)
+    if create_status >= 500:
+        # A server error can be returned after the remote page was committed.
+        # Preserve the ambiguous outcome and require a fresh manifest lookup.
+        raise NotionHandoffError(
+            f"Notion page creation outcome is unknown after HTTP {create_status}; "
+            "the server may have committed the page. Retry the handoff action to "
+            "reconcile by manifest hash before any new create"
+        )
     created = _response_json(created_response)
     page_id = created.get("id")
     page_url = created.get("url")
