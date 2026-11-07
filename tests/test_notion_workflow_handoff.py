@@ -4,7 +4,9 @@ from concurrent.futures import ThreadPoolExecutor
 
 import requests
 
-from modules.notion_workflow_handoff import NotionHandoffError, _rich_text, sync_run_to_notion
+from modules.notion_workflow_handoff import (
+    NotionHandoffError, _rich_text, manifest_digest, sync_run_to_notion,
+)
 
 
 class FakeResponse:
@@ -64,6 +66,7 @@ def sample_run(**overrides):
         "workflow_id": "project-1",
         "task_type": "numeric_summary",
         "status": "succeeded",
+        "synthetic_only_confirmed": True,
         "input": {"values": [1, 2, 3]},
         "result": {"mean": 2.0, "n": 3},
         "created_at": "2026-10-16T10:00:00+00:00",
@@ -80,6 +83,36 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
         with self.assertRaisesRegex(NotionHandoffError, "only successful"):
             sync_run_to_notion(sample_run(status="failed"), token="secret", database_id="12345678123456781234567812345678", session=session)
         self.assertEqual(session.calls, [])
+
+    def test_handoff_requires_persisted_run_scoped_synthetic_attestation(self):
+        cases = (
+            ("missing", None),
+            ("false", False),
+            ("non_boolean", 1),
+        )
+        for label, value in cases:
+            with self.subTest(attestation=label):
+                run = sample_run()
+                if label == "missing":
+                    run.pop("synthetic_only_confirmed")
+                else:
+                    run["synthetic_only_confirmed"] = value
+                session = FakeSession()
+                with self.assertRaisesRegex(
+                    NotionHandoffError, "persisted, run-scoped synthetic"
+                ):
+                    sync_run_to_notion(
+                        run,
+                        token="secret",
+                        database_id="12345678123456781234567812345678",
+                        session=session,
+                    )
+                self.assertEqual(session.calls, [])
+
+    def test_manifest_digest_binds_the_synthetic_attestation(self):
+        confirmed = manifest_digest(sample_run())
+        unconfirmed = manifest_digest(sample_run(synthetic_only_confirmed=False))
+        self.assertNotEqual(confirmed, unconfirmed)
 
     def test_missing_configuration_fails_closed(self):
         with self.assertRaisesRegex(NotionHandoffError, "NOTION_API_KEY"):
