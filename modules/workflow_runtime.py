@@ -48,7 +48,9 @@ CREATE TABLE IF NOT EXISTS workflow_runs (
     max_attempts INTEGER NOT NULL DEFAULT 3,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
-    claimed_at TEXT
+    claimed_at TEXT,
+    synthetic_only_confirmed INTEGER NOT NULL DEFAULT 0
+        CHECK (synthetic_only_confirmed IN (0, 1))
 );
 CREATE INDEX IF NOT EXISTS idx_workflow_runs_queue
     ON workflow_runs(status, created_at);
@@ -77,6 +79,25 @@ def _initialize(database: str | Path) -> None:
     initialize_store(database)
     with closing(_connect(database)) as connection:
         connection.executescript(_RUN_SCHEMA)
+        connection.execute("BEGIN IMMEDIATE")
+        try:
+            columns = {
+                row["name"]
+                for row in connection.execute("PRAGMA table_info(workflow_runs)")
+            }
+            if "synthetic_only_confirmed" not in columns:
+                connection.execute(
+                    """
+                    ALTER TABLE workflow_runs
+                    ADD COLUMN synthetic_only_confirmed INTEGER NOT NULL DEFAULT 0
+                    CHECK (synthetic_only_confirmed IN (0, 1))
+                    """
+                )
+            connection.execute("COMMIT")
+        except Exception:
+            if connection.in_transaction:
+                connection.execute("ROLLBACK")
+            raise
 
 
 def _event_payload(*, workflow_id: str, run_id: str, task_type: str, stage: str,
@@ -166,13 +187,16 @@ class WorkflowRuntime:
         self.handlers[task_type.strip()] = handler
 
     def submit(self, *, workflow_id: str, task_type: str,
-               payload: Mapping[str, Any], max_attempts: int = 3) -> str:
+               payload: Mapping[str, Any], max_attempts: int = 3,
+               synthetic_only_confirmed: bool = False) -> str:
         if not isinstance(workflow_id, str) or not workflow_id.strip():
             raise ValueError("workflow_id must be a non-empty string")
         if task_type not in self.handlers:
             raise HandlerNotRegistered(f"no trusted handler registered for task type {task_type!r}")
         if not isinstance(payload, Mapping):
             raise ValueError("payload must be a mapping")
+        if not isinstance(synthetic_only_confirmed, bool):
+            raise ValueError("synthetic_only_confirmed must be a boolean")
         if isinstance(max_attempts, bool) or not isinstance(max_attempts, int) or max_attempts < 1 or max_attempts > 10:
             raise ValueError("max_attempts must be an integer between 1 and 10")
         try:
@@ -192,16 +216,23 @@ class WorkflowRuntime:
                 connection.execute(
                     """INSERT INTO workflow_runs
                     (run_id, workflow_id, task_type, status, input_json, attempt,
-                     max_attempts, created_at, updated_at)
-                    VALUES (?, ?, ?, 'queued', ?, 0, ?, ?, ?)""",
-                    (run_id, workflow_id.strip(), task_type, encoded, max_attempts, now, now),
+                     max_attempts, created_at, updated_at, synthetic_only_confirmed)
+                    VALUES (?, ?, ?, 'queued', ?, 0, ?, ?, ?, ?)""",
+                    (
+                        run_id, workflow_id.strip(), task_type, encoded,
+                        max_attempts, now, now, int(synthetic_only_confirmed),
+                    ),
                 )
                 append_event_in_transaction(
                     connection,
                     _event_payload(
                         workflow_id=workflow_id.strip(), run_id=run_id,
                         task_type=task_type, stage="problem_solving", status="queued",
-                        payload={"input": json.loads(encoded_plain), "attempt": 0},
+                        payload={
+                            "input": json.loads(encoded_plain),
+                            "attempt": 0,
+                            "synthetic_only_confirmed": synthetic_only_confirmed,
+                        },
                     ),
                 )
                 connection.execute("COMMIT")
@@ -217,6 +248,7 @@ class WorkflowRuntime:
         if row is None:
             return None
         result = dict(row)
+        result["synthetic_only_confirmed"] = result["synthetic_only_confirmed"] == 1
         result["input"] = decode_storage_json(result.pop("input_json"), self.encryption_key)
         raw_result = result.pop("result_json")
         result["result"] = decode_storage_json(raw_result, self.encryption_key) if raw_result else None
