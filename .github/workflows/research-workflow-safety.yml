@@ -7,6 +7,7 @@ on:
       - bio-research/append-only-portal-event-trail
     paths:
       - "modules/workflow_*.py"
+      - "pages/19_Workflow_Execution_Center.py"
       - "modules/notion_workflow_handoff.py"
       - "modules/fasta_validation.py"
       - "modules/database.py"
@@ -24,6 +25,7 @@ on:
       - bio-research/append-only-portal-event-trail
     paths:
       - "modules/workflow_*.py"
+      - "pages/19_Workflow_Execution_Center.py"
       - "modules/notion_workflow_handoff.py"
       - "modules/fasta_validation.py"
       - "modules/database.py"
@@ -88,6 +90,7 @@ jobs:
             modules/workflow_scheduler.py \
             modules/workflow_storage.py \
             modules/workflow_store.py \
+            pages/19_Workflow_Execution_Center.py \
             modules/notion_workflow_handoff.py \
             modules/fasta_validation.py \
             tools/check_workflow_configuration.py \
