@@ -1,0 +1,97 @@
+name: Research Workflow Safety Contracts
+
+on:
+  push:
+    branches:
+      - test/notion-handoff-focused-ci-20261103
+      - bio-research/append-only-portal-event-trail
+    paths:
+      - "modules/workflow_*.py"
+      - "pages/19_Workflow_Execution_Center.py"
+      - "modules/notion_workflow_handoff.py"
+      - "modules/fasta_validation.py"
+      - "modules/database.py"
+      - "workflow_scheduler.py"
+      - "tests/test_workflow_*.py"
+      - "tests/test_notion_workflow_handoff.py"
+      - "tests/test_fasta_validation.py"
+      - "tools/check_workflow_configuration.py"
+      - "tools/verify_workflow_backup.py"
+      - "pytest.ini"
+      - ".github/workflows/notion-workflow-handoff.yml"
+      - ".github/workflows/research-workflow-safety.yml"
+  pull_request:
+    branches:
+      - bio-research/append-only-portal-event-trail
+    paths:
+      - "modules/workflow_*.py"
+      - "pages/19_Workflow_Execution_Center.py"
+      - "modules/notion_workflow_handoff.py"
+      - "modules/fasta_validation.py"
+      - "modules/database.py"
+      - "workflow_scheduler.py"
+      - "tests/test_workflow_*.py"
+      - "tests/test_notion_workflow_handoff.py"
+      - "tests/test_fasta_validation.py"
+      - "tools/check_workflow_configuration.py"
+      - "tools/verify_workflow_backup.py"
+      - "pytest.ini"
+      - ".github/workflows/notion-workflow-handoff.yml"
+      - ".github/workflows/research-workflow-safety.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  research-workflow-safety:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install focused test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest requests "numpy>=1.26" "pandas>=2.2,<3" "cryptography>=42.0" "streamlit>=1.38,<2"
+
+      - name: Run workflow, storage, backup, restore, scheduler, FASTA and handoff tests
+        run: |
+          python -m pytest -q --confcutdir=tests \
+            tests/test_workflow_access.py \
+            tests/test_workflow_backup_verification.py \
+            tests/test_workflow_configuration_preflight.py \
+            tests/test_workflow_contract.py \
+            tests/test_workflow_effects.py \
+            tests/test_workflow_handlers.py \
+            tests/test_workflow_restore_acceptance.py \
+            tests/test_workflow_runtime.py \
+            tests/test_workflow_scheduler.py \
+            tests/test_workflow_storage.py \
+            tests/test_workflow_store.py \
+            tests/test_fasta_validation.py \
+            tests/test_notion_workflow_handoff.py
+
+      - name: Compile workflow and safety modules
+        run: |
+          python -m compileall -q \
+            modules/workflow_access.py \
+            modules/workflow_contract.py \
+            modules/workflow_effects.py \
+            modules/workflow_handlers.py \
+            modules/workflow_key_rotation.py \
+            modules/workflow_runtime.py \
+            modules/workflow_scheduler.py \
+            modules/workflow_storage.py \
+            modules/workflow_store.py \
+            pages/19_Workflow_Execution_Center.py \
+            modules/notion_workflow_handoff.py \
+            modules/fasta_validation.py \
+            tools/check_workflow_configuration.py \
+            tools/verify_workflow_backup.py

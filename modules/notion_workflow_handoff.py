@@ -37,6 +37,7 @@ def manifest_digest(run: Mapping[str, Any]) -> str:
         "input": run.get("input"),
         "result": run.get("result"),
         "status": run.get("status"),
+        "synthetic_only_confirmed": run.get("synthetic_only_confirmed") is True,
     }
     try:
         encoded = json.dumps(
@@ -190,6 +191,10 @@ def _sync_run_to_notion_unlocked(
     by manifest hash before creating a page; Notion does not provide an atomic unique
     constraint for this property, so concurrent simultaneous calls can still race.
     """
+    if run.get("synthetic_only_confirmed") is not True:
+        raise NotionHandoffError(
+            "run lacks a persisted, run-scoped synthetic/demo-only attestation"
+        )
     api_token = token or os.environ.get("NOTION_API_KEY")
     target_database = database_id or os.environ.get("NOTION_ANALYSIS_RUNS_DATABASE_ID") or DEFAULT_ANALYSIS_RUNS_DATABASE_ID
     if not isinstance(api_token, str) or not api_token.strip():
@@ -290,6 +295,15 @@ def _sync_run_to_notion_unlocked(
             "Notion page creation outcome is unknown after a transport failure; "
             "retry the handoff action to reconcile by manifest hash before creating again"
         ) from exc
+    create_status = getattr(created_response, "status_code", 500)
+    if create_status >= 500:
+        # A server error can be returned after the remote page was committed.
+        # Preserve the ambiguous outcome and require a fresh manifest lookup.
+        raise NotionHandoffError(
+            f"Notion page creation outcome is unknown after HTTP {create_status}; "
+            "the server may have committed the page. Retry the handoff action to "
+            "reconcile by manifest hash before any new create"
+        )
     created = _response_json(created_response)
     page_id = created.get("id")
     page_url = created.get("url")
@@ -354,6 +368,10 @@ def sync_run_to_notion(
     documented query-before-create race. Separate hosts/filesystems still require a
     centralized outbox/worker to guarantee cross-host serialization.
     """
+    if run.get("synthetic_only_confirmed") is not True:
+        raise NotionHandoffError(
+            "run lacks a persisted, run-scoped synthetic/demo-only attestation"
+        )
     if ledger_database is None:
         configured_path = os.environ.get("WORKFLOW_RUNTIME_DB")
         if configured_path:

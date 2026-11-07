@@ -4,7 +4,9 @@ from concurrent.futures import ThreadPoolExecutor
 
 import requests
 
-from modules.notion_workflow_handoff import NotionHandoffError, _rich_text, sync_run_to_notion
+from modules.notion_workflow_handoff import (
+    NotionHandoffError, _rich_text, manifest_digest, sync_run_to_notion,
+)
 
 
 class FakeResponse:
@@ -64,6 +66,7 @@ def sample_run(**overrides):
         "workflow_id": "project-1",
         "task_type": "numeric_summary",
         "status": "succeeded",
+        "synthetic_only_confirmed": True,
         "input": {"values": [1, 2, 3]},
         "result": {"mean": 2.0, "n": 3},
         "created_at": "2026-10-16T10:00:00+00:00",
@@ -78,8 +81,38 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
     def test_only_successful_runs_can_be_handed_off(self):
         session = FakeSession()
         with self.assertRaisesRegex(NotionHandoffError, "only successful"):
-            sync_run_to_notion(sample_run(status="failed"), token="secret", database_id="db", session=session)
+            sync_run_to_notion(sample_run(status="failed"), token="secret", database_id="12345678123456781234567812345678", session=session)
         self.assertEqual(session.calls, [])
+
+    def test_handoff_requires_persisted_run_scoped_synthetic_attestation(self):
+        cases = (
+            ("missing", None),
+            ("false", False),
+            ("non_boolean", 1),
+        )
+        for label, value in cases:
+            with self.subTest(attestation=label):
+                run = sample_run()
+                if label == "missing":
+                    run.pop("synthetic_only_confirmed")
+                else:
+                    run["synthetic_only_confirmed"] = value
+                session = FakeSession()
+                with self.assertRaisesRegex(
+                    NotionHandoffError, "persisted, run-scoped synthetic"
+                ):
+                    sync_run_to_notion(
+                        run,
+                        token="secret",
+                        database_id="12345678123456781234567812345678",
+                        session=session,
+                    )
+                self.assertEqual(session.calls, [])
+
+    def test_manifest_digest_binds_the_synthetic_attestation(self):
+        confirmed = manifest_digest(sample_run())
+        unconfirmed = manifest_digest(sample_run(synthetic_only_confirmed=False))
+        self.assertNotEqual(confirmed, unconfirmed)
 
     def test_missing_configuration_fails_closed(self):
         with self.assertRaisesRegex(NotionHandoffError, "NOTION_API_KEY"):
@@ -211,7 +244,7 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
         class StatefulSession(FakeSession):
             def post(self, url, **kwargs):
                 if url.endswith("/query") and any(
-                    call[0] == "POST" and call[1].endswith("/pages") for call in self.posts
+                    call[0] == "POST" and call[1].endswith("/pages") for call in self.calls
                 ):
                     self.calls.append(("POST", url, kwargs))
                     return FakeResponse({"results": [self.create_payload]})
@@ -237,7 +270,7 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
         self.assertEqual(sum(1 for result in results if result["created"]), 1)
         self.assertEqual(sum(1 for result in results if not result["created"]), 1)
         create_calls = [
-            call for call in session.posts
+            call for call in session.calls
             if call[0] == "POST" and call[1].endswith("/pages")
         ]
         self.assertEqual(len(create_calls), 1)
@@ -326,6 +359,57 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
         self.assertEqual(
             sum(1 for url, _ in session.posts if url.endswith("/pages")), 1
         )
+
+    def test_ambiguous_create_5xx_is_reconciled_on_retry_with_shared_ledger(self):
+        from tempfile import TemporaryDirectory
+        from pathlib import Path
+
+        class CommitThenServerErrorSession(FakeSession):
+            def __init__(self):
+                super().__init__()
+                self.remote_page = None
+                self.create_attempts = 0
+                self.query_attempts = 0
+
+            def post(self, url, **kwargs):
+                self.calls.append(("POST", url, kwargs))
+                self.posts.append((url, kwargs))
+                if url.endswith("/query"):
+                    self.query_attempts += 1
+                    return FakeResponse(
+                        {"results": [self.remote_page] if self.remote_page else []}
+                    )
+                self.create_attempts += 1
+                # Simulate Notion committing the page before returning HTTP 500.
+                self.remote_page = dict(self.create_payload)
+                return FakeResponse({"message": "internal server error"}, status_code=500)
+
+        session = CommitThenServerErrorSession()
+        with TemporaryDirectory() as directory:
+            ledger = str(Path(directory) / "handoff-5xx-recovery.sqlite3")
+            with self.assertRaisesRegex(
+                NotionHandoffError, "outcome is unknown after HTTP 500"
+            ):
+                sync_run_to_notion(
+                    sample_run(), token="secret",
+                    database_id="12345678-1234-5678-1234-567812345678",
+                    session=session, ledger_database=ledger,
+                )
+
+            recovered = sync_run_to_notion(
+                sample_run(), token="secret",
+                database_id="12345678-1234-5678-1234-567812345678",
+                session=session, ledger_database=ledger,
+            )
+
+        self.assertFalse(recovered["created"])
+        self.assertEqual(recovered["page_id"], "page-1")
+        self.assertEqual(session.create_attempts, 1)
+        self.assertEqual(session.query_attempts, 2)
+        self.assertEqual(
+            sum(1 for url, _ in session.posts if url.endswith("/pages")), 1
+        )
+
 
     def test_existing_match_with_non_https_url_fails_closed(self):
         session = FakeSession(

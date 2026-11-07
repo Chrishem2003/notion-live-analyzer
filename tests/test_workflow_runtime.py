@@ -34,6 +34,90 @@ class WorkflowRuntimeTests(unittest.TestCase):
         self.assertEqual(loaded["status"], "queued")
         self.assertEqual(loaded["input"], {"value": 7})
         self.assertEqual(loaded["attempt"], 0)
+        self.assertIs(loaded["synthetic_only_confirmed"], False)
+
+    def test_synthetic_confirmation_is_persisted_with_the_run(self):
+        runtime = self.make_runtime(
+            self.database,
+            handlers={"echo": lambda data: {"echo": data["value"]}},
+        )
+        run_id = runtime.submit(
+            workflow_id="project-1",
+            task_type="echo",
+            payload={"value": "synthetic"},
+            synthetic_only_confirmed=True,
+        )
+        reloaded = self.make_runtime(
+            self.database,
+            handlers={"echo": lambda data: {"echo": data["value"]}},
+        ).get_run(run_id)
+        self.assertIs(reloaded["synthetic_only_confirmed"], True)
+
+    def test_synthetic_confirmation_requires_an_exact_boolean(self):
+        runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
+        for invalid in (1, "true", None):
+            with self.subTest(value=invalid):
+                with self.assertRaisesRegex(ValueError, "must be a boolean"):
+                    runtime.submit(
+                        workflow_id="project-1",
+                        task_type="echo",
+                        payload={"value": "synthetic"},
+                        synthetic_only_confirmed=invalid,
+                    )
+        self.assertEqual(runtime.list_runs(), [])
+
+    def test_legacy_runtime_rows_migrate_as_unattested_without_data_loss(self):
+        with sqlite3.connect(self.database) as connection:
+            connection.execute(
+                """
+                CREATE TABLE workflow_runs (
+                    run_id TEXT PRIMARY KEY,
+                    workflow_id TEXT NOT NULL,
+                    task_type TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    input_json TEXT NOT NULL,
+                    result_json TEXT,
+                    error_message TEXT,
+                    attempt INTEGER NOT NULL DEFAULT 0,
+                    max_attempts INTEGER NOT NULL DEFAULT 3,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    claimed_at TEXT
+                )
+                """
+            )
+            connection.execute(
+                """
+                INSERT INTO workflow_runs (
+                    run_id, workflow_id, task_type, status, input_json,
+                    attempt, max_attempts, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    "legacy-run-001", "legacy-project", "echo", "succeeded",
+                    '{"value":"preserved"}', 1, 2,
+                    "2026-11-01T10:00:00+00:00",
+                    "2026-11-01T10:01:00+00:00",
+                ),
+            )
+
+        runtime = self.make_runtime(
+            self.database,
+            handlers={"echo": lambda data: dict(data)},
+        )
+        loaded = runtime.get_run("legacy-run-001")
+        self.assertEqual(loaded["input"], {"value": "preserved"})
+        self.assertIs(loaded["synthetic_only_confirmed"], False)
+        with sqlite3.connect(self.database) as connection:
+            row_count = connection.execute(
+                "SELECT COUNT(*) FROM workflow_runs"
+            ).fetchone()[0]
+            stored_flag = connection.execute(
+                "SELECT synthetic_only_confirmed FROM workflow_runs WHERE run_id=?",
+                ("legacy-run-001",),
+            ).fetchone()[0]
+        self.assertEqual(row_count, 1)
+        self.assertEqual(stored_flag, 0)
 
     def test_unregistered_task_type_is_rejected_before_enqueue(self):
         runtime = self.make_runtime(self.database)
@@ -424,6 +508,11 @@ class WorkflowRuntimeTests(unittest.TestCase):
             self.skipTest("POSIX permission bits are not portable to Windows")
         old_key = Fernet.generate_key()
         new_key = Fernet.generate_key()
+        self.make_runtime(
+            self.database,
+            handlers={"echo": lambda data: dict(data)},
+            encryption_key=old_key,
+        )
         backup = Path(self.tempdir.name) / "runtime-private-backup.sqlite3"
         rotate_workflow_encryption_key(self.database, backup, old_key, new_key)
         self.assertEqual(stat.S_IMODE(backup.stat().st_mode), 0o600)
@@ -439,6 +528,11 @@ class WorkflowRuntimeTests(unittest.TestCase):
         except (OSError, NotImplementedError):
             self.skipTest("Unable to create symlink in this environment")
         key = Fernet.generate_key()
+        self.make_runtime(
+            self.database,
+            handlers={"echo": lambda data: dict(data)},
+            encryption_key=key,
+        )
         with self.assertRaisesRegex(WorkflowKeyRotationError, "refusing to overwrite"):
             rotate_workflow_encryption_key(self.database, backup, key, Fernet.generate_key())
         self.assertTrue(backup.is_symlink())
