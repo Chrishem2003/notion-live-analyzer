@@ -37,6 +37,7 @@ def manifest_digest(run: Mapping[str, Any]) -> str:
         "input": run.get("input"),
         "result": run.get("result"),
         "status": run.get("status"),
+        "synthetic_only_confirmed": run.get("synthetic_only_confirmed") is True,
     }
     try:
         encoded = json.dumps(
@@ -190,6 +191,10 @@ def _sync_run_to_notion_unlocked(
     by manifest hash before creating a page; Notion does not provide an atomic unique
     constraint for this property, so concurrent simultaneous calls can still race.
     """
+    if run.get("synthetic_only_confirmed") is not True:
+        raise NotionHandoffError(
+            "run lacks a persisted, run-scoped synthetic/demo-only attestation"
+        )
     api_token = token or os.environ.get("NOTION_API_KEY")
     target_database = database_id or os.environ.get("NOTION_ANALYSIS_RUNS_DATABASE_ID") or DEFAULT_ANALYSIS_RUNS_DATABASE_ID
     if not isinstance(api_token, str) or not api_token.strip():
@@ -363,6 +368,10 @@ def sync_run_to_notion(
     documented query-before-create race. Separate hosts/filesystems still require a
     centralized outbox/worker to guarantee cross-host serialization.
     """
+    if run.get("synthetic_only_confirmed") is not True:
+        raise NotionHandoffError(
+            "run lacks a persisted, run-scoped synthetic/demo-only attestation"
+        )
     if ledger_database is None:
         configured_path = os.environ.get("WORKFLOW_RUNTIME_DB")
         if configured_path:
