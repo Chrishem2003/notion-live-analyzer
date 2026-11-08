@@ -1,4 +1,5 @@
 """Unit tests for explicit Notion workflow handoff with mocked HTTP."""
+import json
 import unittest
 from concurrent.futures import ThreadPoolExecutor
 
@@ -134,9 +135,17 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
         self.assertEqual(properties["Record Classification"]["select"]["name"], "Synthetic/Test")
         self.assertEqual(properties["Run Manifest Hash"]["rich_text"][0]["text"]["content"], result["manifest_hash"])
         self.assertEqual(properties["Code Revision"]["rich_text"][0]["text"]["content"], "Not supplied by runtime")
-        self.assertEqual(properties["Input Dataset Version"]["rich_text"][0]["text"]["content"], "Not supplied by runtime")
+        self.assertEqual(
+            properties["Input Dataset Version"]["rich_text"][0]["text"]["content"],
+            "Omitted from Notion by metadata-only handoff policy; consult the authorized local run store.",
+        )
+        self.assertEqual(
+            properties["Parameters"]["rich_text"][0]["text"]["content"],
+            "Omitted from Notion by metadata-only handoff policy; consult the authorized local run store.",
+        )
         evidence = properties["Execution Evidence / Handoff"]["rich_text"][0]["text"]["content"]
-        self.assertIn('"mean": 2.0', evidence)
+        self.assertNotIn('"mean": 2.0', evidence)
+        self.assertIn("input, result, and error payloads are not exported", evidence)
         self.assertIn("QC and reproducibility are still pending", evidence)
 
     def test_existing_matching_record_is_returned_without_duplicate_create(self):
@@ -171,15 +180,56 @@ class NotionWorkflowHandoffTests(unittest.TestCase):
         self.assertLessEqual(len(content_value), 1900)
         self.assertIn("[truncated; see manifest hash and local run store]", content_value)
 
-    def test_input_dataset_version_is_preserved_when_provided(self):
+    def test_input_dataset_version_is_not_exported_under_metadata_only_policy(self):
         session = FakeSession()
-        run = sample_run(input={"values": [1, 2, 3], "dataset_version": "dataset-v7"})
+        run = sample_run(input={"values": [1, 2, 3], "dataset_version": "PRIVATE-DATASET-V7"})
         sync_run_to_notion(run, token="secret", database_id="12345678123456781234567812345678", session=session)
         create_call = [call for call in session.posts if call[0].endswith("/pages")][0]
         properties = create_call[1]["json"]["properties"]
-        self.assertEqual(
+        self.assertNotIn(
+            "PRIVATE-DATASET-V7",
+            json.dumps(create_call[1]["json"], sort_keys=True),
+        )
+        self.assertIn(
+            "Omitted from Notion by metadata-only handoff policy",
             properties["Input Dataset Version"]["rich_text"][0]["text"]["content"],
-            "dataset-v7",
+        )
+
+    def test_handoff_excludes_raw_input_result_and_error_payloads(self):
+        sentinels = (
+            "PRIVATE-PARTICIPANT-ALPHA",
+            "CONFIDENTIAL-INPUT-OMEGA",
+            "SENSITIVE-RESULT-BETA",
+            "PRIVATE-ERROR-GAMMA",
+        )
+        run = sample_run(
+            input={
+                "participant": sentinels[0],
+                "notes": sentinels[1],
+                "dataset_version": "PRIVATE-DATASET-DELTA",
+                "values": [1, 2, 3],
+            },
+            result={"summary": sentinels[2], "mean": 2.0},
+            error_message=sentinels[3],
+        )
+        session = FakeSession()
+        sync_run_to_notion(
+            run,
+            token="secret",
+            database_id="12345678123456781234567812345678",
+            session=session,
+        )
+        create_call = [call for call in session.posts if call[0].endswith("/pages")][0]
+        serialized = json.dumps(create_call[1]["json"], sort_keys=True)
+        for sentinel in sentinels:
+            with self.subTest(sentinel=sentinel):
+                self.assertNotIn(sentinel, serialized)
+        self.assertNotIn("project-1", serialized)
+        properties = create_call[1]["json"]["properties"]
+        self.assertNotIn("Blocker / Recovery Action", properties)
+        self.assertIn(
+            "input, result, and error payloads are not exported",
+            properties["Execution Evidence / Handoff"]["rich_text"][0]["text"]["content"],
         )
 
     def test_invalid_database_id_is_rejected_before_network_calls(self):
