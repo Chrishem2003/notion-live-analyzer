@@ -247,6 +247,8 @@ try:
                 st.markdown("#### Notion handoff")
                 st.caption(
                     "Only a run with a persisted synthetic/demo-only attestation can be sent. "
+                    "Handoff is metadata-only: raw input, results, and error text are not exported. "
+                    "The manifest hash is an integrity/idempotency fingerprint, not anonymization. "
                     "Handoff does not approve its science: QC remains Pending and reproducibility remains Not Checked."
                 )
                 if selected_run.get("synthetic_only_confirmed") is not True:
