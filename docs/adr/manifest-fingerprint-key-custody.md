@@ -15,7 +15,8 @@ The durable outbox decision is still open: extend the existing platform queue or
 The new module, modules/manifest_fingerprint.py, provides a pure HMAC-SHA-256 primitive with:
 
 - deterministic strict-JSON encoding;
-- explicit domain separation and algorithm version;
+- explicit domain separation and algorithm version, with NUL-byte delimiters between the domain, key identifier, and canonical manifest;
+- a fixed known-answer test that locks the v1 encoding and HMAC output;
 - a caller-supplied key of at least 32 bytes;
 - a non-secret key identifier embedded in the fingerprint and bound into the MAC;
 - constant-time fingerprint comparison;
