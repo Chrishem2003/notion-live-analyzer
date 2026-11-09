@@ -14,7 +14,7 @@ import re
 from collections.abc import Mapping
 from typing import Any
 
-_DOMAIN = b"bio-research-enterprise:manifest-fingerprint:v1\\x00"
+_DOMAIN = b"bio-research-enterprise:manifest-fingerprint:v1\x00"
 _KEY_ID_RE = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
 _MIN_KEY_BYTES = 32
 _PREFIX = "br-hmac-sha256:v1"
@@ -72,7 +72,7 @@ def manifest_fingerprint(
         raise ManifestFingerprintError("fingerprint key must be at least 32 bytes")
     if not isinstance(key_id, str) or not _KEY_ID_RE.fullmatch(key_id):
         raise ManifestFingerprintError("key_id must be 1–64 ASCII letters, digits, '.', '_' or '-'")
-    message = _DOMAIN + key_id.encode("ascii") + b"\\x00" + canonical_manifest_bytes(manifest)
+    message = _DOMAIN + key_id.encode("ascii") + b"\x00" + canonical_manifest_bytes(manifest)
     digest = hmac.new(key, message, hashlib.sha256).hexdigest()
     return f"{_PREFIX}:{key_id}:{digest}"
 
