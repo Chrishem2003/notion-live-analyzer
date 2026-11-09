@@ -15,6 +15,13 @@ MANIFEST = {"run_id": "synthetic-run-001", "status": "succeeded", "input": {"b":
 
 
 class ManifestFingerprintTests(unittest.TestCase):
+    def test_versioned_fingerprint_matches_nul_delimited_known_vector(self):
+        # Fixed synthetic key and manifest; locks the v1 NUL-delimited wire format.
+        self.assertEqual(
+            manifest_fingerprint(MANIFEST, key=KEY_A, key_id="test-v1"),
+            "br-hmac-sha256:v1:test-v1:fde1819eb86b6c622c0117e3d53ccd50993929ada12d2339050feab68bb40bac",
+        )
+
     def test_mapping_key_order_does_not_change_fingerprint(self):
         left = {"run_id": "synthetic-run-001", "status": "succeeded", "input": {"b": 2, "a": 1}}
         right = {"input": {"a": 1, "b": 2}, "status": "succeeded", "run_id": "synthetic-run-001"}
