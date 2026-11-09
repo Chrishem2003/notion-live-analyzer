@@ -9,6 +9,7 @@ on:
       - "modules/workflow_*.py"
       - "pages/19_Workflow_Execution_Center.py"
       - "modules/notion_workflow_handoff.py"
+      - "modules/manifest_fingerprint.py"
       - "modules/fasta_validation.py"
       - "modules/database.py"
       - "workflow_scheduler.py"
@@ -27,6 +28,7 @@ on:
       - "modules/workflow_*.py"
       - "pages/19_Workflow_Execution_Center.py"
       - "modules/notion_workflow_handoff.py"
+      - "modules/manifest_fingerprint.py"
       - "modules/fasta_validation.py"
       - "modules/database.py"
       - "workflow_scheduler.py"
@@ -77,6 +79,7 @@ jobs:
             tests/test_workflow_store.py \
             tests/test_fasta_validation.py \
             tests/test_notion_workflow_handoff.py
+            tests/test_manifest_fingerprint.py
 
       - name: Compile workflow and safety modules
         run: |
@@ -92,6 +95,7 @@ jobs:
             modules/workflow_store.py \
             pages/19_Workflow_Execution_Center.py \
             modules/notion_workflow_handoff.py \
+            modules/manifest_fingerprint.py \
             modules/fasta_validation.py \
             tools/check_workflow_configuration.py \
             tools/verify_workflow_backup.py
