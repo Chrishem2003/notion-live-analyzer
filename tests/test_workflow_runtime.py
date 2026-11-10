@@ -244,7 +244,7 @@ class WorkflowRuntimeTests(unittest.TestCase):
         self.assertTrue(completed["result"]["human_review_required"])
         self.assertTrue(any("not alignment" in item for item in completed["result"]["limitations"]))
 
-    def test_invalid_fasta_header_fails_closed_through_runtime(self):
+    def test_invalid_fasta_header_returns_failed_validation_result_through_runtime(self):
         runtime = self.make_runtime(self.database, handlers=default_handlers())
         run_id = runtime.submit(
             workflow_id="synthetic-fasta-project",
@@ -253,10 +253,12 @@ class WorkflowRuntimeTests(unittest.TestCase):
             max_attempts=1,
             synthetic_only_confirmed=True,
         )
-        failed = runtime.execute_run(run_id)
-        self.assertEqual(failed["status"], "failed")
-        self.assertIn("FASTA header is empty", failed["error_message"])
-        self.assertIsNone(failed["result"])
+        completed = runtime.execute_run(run_id)
+        # Runtime execution succeeded; the validator's structured data-quality result failed.
+        self.assertEqual(completed["status"], "succeeded")
+        self.assertFalse(completed["result"]["valid"])
+        self.assertFalse(completed["result"]["records"][0]["valid_record"])
+        self.assertIn("FASTA header is empty", " ".join(completed["result"]["errors"]))
 
     def test_oversized_input_is_rejected_before_persistence(self):
         runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
