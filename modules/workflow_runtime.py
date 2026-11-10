@@ -205,7 +205,11 @@ class WorkflowRuntime:
             )
         except (TypeError, ValueError) as exc:
             raise ValueError("payload must contain finite JSON-compatible values") from exc
-        if len(encoded_plain.encode("utf-8")) > MAX_INPUT_BYTES:
+        try:
+            encoded_length = len(encoded_plain.encode("utf-8"))
+        except UnicodeEncodeError as exc:
+            raise ValueError("payload must contain valid Unicode scalar values") from exc
+        if encoded_length > MAX_INPUT_BYTES:
             raise ValueError(f"payload exceeds the {MAX_INPUT_BYTES}-byte runtime limit")
         encoded = encrypt_storage_text(encoded_plain, self.encryption_key)
         run_id = str(uuid.uuid4())
