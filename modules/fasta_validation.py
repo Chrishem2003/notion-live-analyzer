@@ -18,7 +18,11 @@ def validate_fasta(payload: Mapping[str, Any]) -> Mapping[str, Any]:
     text = payload.get("fasta_text")
     if not isinstance(text, str) or not text.strip():
         raise WorkflowContractError("fasta_text must be non-empty FASTA text")
-    if len(text.encode("utf-8")) > MAX_FASTA_BYTES:
+    try:
+        encoded_length = len(text.encode("utf-8"))
+    except UnicodeEncodeError as exc:
+        raise WorkflowContractError("fasta_text must contain valid Unicode scalar values") from exc
+    if encoded_length > MAX_FASTA_BYTES:
         raise WorkflowContractError(f"FASTA input exceeds the {MAX_FASTA_BYTES}-byte limit")
 
     records: list[dict[str, Any]] = []
