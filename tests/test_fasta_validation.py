@@ -102,5 +102,23 @@ class FastaValidationTests(unittest.TestCase):
         self.assertTrue(result["human_review_required"])
 
 
+    def test_unpaired_surrogate_is_rejected_as_a_contract_error(self):
+        invalid_text = ">sample\nACG\ud800T\n"
+        with self.assertRaisesRegex(WorkflowContractError, "valid Unicode scalar values"):
+            validate_fasta({"fasta_text": invalid_text})
+
+    def test_record_limit_accepts_exact_limit_and_rejects_one_over(self):
+        at_limit = "\n".join(
+            f">sequence-{index}\nA" for index in range(2000)
+        )
+        accepted = validate_fasta({"fasta_text": at_limit})
+        self.assertTrue(accepted["valid"])
+        self.assertEqual(accepted["record_count"], 2000)
+
+        over_limit = at_limit + "\n>sequence-over-limit\nA"
+        with self.assertRaisesRegex(WorkflowContractError, "exceeds 2000 records"):
+            validate_fasta({"fasta_text": over_limit})
+
+
 if __name__ == "__main__":
     unittest.main()
