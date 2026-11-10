@@ -6,6 +6,7 @@ from unittest.mock import patch
 from pathlib import Path
 
 from modules.workflow_runtime import HandlerNotRegistered, WorkflowRuntime
+from modules.workflow_handlers import default_handlers
 from modules.workflow_contract import WorkflowContractError
 from modules.workflow_store import list_run_events
 from modules.workflow_storage import WorkflowStorageError
@@ -217,6 +218,45 @@ class WorkflowRuntimeTests(unittest.TestCase):
         runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
         with self.assertRaises(ValueError):
             runtime.submit(workflow_id="p1", task_type="echo", payload={}, max_attempts=99)
+
+    def test_unpaired_surrogate_payload_is_rejected_before_persistence(self):
+        runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
+        with self.assertRaisesRegex(ValueError, "valid Unicode scalar values"):
+            runtime.submit(
+                workflow_id="p1",
+                task_type="echo",
+                payload={"value": "\ud800"},
+            )
+        self.assertEqual(runtime.list_runs(), [])
+
+    def test_fasta_handler_executes_through_runtime_with_human_review_gate(self):
+        runtime = self.make_runtime(self.database, handlers=default_handlers())
+        run_id = runtime.submit(
+            workflow_id="synthetic-fasta-project",
+            task_type="fasta_validate",
+            payload={"fasta_text": ">DEMO-001 synthetic fixture\nACGTNN\n"},
+            synthetic_only_confirmed=True,
+        )
+        completed = runtime.execute_run(run_id)
+        self.assertEqual(completed["status"], "succeeded")
+        self.assertIs(completed["synthetic_only_confirmed"], True)
+        self.assertTrue(completed["result"]["valid"])
+        self.assertTrue(completed["result"]["human_review_required"])
+        self.assertTrue(any("not alignment" in item for item in completed["result"]["limitations"]))
+
+    def test_invalid_fasta_header_fails_closed_through_runtime(self):
+        runtime = self.make_runtime(self.database, handlers=default_handlers())
+        run_id = runtime.submit(
+            workflow_id="synthetic-fasta-project",
+            task_type="fasta_validate",
+            payload={"fasta_text": ">   \nACGT\n"},
+            max_attempts=1,
+            synthetic_only_confirmed=True,
+        )
+        failed = runtime.execute_run(run_id)
+        self.assertEqual(failed["status"], "failed")
+        self.assertIn("FASTA header is empty", failed["error_message"])
+        self.assertIsNone(failed["result"])
 
     def test_oversized_input_is_rejected_before_persistence(self):
         runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
