@@ -24,17 +24,21 @@ def validate_fasta(payload: Mapping[str, Any]) -> Mapping[str, Any]:
     records: list[dict[str, Any]] = []
     errors: list[str] = []
     current_header: str | None = None
+    current_header_error: str | None = None
     current_sequence: list[str] = []
 
     def flush_record() -> None:
-        nonlocal current_header, current_sequence
+        nonlocal current_header, current_header_error, current_sequence
         if current_header is None:
             return
         sequence = "".join(current_sequence).upper()
         record_errors: list[str] = []
+        if current_header_error is not None:
+            record_errors.append(current_header_error)
         if not sequence:
             record_errors.append("Sequence is empty.")
-        record_id = current_header.split()[0] if current_header.split() else ""
+        header_parts = current_header.split()
+        record_id = header_parts[0] if header_parts else ""
         symbols = set(sequence)
         if symbols and symbols <= NUCLEIC_ALPHABET:
             sequence_type = "nucleic_acid"
@@ -52,7 +56,7 @@ def validate_fasta(payload: Mapping[str, Any]) -> Mapping[str, Any]:
             invalid_symbols = sorted(symbols - NUCLEIC_ALPHABET - PROTEIN_ALPHABET)
             if invalid_symbols:
                 record_errors.append("Unsupported symbols: " + " ".join(invalid_symbols[:30]))
-            else:
+            elif sequence:
                 record_errors.append("Sequence alphabet could not be classified.")
             ambiguous_count = None
 
@@ -69,6 +73,7 @@ def validate_fasta(payload: Mapping[str, Any]) -> Mapping[str, Any]:
         if record_errors:
             errors.append(f"{record_id or '(unnamed record)'}: " + "; ".join(record_errors))
         current_header = None
+        current_header_error = None
         current_sequence = []
 
     for line_number, raw_line in enumerate(text.splitlines(), start=1):
@@ -78,10 +83,11 @@ def validate_fasta(payload: Mapping[str, Any]) -> Mapping[str, Any]:
         if line.startswith(">"):
             flush_record()
             current_header = line[1:].strip()
-            if not current_header:
-                errors.append(f"Line {line_number}: FASTA header is empty.")
-                current_header = f"__invalid_header_line_{line_number}"
-                current_sequence = []
+            current_header_error = (
+                f"Line {line_number}: FASTA header is empty."
+                if not current_header
+                else None
+            )
             if len(records) >= MAX_FASTA_RECORDS:
                 raise WorkflowContractError(f"FASTA input exceeds {MAX_FASTA_RECORDS} records")
             continue
@@ -97,7 +103,7 @@ def validate_fasta(payload: Mapping[str, Any]) -> Mapping[str, Any]:
     if not records:
         raise WorkflowContractError("FASTA input contains no records")
 
-    id_counts = Counter(record["record_id"] for record in records)
+    id_counts = Counter(record["record_id"] for record in records if record["record_id"])
     duplicates = sorted(record_id for record_id, count in id_counts.items() if count > 1)
     duplicate_ids = set(duplicates)
     for record in records:
