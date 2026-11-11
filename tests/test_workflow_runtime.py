@@ -7,7 +7,7 @@ from pathlib import Path
 
 from modules.workflow_runtime import HandlerNotRegistered, WorkflowRuntime
 from modules.workflow_handlers import default_handlers
-from modules.workflow_contract import WorkflowContractError
+from modules.workflow_contract import WorkflowContractError, canonical_payload_digest
 from modules.workflow_store import list_run_events
 from modules.workflow_storage import WorkflowStorageError
 from modules.workflow_key_rotation import WorkflowKeyRotationError, rotate_workflow_encryption_key
@@ -579,6 +579,94 @@ class WorkflowRuntimeTests(unittest.TestCase):
             rotate_workflow_encryption_key(self.database, backup, key, Fernet.generate_key())
         self.assertTrue(backup.is_symlink())
         self.assertFalse(target.exists())
+
+
+    def test_recovered_retry_fences_late_worker_before_finalization(self):
+        import threading
+        from concurrent.futures import ThreadPoolExecutor
+
+        first_started = threading.Event()
+        second_started = threading.Event()
+        release_first = threading.Event()
+        release_second = threading.Event()
+        calls_lock = threading.Lock()
+        calls = {"count": 0}
+
+        def controlled_handler(_payload):
+            with calls_lock:
+                calls["count"] += 1
+                attempt_number = calls["count"]
+            if attempt_number == 1:
+                first_started.set()
+                if not release_first.wait(timeout=10):
+                    raise TimeoutError("first synthetic worker was not released")
+                return {"worker": "first-attempt"}
+            if attempt_number == 2:
+                second_started.set()
+                if not release_second.wait(timeout=10):
+                    raise TimeoutError("second synthetic worker was not released")
+                return {"worker": "second-attempt"}
+            raise AssertionError("unexpected extra handler invocation")
+
+        runtime = self.make_runtime(
+            self.database,
+            handlers={"controlled": controlled_handler},
+        )
+        run_id = runtime.submit(
+            workflow_id="stale-retry-fence-test",
+            task_type="controlled",
+            payload={"fixture": "synthetic"},
+            max_attempts=3,
+        )
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            first_future = executor.submit(runtime.execute_run, run_id)
+            try:
+                self.assertTrue(first_started.wait(timeout=5))
+                # Simulate a maintenance process identifying the first claim as stale.
+                with sqlite3.connect(self.database) as connection:
+                    connection.execute(
+                        "UPDATE workflow_runs SET claimed_at=? WHERE run_id=?",
+                        ("2000-01-01T00:00:00+00:00", run_id),
+                    )
+                recovered = runtime.recover_stale_runs(older_than_seconds=60)
+                self.assertEqual(recovered[0]["status"], "queued")
+
+                second_future = executor.submit(runtime.execute_run, run_id)
+                self.assertTrue(second_started.wait(timeout=5))
+
+                # The second attempt is now running. The first worker returns late;
+                # its old attempt token must not finalize over the newer claim.
+                release_first.set()
+                with self.assertRaisesRegex(WorkflowContractError, "lost its running claim"):
+                    first_future.result(timeout=5)
+
+                in_flight = runtime.get_run(run_id)
+                self.assertEqual(in_flight["status"], "running")
+                self.assertEqual(in_flight["attempt"], 2)
+                self.assertIsNone(in_flight["result"])
+
+                release_second.set()
+                completed = second_future.result(timeout=5)
+            finally:
+                release_first.set()
+                release_second.set()
+
+        self.assertEqual(completed["status"], "succeeded")
+        self.assertEqual(completed["attempt"], 2)
+        self.assertEqual(completed["result"], {"worker": "second-attempt"})
+        history = list_run_events(self.database, "stale-retry-fence-test", run_id)
+        self.assertEqual(
+            [event["status"] for event in history],
+            ["queued", "running", "queued", "running", "succeeded"],
+        )
+        self.assertEqual(
+            history[-1]["event"]["payload_digest"],
+            canonical_payload_digest({
+                "attempt": 2,
+                "result": {"worker": "second-attempt"},
+            }),
+        )
 
 
 if __name__ == "__main__":
