@@ -50,6 +50,27 @@ class WorkflowAccessTests(unittest.TestCase):
         self.assertFalse(verify_workflow_password(None, secret))
         self.assertFalse(verify_workflow_password("", secret))
 
+    def test_password_loader_rejects_unpaired_surrogate_secret(self):
+        secret = "a" * 24 + "\ud800"
+        with self.assertRaisesRegex(
+            WorkflowAccessConfigurationError, "valid Unicode scalar values"
+        ):
+            load_workflow_password({}, {"WORKFLOW_EXECUTION_PASSWORD": secret})
+
+    def test_password_comparison_fails_closed_for_unpaired_surrogates(self):
+        valid = "a-unique-long-operator-secret-123456"
+        self.assertFalse(verify_workflow_password("\ud800", valid))
+        self.assertFalse(verify_workflow_password(valid, "\ud800"))
+
+    def test_session_rejects_integer_timestamps_outside_float_range(self):
+        enormous = 10 ** 10000
+        self.assertFalse(
+            is_workflow_session_valid(True, enormous, now=1001.0)
+        )
+        self.assertFalse(
+            is_workflow_session_valid(True, 1000.0, now=enormous)
+        )
+
     def test_session_expires_after_fifteen_minutes(self):
         self.assertTrue(is_workflow_session_valid(True, 1000.0, now=1000.0 + 899))
         self.assertFalse(is_workflow_session_valid(True, 1000.0, now=1000.0 + 900))
