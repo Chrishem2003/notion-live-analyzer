@@ -346,8 +346,8 @@ class WorkflowRuntime:
             connection.execute("BEGIN IMMEDIATE")
             try:
                 finalized = connection.execute(
-                    "UPDATE workflow_runs SET status=?, result_json=?, error_message=?, updated_at=?, claimed_at=NULL WHERE run_id=? AND status='running'",
-                    (outcome, encoded_result, stored_error_message, now, run_id),
+                    "UPDATE workflow_runs SET status=?, result_json=?, error_message=?, updated_at=?, claimed_at=NULL WHERE run_id=? AND status='running' AND attempt=?",
+                    (outcome, encoded_result, stored_error_message, now, run_id, attempt),
                 )
                 if finalized.rowcount != 1:
                     raise WorkflowContractError(
@@ -355,7 +355,7 @@ class WorkflowRuntime:
                         "outcome was not appended to the event ledger"
                     )
                 outcome_payload = (
-                    {"result": json.loads(encoded_result_plain)} if encoded_result_plain else
+                    {"attempt": attempt, "result": json.loads(encoded_result_plain)} if encoded_result_plain else
                     {"attempt": attempt, "error": error_message, "retry_scheduled": outcome == "queued"}
                 )
                 append_event_in_transaction(
