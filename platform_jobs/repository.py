@@ -63,7 +63,7 @@ class SupabaseJobRepository:
         except ValueError as exc:
             raise JobStoreUnavailable("Durable job storage returned invalid data.") from exc
 
-    def enqueue(self, *, idempotency_key: str, job_type: str, payload: dict[str, Any], max_attempts: int = 3) -> dict[str, Any]:
+    def enqueue(self, *, idempotency_key: str, job_type: str, payload: dict[str, Any], max_attempts: int = 3, tenant_id: str = "platform-service", requested_by: str = "trusted-service-api") -> dict[str, Any]:
         key = idempotency_key.strip()
         if not key or len(key) > 200 or not re.fullmatch(r"[A-Za-z0-9._:-]{1,200}", key):
             raise ValueError("Idempotency key must use 1–200 letters, digits, dots, underscores, colons, or hyphens.")
@@ -73,8 +73,8 @@ class SupabaseJobRepository:
             raise ValueError("Job payload must be an object.")
         payload_hash = self.fingerprint({"job_type": job_type, "payload": payload})
         body = {
-            "tenant_id": "platform-service",
-            "requested_by": "trusted-service-api",
+            "tenant_id": tenant_id,
+            "requested_by": requested_by,
             "job_type": job_type,
             "status": "queued",
             "payload": payload,
@@ -92,7 +92,7 @@ class SupabaseJobRepository:
             # depending on a database error string or exposing it to callers.
             existing = self._request("GET", "platform_jobs", params={
                 "select": "job_id,status,payload_hash,created_at",
-                "tenant_id": "eq.platform-service",
+                "tenant_id": f"eq.{tenant_id}",
                 "idempotency_key": f"eq.{key}",
                 "limit": "1",
             })
@@ -103,14 +103,53 @@ class SupabaseJobRepository:
                 raise JobConflict("Idempotency key was already used for a different job payload.")
             return {k: row[k] for k in ("job_id", "status", "created_at") if k in row}
 
-    def get_job(self, job_id: str) -> dict[str, Any] | None:
+    def get_job(self, job_id: str, *, tenant_id: str = "platform-service") -> dict[str, Any] | None:
         rows = self._request("GET", "platform_jobs", params={
             "select": "job_id,job_type,status,result_json,error_code,attempt_count,max_attempts,created_at,updated_at,completed_at",
             "job_id": f"eq.{job_id}",
-            "tenant_id": "eq.platform-service",
+            "tenant_id": f"eq.{tenant_id}",
             "limit": "1",
         })
         return rows[0] if isinstance(rows, list) and rows else None
+
+    def reserve_user_quota(
+        self, *, tenant_id: str, idempotency_key: str,
+        limit: int = 20, window_seconds: int = 3600,
+    ) -> bool:
+        """Atomically reserve one per-user quota slot in a rolling window."""
+        key = idempotency_key.strip()
+        if not key or len(key) > 200 or not re.fullmatch(r"[A-Za-z0-9._:-]{1,200}", key):
+            raise ValueError("Idempotency key must use 1–200 letters, digits, dots, underscores, colons, or hyphens.")
+        try:
+            value = self._request("POST", "rpc/reserve_user_job_quota", json={
+                "p_tenant_id": tenant_id,
+                "p_idempotency_key": key,
+                "p_limit": limit,
+                "p_window_seconds": window_seconds,
+            })
+        except JobStoreUnavailable:
+            # Quota checks fail closed: do not accept work if enforcement is unavailable.
+            raise
+        if not isinstance(value, bool):
+            raise JobStoreUnavailable("User job quota service returned an invalid response.")
+        return value
+
+    def cancel_user_job(self, *, job_id: str, tenant_id: str) -> str:
+        """Cancel a user's queued/running job without allowing cross-tenant mutation.
+
+        Returns one of: cancelled, not_found, not_cancellable. The database RPC
+        performs the ownership predicate and status transition atomically.
+        """
+        try:
+            value = self._request("POST", "rpc/cancel_user_platform_job", json={
+                "p_job_id": job_id,
+                "p_tenant_id": tenant_id,
+            })
+        except JobStoreUnavailable:
+            raise
+        if not isinstance(value, str) or value not in {"cancelled", "not_found", "not_cancellable"}:
+            raise JobStoreUnavailable("User job cancellation service returned an invalid response.")
+        return value
 
     def claim(self, lease_seconds: int = 120) -> dict[str, Any] | None:
         rows = self._request("POST", "rpc/claim_platform_job", json={"p_lease_seconds": lease_seconds})
