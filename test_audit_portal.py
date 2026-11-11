@@ -18,29 +18,39 @@ class TestEncryption:
 
     def test_wrong_password_fails_gracefully(self):
         cipher = audit_portal.encrypt_text("secret work", "pw")
-        assert "failed" in audit_portal.decrypt_text(cipher, "other").lower()
+        with pytest.raises(ValueError, match="incorrect password or invalid ciphertext"):
+            audit_portal.decrypt_text(cipher, "other")
 
 
 class TestSubmissions:
     def test_submit_returns_blockchain_hash(self, system):
-        result = system.submit(1, "ada", "Thesis", "body text")
+        result = system.submit(1, "ada", "Thesis", "body text", password="CHRISHEM")
         assert result["id"] == 1
         assert len(result["blockchain_hash"]) == 64
 
     def test_decrypt_submission(self, system):
-        result = system.submit(1, "ada", "Thesis", "body text")
+        result = system.submit(1, "ada", "Thesis", "body text", password="CHRISHEM")
         assert system.decrypt_submission(result["id"], "CHRISHEM") == "body text"
 
     def test_decrypt_unknown_submission_is_none(self, system):
         assert system.decrypt_submission(999, "CHRISHEM") is None
 
     def test_filters(self, system):
-        system.submit(1, "ada", "A", "x")
-        system.submit(2, "bob", "B", "y")
+        system.submit(1, "ada", "A", "x", password="CHRISHEM")
+        system.submit(2, "bob", "B", "y", password="CHRISHEM")
         assert len(system.get_submissions()) == 2
         assert len(system.get_submissions(project_id=1)) == 1
         assert len(system.get_submissions(student_name="bob")) == 1
         assert len(system.get_submissions(status="reviewed")) == 0
+
+    def test_filters_compose_and_values_are_parameterized(self, system):
+        first = system.submit(1, "ada", "A", "x", password="CHRISHEM")["id"]
+        system.submit(1, "bob", "B", "y", password="CHRISHEM")
+        system.review(first, "A", 90.0, "ok", professor_password="professor-test-password")
+
+        rows = system.get_submissions(project_id=1, student_name="ada", status="reviewed")
+        assert [row["title"] for row in rows] == ["A"]
+        assert system.get_submissions(student_name="ada' OR 1=1 --") == []
 
 
 class TestStudentStats:
@@ -50,11 +60,11 @@ class TestStudentStats:
         assert stats["average_score"] is None
 
     def test_stats_count_each_status(self, system):
-        reviewed = system.submit(1, "ada", "A", "x")["id"]
-        returned = system.submit(1, "ada", "B", "y")["id"]
-        system.submit(1, "ada", "C", "z")  # stays 'submitted'
-        system.review(reviewed, "A", 90.0, "great")
-        system.return_for_revision(returned, "redo section 2")
+        reviewed = system.submit(1, "ada", "A", "x", password="CHRISHEM")["id"]
+        returned = system.submit(1, "ada", "B", "y", password="CHRISHEM")["id"]
+        system.submit(1, "ada", "C", "z", password="CHRISHEM")  # stays 'submitted'
+        system.review(reviewed, "A", 90.0, "great", professor_password="professor-test-password")
+        system.return_for_revision(returned, "redo section 2", professor_password="professor-test-password")
 
         stats = system.get_student_stats(1, "ada")
         assert stats["total_submissions"] == 3
@@ -64,9 +74,9 @@ class TestStudentStats:
         assert stats["average_score"] == 90.0
 
     def test_average_score_ignores_ungraded(self, system):
-        first = system.submit(1, "ada", "A", "x")["id"]
-        second = system.submit(1, "ada", "B", "y")["id"]
-        system.submit(1, "ada", "C", "z")
-        system.review(first, "A", 80.0, "ok")
-        system.review(second, "B", 90.0, "ok")
+        first = system.submit(1, "ada", "A", "x", password="CHRISHEM")["id"]
+        second = system.submit(1, "ada", "B", "y", password="CHRISHEM")["id"]
+        system.submit(1, "ada", "C", "z", password="CHRISHEM")
+        system.review(first, "A", 80.0, "ok", professor_password="professor-test-password")
+        system.review(second, "B", 90.0, "ok", professor_password="professor-test-password")
         assert system.get_student_stats(1, "ada")["average_score"] == 85.0
