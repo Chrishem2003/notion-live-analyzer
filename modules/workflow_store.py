@@ -40,6 +40,26 @@ class IdempotencyConflict(WorkflowContractError):
     """A previously used idempotency key was presented with different content."""
 
 
+def _same_logical_event(existing: sqlite3.Row, event: WorkflowEvent) -> bool:
+    """Compare immutable event identity fields for an idempotent replay."""
+    if (
+        existing["payload_digest"] != event.payload_digest
+        or existing["event_type"] != event.event_type
+        or existing["workflow_id"] != event.workflow_id
+        or existing["run_id"] != event.run_id
+        or existing["stage"] != event.stage
+        or existing["status"] != event.status
+    ):
+        return False
+    try:
+        stored_event = json.loads(existing["event_json"])
+    except (TypeError, ValueError) as exc:
+        raise IdempotencyConflict(
+            "existing idempotency record cannot be validated"
+        ) from exc
+    return stored_event.get("evidence_refs", []) == list(event.evidence_refs)
+
+
 def _connect(database: str | Path) -> sqlite3.Connection:
     path = str(database)
     if path != ":memory:":
@@ -70,17 +90,12 @@ def append_event(database: str | Path, raw_event: WorkflowEvent | Mapping[str, A
         connection.execute("BEGIN IMMEDIATE")
         try:
             existing = connection.execute(
-                "SELECT payload_digest, event_type, workflow_id, run_id "
+                "SELECT payload_digest, event_type, workflow_id, run_id, stage, status, event_json "
                 "FROM workflow_events WHERE idempotency_key = ?",
                 (event.idempotency_key,),
             ).fetchone()
             if existing is not None:
-                if (
-                    existing["payload_digest"] == event.payload_digest
-                    and existing["event_type"] == event.event_type
-                    and existing["workflow_id"] == event.workflow_id
-                    and existing["run_id"] == event.run_id
-                ):
+                if _same_logical_event(existing, event):
                     connection.execute("COMMIT")
                     return False
                 raise IdempotencyConflict(
@@ -134,17 +149,12 @@ def append_event_in_transaction(connection: sqlite3.Connection, raw_event: Workf
     payload = event.to_dict()
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     existing = connection.execute(
-        "SELECT payload_digest, event_type, workflow_id, run_id "
+        "SELECT payload_digest, event_type, workflow_id, run_id, stage, status, event_json "
         "FROM workflow_events WHERE idempotency_key = ?",
         (event.idempotency_key,),
     ).fetchone()
     if existing is not None:
-        if (
-            existing["payload_digest"] == event.payload_digest
-            and existing["event_type"] == event.event_type
-            and existing["workflow_id"] == event.workflow_id
-            and existing["run_id"] == event.run_id
-        ):
+        if _same_logical_event(existing, event):
             return False
         raise IdempotencyConflict(
             "idempotency key already exists with different event identity or payload"

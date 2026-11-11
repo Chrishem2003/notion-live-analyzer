@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 
 from modules.workflow_contract import SCHEMA_VERSION
-from modules.workflow_store import IdempotencyConflict, append_event, initialize_store, list_run_events
+from modules.workflow_store import IdempotencyConflict, append_event, append_event_in_transaction, initialize_store, list_run_events
 
 
 def event(**overrides):
@@ -52,6 +52,56 @@ class WorkflowStoreTests(unittest.TestCase):
         with self.assertRaises(IdempotencyConflict):
             append_event(self.database, event(payload_digest="b" * 64))
         self.assertEqual(len(list_run_events(self.database, "project-1", "run-1")), 1)
+
+    def test_reusing_key_for_different_status_fails_closed(self):
+        self.assertTrue(append_event(self.database, event()))
+        with self.assertRaises(IdempotencyConflict):
+            append_event(self.database, event(status="succeeded"))
+        rows = list_run_events(self.database, "project-1", "run-1")
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["status"], "running")
+
+    def test_reusing_key_for_different_stage_or_evidence_refs_fails_closed(self):
+        self.assertTrue(append_event(self.database, event()))
+        for changed in (
+            {"stage": "literature"},
+            {"evidence_refs": ["https://example.invalid/new-evidence"]},
+        ):
+            with self.subTest(changed=changed):
+                with self.assertRaises(IdempotencyConflict):
+                    append_event(self.database, event(**changed))
+        self.assertEqual(len(list_run_events(self.database, "project-1", "run-1")), 1)
+
+    def test_replay_with_new_event_id_and_timestamp_remains_idempotent(self):
+        self.assertTrue(append_event(self.database, event()))
+        self.assertFalse(
+            append_event(
+                self.database,
+                event(
+                    event_id="event-replayed",
+                    occurred_at="2026-10-16T10:35:00+03:00",
+                ),
+            )
+        )
+        self.assertEqual(len(list_run_events(self.database, "project-1", "run-1")), 1)
+
+    def test_transactional_append_rejects_changed_event_envelope(self):
+        with sqlite3.connect(self.database) as connection:
+            connection.row_factory = sqlite3.Row
+            connection.execute("BEGIN IMMEDIATE")
+            self.assertTrue(append_event_in_transaction(connection, event()))
+            connection.commit()
+
+        with sqlite3.connect(self.database) as connection:
+            connection.row_factory = sqlite3.Row
+            connection.execute("BEGIN IMMEDIATE")
+            with self.assertRaises(IdempotencyConflict):
+                append_event_in_transaction(connection, event(status="succeeded"))
+            connection.rollback()
+
+        rows = list_run_events(self.database, "project-1", "run-1")
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["status"], "running")
 
     def test_event_id_cannot_be_reused_for_another_key(self):
         self.assertTrue(append_event(self.database, event()))
