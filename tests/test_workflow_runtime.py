@@ -120,6 +120,40 @@ class WorkflowRuntimeTests(unittest.TestCase):
         self.assertEqual(row_count, 1)
         self.assertEqual(stored_flag, 0)
 
+    def test_register_handler_rejects_unpaired_surrogate_task_type(self):
+        runtime = self.make_runtime(self.database)
+        with self.assertRaisesRegex(ValueError, "valid Unicode scalar values"):
+            runtime.register_handler("echo\ud800", lambda data: dict(data))
+        self.assertEqual(runtime.handlers, {})
+
+    def test_submit_rejects_unpaired_surrogate_workflow_id_before_persistence(self):
+        runtime = self.make_runtime(
+            self.database,
+            handlers={"echo": lambda data: dict(data)},
+        )
+        with self.assertRaisesRegex(ValueError, "valid Unicode scalar values"):
+            runtime.submit(
+                workflow_id="project-\ud800",
+                task_type="echo",
+                payload={"value": "synthetic"},
+            )
+        self.assertEqual(runtime.list_runs(), [])
+
+    def test_submit_normalizes_task_type_to_registered_handler_key(self):
+        runtime = self.make_runtime(
+            self.database,
+            handlers={"echo": lambda data: {"value": data["value"]}},
+        )
+        run_id = runtime.submit(
+            workflow_id="project-1",
+            task_type=" echo ",
+            payload={"value": "synthetic"},
+        )
+        completed = runtime.execute_run(run_id)
+        self.assertEqual(completed["task_type"], "echo")
+        self.assertEqual(completed["status"], "succeeded")
+        self.assertEqual(completed["result"], {"value": "synthetic"})
+
     def test_unregistered_task_type_is_rejected_before_enqueue(self):
         runtime = self.make_runtime(self.database)
         with self.assertRaises(HandlerNotRegistered):

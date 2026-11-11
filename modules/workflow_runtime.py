@@ -182,6 +182,10 @@ class WorkflowRuntime:
     def register_handler(self, task_type: str, handler: TaskHandler) -> None:
         if not isinstance(task_type, str) or not task_type.strip():
             raise ValueError("task_type must be a non-empty string")
+        try:
+            task_type.encode("utf-8")
+        except UnicodeEncodeError as exc:
+            raise ValueError("task_type must contain valid Unicode scalar values") from exc
         if not callable(handler):
             raise TypeError("handler must be callable")
         self.handlers[task_type.strip()] = handler
@@ -191,6 +195,17 @@ class WorkflowRuntime:
                synthetic_only_confirmed: bool = False) -> str:
         if not isinstance(workflow_id, str) or not workflow_id.strip():
             raise ValueError("workflow_id must be a non-empty string")
+        try:
+            workflow_id.encode("utf-8")
+        except UnicodeEncodeError as exc:
+            raise ValueError("workflow_id must contain valid Unicode scalar values") from exc
+        if not isinstance(task_type, str) or not task_type.strip():
+            raise ValueError("task_type must be a non-empty string")
+        try:
+            task_type.encode("utf-8")
+        except UnicodeEncodeError as exc:
+            raise ValueError("task_type must contain valid Unicode scalar values") from exc
+        task_type = task_type.strip()
         if task_type not in self.handlers:
             raise HandlerNotRegistered(f"no trusted handler registered for task type {task_type!r}")
         if not isinstance(payload, Mapping):
