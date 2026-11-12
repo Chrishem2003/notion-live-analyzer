@@ -9,7 +9,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from modules.workflow_effects import (
-    EffectIdentityConflict, EffectJournal, EffectOutcomeUnknown,
+    EffectIdentityConflict, EffectJournal, EffectJournalError, EffectOutcomeUnknown,
     execute_idempotent_effect,
 )
 
@@ -327,6 +327,144 @@ class WorkflowEffectJournalTests(unittest.TestCase):
         self.assertEqual(
             self.journal.get("effect-6")["result"], {"remote_id": "verified-original"}
         )
+
+
+    def test_prepare_rejects_unpaired_surrogate_in_effect_identity_before_insert(self):
+        valid = {
+            "effect_key": "effect-unicode",
+            "workflow_id": "project-unicode",
+            "run_id": "run-unicode",
+            "effect_name": "publish",
+        }
+        for field in valid:
+            with self.subTest(field=field):
+                values = dict(valid)
+                values[field] = "bad-\ud800"
+                with self.assertRaisesRegex(ValueError, "valid Unicode scalar values"):
+                    self.journal.prepare(
+                        **values,
+                        request={"value": "synthetic"},
+                    )
+        with sqlite3.connect(self.database) as connection:
+            self.assertEqual(
+                connection.execute("SELECT COUNT(*) FROM workflow_effects").fetchone()[0],
+                0,
+            )
+
+    def test_prepare_rejects_unpaired_surrogate_request_before_insert(self):
+        with self.assertRaisesRegex(ValueError, "valid Unicode scalar values"):
+            self.journal.prepare(
+                effect_key="effect-unicode-request",
+                workflow_id="p1",
+                run_id="r-unicode-request",
+                effect_name="publish",
+                request={"note": "bad-\ud800"},
+            )
+        self.assertIsNone(self.journal.get("effect-unicode-request"))
+
+    def test_confirm_rejects_malformed_result_without_changing_pending_state(self):
+        prepared = self.journal.prepare(
+            effect_key="effect-unicode-confirm",
+            workflow_id="p1",
+            run_id="r-unicode-confirm",
+            effect_name="publish",
+            request={"value": "synthetic"},
+        )
+        with self.assertRaisesRegex(ValueError, "valid Unicode scalar values"):
+            self.journal.confirm(
+                "effect-unicode-confirm",
+                {"note": "bad-\ud800"},
+                attempt=prepared.attempt,
+            )
+        self.assertEqual(self.journal.get("effect-unicode-confirm")["state"], "pending")
+
+    def test_reconcile_rejects_malformed_result_without_changing_uncertain_state(self):
+        prepared = self.journal.prepare(
+            effect_key="effect-unicode-reconcile",
+            workflow_id="p1",
+            run_id="r-unicode-reconcile",
+            effect_name="publish",
+            request={"value": "synthetic"},
+        )
+        self.journal.mark_uncertain(
+            "effect-unicode-reconcile", attempt=prepared.attempt
+        )
+        with self.assertRaisesRegex(ValueError, "valid Unicode scalar values"):
+            self.journal.reconcile(
+                "effect-unicode-reconcile",
+                attempt=prepared.attempt,
+                confirmed=True,
+                result={"note": "bad-\ud800"},
+            )
+        self.assertEqual(
+            self.journal.get("effect-unicode-reconcile")["state"], "uncertain"
+        )
+
+    def test_provider_result_with_malformed_unicode_is_marked_uncertain(self):
+        calls = []
+        def provider(key):
+            calls.append(key)
+            return {"note": "bad-\ud800"}
+
+        with self.assertRaisesRegex(ValueError, "valid Unicode scalar values"):
+            execute_idempotent_effect(
+                self.journal,
+                effect_key="effect-unicode-provider",
+                workflow_id="p1",
+                run_id="r-unicode-provider",
+                effect_name="publish",
+                request={"value": "synthetic"},
+                perform=provider,
+            )
+        self.assertEqual(calls, ["effect-unicode-provider"])
+        self.assertEqual(
+            self.journal.get("effect-unicode-provider")["state"], "uncertain"
+        )
+
+    def test_get_rejects_corrupted_or_non_object_persisted_result(self):
+        prepared = self.journal.prepare(
+            effect_key="effect-corrupt-result",
+            workflow_id="p1",
+            run_id="r-corrupt-result",
+            effect_name="publish",
+            request={"value": "synthetic"},
+        )
+        self.journal.confirm(
+            "effect-corrupt-result",
+            {"remote_id": "synthetic-1"},
+            attempt=prepared.attempt,
+        )
+        for stored in ("not-json", "[]"):
+            with self.subTest(stored=stored):
+                with sqlite3.connect(self.database) as connection:
+                    connection.execute(
+                        "UPDATE workflow_effects SET result_json = ? WHERE effect_key = ?",
+                        (stored, "effect-corrupt-result"),
+                    )
+                with self.assertRaises(EffectJournalError):
+                    self.journal.get("effect-corrupt-result")
+
+    def test_confirm_and_reconcile_require_result_mappings(self):
+        prepared = self.journal.prepare(
+            effect_key="effect-result-type",
+            workflow_id="p1",
+            run_id="r-result-type",
+            effect_name="publish",
+            request={"value": "synthetic"},
+        )
+        with self.assertRaisesRegex(ValueError, "result must be a mapping"):
+            self.journal.confirm(
+                "effect-result-type", ["not", "a", "mapping"], attempt=prepared.attempt
+            )
+        self.journal.mark_uncertain("effect-result-type", attempt=prepared.attempt)
+        with self.assertRaisesRegex(ValueError, "result mapping is required"):
+            self.journal.reconcile(
+                "effect-result-type",
+                attempt=prepared.attempt,
+                confirmed=True,
+                result=["not", "a", "mapping"],
+            )
+        self.assertEqual(self.journal.get("effect-result-type")["state"], "uncertain")
 
 
 if __name__ == "__main__":
