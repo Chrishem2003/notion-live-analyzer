@@ -73,6 +73,25 @@ def _canonical(value: Any) -> str:
     return encoded.decode("utf-8")
 
 
+def _decode_result_json(
+    stored_result: str | None, *, confirmed: bool
+) -> dict[str, Any] | None:
+    """Validate that persisted result data agrees with the effect state."""
+    if stored_result is None:
+        if confirmed:
+            raise EffectJournalError("confirmed effect is missing its recorded result")
+        return None
+    try:
+        decoded = json.loads(stored_result)
+    except (TypeError, ValueError) as exc:
+        raise EffectJournalError("stored effect result JSON is invalid") from exc
+    if not isinstance(decoded, dict):
+        raise EffectJournalError("stored effect result must be a JSON object")
+    if not confirmed:
+        raise EffectJournalError("unconfirmed effect unexpectedly contains a result")
+    return decoded
+
+
 def _connect(database: str | Path) -> sqlite3.Connection:
     path = str(database)
     if path != ":memory:":
@@ -164,7 +183,10 @@ class EffectJournal:
                 )
                 if not identity_matches:
                     raise EffectIdentityConflict("effect key already exists for a different request identity")
-                result = json.loads(existing["result_json"]) if existing["result_json"] else None
+                result = _decode_result_json(
+                    existing["result_json"],
+                    confirmed=existing["state"] == "confirmed",
+                )
                 if existing["state"] == "confirmed":
                     connection.execute("COMMIT")
                     return EffectPreparation(
@@ -337,16 +359,9 @@ class EffectJournal:
             return None
         item = dict(row)
         stored_result = item.pop("result_json")
-        if stored_result:
-            try:
-                decoded_result = json.loads(stored_result)
-            except (TypeError, ValueError) as exc:
-                raise EffectJournalError("stored effect result JSON is invalid") from exc
-            if not isinstance(decoded_result, dict):
-                raise EffectJournalError("stored effect result must be a JSON object")
-            item["result"] = decoded_result
-        else:
-            item["result"] = None
+        item["result"] = _decode_result_json(
+            stored_result, confirmed=item["state"] == "confirmed"
+        )
         return item
 
 
