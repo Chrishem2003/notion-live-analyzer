@@ -467,5 +467,80 @@ class WorkflowEffectJournalTests(unittest.TestCase):
         self.assertEqual(self.journal.get("effect-result-type")["state"], "uncertain")
 
 
+    def test_confirmed_effect_missing_result_fails_closed_on_read_and_replay(self):
+        prepared = self.journal.prepare(
+            effect_key="effect-missing-confirmed-result",
+            workflow_id="p1",
+            run_id="r-missing-confirmed-result",
+            effect_name="publish",
+            request={"value": "synthetic"},
+        )
+        self.journal.confirm(
+            "effect-missing-confirmed-result",
+            {"remote_id": "synthetic-1"},
+            attempt=prepared.attempt,
+        )
+        with sqlite3.connect(self.database) as connection:
+            connection.execute(
+                "UPDATE workflow_effects SET result_json = NULL WHERE effect_key = ?",
+                ("effect-missing-confirmed-result",),
+            )
+        with self.assertRaisesRegex(EffectJournalError, "missing its recorded result"):
+            self.journal.get("effect-missing-confirmed-result")
+        with self.assertRaisesRegex(EffectJournalError, "missing its recorded result"):
+            self.journal.prepare(
+                effect_key="effect-missing-confirmed-result",
+                workflow_id="p1",
+                run_id="r-missing-confirmed-result",
+                effect_name="publish",
+                request={"value": "synthetic"},
+            )
+
+    def test_unconfirmed_effect_with_result_fails_closed(self):
+        self.journal.prepare(
+            effect_key="effect-unconfirmed-result",
+            workflow_id="p1",
+            run_id="r-unconfirmed-result",
+            effect_name="publish",
+            request={"value": "synthetic"},
+        )
+        with sqlite3.connect(self.database) as connection:
+            connection.execute(
+                "UPDATE workflow_effects SET result_json = ? WHERE effect_key = ?",
+                ("{}", "effect-unconfirmed-result"),
+            )
+        with self.assertRaisesRegex(EffectJournalError, "unconfirmed effect"):
+            self.journal.get("effect-unconfirmed-result")
+        with self.assertRaisesRegex(EffectJournalError, "unconfirmed effect"):
+            self.journal.prepare(
+                effect_key="effect-unconfirmed-result",
+                workflow_id="p1",
+                run_id="r-unconfirmed-result",
+                effect_name="publish",
+                request={"value": "synthetic"},
+            )
+
+    def test_empty_persisted_result_is_not_treated_as_absent(self):
+        prepared = self.journal.prepare(
+            effect_key="effect-empty-result",
+            workflow_id="p1",
+            run_id="r-empty-result",
+            effect_name="publish",
+            request={"value": "synthetic"},
+        )
+        self.journal.confirm(
+            "effect-empty-result",
+            {"remote_id": "synthetic-1"},
+            attempt=prepared.attempt,
+        )
+        with sqlite3.connect(self.database) as connection:
+            connection.execute(
+                "UPDATE workflow_effects SET result_json = ? WHERE effect_key = ?",
+                ("", "effect-empty-result"),
+            )
+        with self.assertRaisesRegex(EffectJournalError, "result JSON is invalid"):
+            self.journal.get("effect-empty-result")
+
+
 if __name__ == "__main__":
     unittest.main()
