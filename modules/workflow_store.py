@@ -40,24 +40,54 @@ class IdempotencyConflict(WorkflowContractError):
     """A previously used idempotency key was presented with different content."""
 
 
-def _same_logical_event(existing: sqlite3.Row, event: WorkflowEvent) -> bool:
-    """Compare immutable event identity fields for an idempotent replay."""
-    if (
-        existing["payload_digest"] != event.payload_digest
-        or existing["event_type"] != event.event_type
-        or existing["workflow_id"] != event.workflow_id
-        or existing["run_id"] != event.run_id
-        or existing["stage"] != event.stage
-        or existing["status"] != event.status
-    ):
-        return False
+def _decode_stored_event(existing: sqlite3.Row) -> WorkflowEvent:
+    """Validate stored JSON and its indexed columns before trusting an event."""
     try:
-        stored_event = json.loads(existing["event_json"])
+        raw = json.loads(existing["event_json"])
     except (TypeError, ValueError) as exc:
         raise IdempotencyConflict(
-            "existing idempotency record cannot be validated"
+            "stored event JSON cannot be decoded"
         ) from exc
-    return stored_event.get("evidence_refs", []) == list(event.evidence_refs)
+    if not isinstance(raw, dict):
+        raise IdempotencyConflict("stored event JSON must be an object")
+    try:
+        stored = WorkflowEvent.from_mapping(raw)
+    except WorkflowContractError as exc:
+        raise IdempotencyConflict(
+            "stored event JSON does not satisfy the workflow event contract"
+        ) from exc
+    if stored.to_dict() != raw:
+        raise IdempotencyConflict("stored event JSON is not in canonical contract form")
+    indexed = {
+        "event_id": stored.event_id,
+        "idempotency_key": stored.idempotency_key,
+        "workflow_id": stored.workflow_id,
+        "run_id": stored.run_id,
+        "event_type": stored.event_type,
+        "stage": stored.stage,
+        "status": stored.status,
+        "occurred_at": stored.occurred_at,
+        "payload_digest": stored.payload_digest,
+    }
+    if any(existing[column] != value for column, value in indexed.items()):
+        raise IdempotencyConflict(
+            "stored event JSON does not match its indexed columns"
+        )
+    return stored
+
+
+def _same_logical_event(existing: sqlite3.Row, event: WorkflowEvent) -> bool:
+    """Compare immutable event identity fields for an idempotent replay."""
+    stored = _decode_stored_event(existing)
+    return (
+        stored.payload_digest == event.payload_digest
+        and stored.event_type == event.event_type
+        and stored.workflow_id == event.workflow_id
+        and stored.run_id == event.run_id
+        and stored.stage == event.stage
+        and stored.status == event.status
+        and stored.evidence_refs == event.evidence_refs
+    )
 
 
 def _connect(database: str | Path) -> sqlite3.Connection:
@@ -90,7 +120,8 @@ def append_event(database: str | Path, raw_event: WorkflowEvent | Mapping[str, A
         connection.execute("BEGIN IMMEDIATE")
         try:
             existing = connection.execute(
-                "SELECT payload_digest, event_type, workflow_id, run_id, stage, status, event_json "
+                "SELECT event_id, idempotency_key, workflow_id, run_id, event_type, "
+                "stage, status, occurred_at, payload_digest, event_json "
                 "FROM workflow_events WHERE idempotency_key = ?",
                 (event.idempotency_key,),
             ).fetchone()
@@ -127,8 +158,9 @@ def list_run_events(database: str | Path, workflow_id: str, run_id: str) -> list
     with closing(_connect(database)) as connection:
         rows = connection.execute(
             """
-            SELECT sequence, event_id, idempotency_key, event_type, stage, status,
-                   occurred_at, payload_digest, event_json, stored_at
+            SELECT sequence, event_id, idempotency_key, workflow_id, run_id,
+                   event_type, stage, status, occurred_at, payload_digest,
+                   event_json, stored_at
             FROM workflow_events
             WHERE workflow_id = ? AND run_id = ?
             ORDER BY sequence ASC
@@ -138,7 +170,8 @@ def list_run_events(database: str | Path, workflow_id: str, run_id: str) -> list
     result = []
     for row in rows:
         item = dict(row)
-        item["event"] = json.loads(item.pop("event_json"))
+        item.pop("event_json")
+        item["event"] = _decode_stored_event(row).to_dict()
         result.append(item)
     return result
 
@@ -149,7 +182,8 @@ def append_event_in_transaction(connection: sqlite3.Connection, raw_event: Workf
     payload = event.to_dict()
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     existing = connection.execute(
-        "SELECT payload_digest, event_type, workflow_id, run_id, stage, status, event_json "
+        "SELECT event_id, idempotency_key, workflow_id, run_id, event_type, "
+                "stage, status, occurred_at, payload_digest, event_json "
         "FROM workflow_events WHERE idempotency_key = ?",
         (event.idempotency_key,),
     ).fetchone()
