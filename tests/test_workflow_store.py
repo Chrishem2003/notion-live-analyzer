@@ -134,5 +134,49 @@ class WorkflowStoreTests(unittest.TestCase):
         self.assertEqual(len(list_run_events(self.database, "project-1", "run-1")), 1)
 
 
+    def test_read_back_rejects_non_object_corrupted_event_json(self):
+        append_event(self.database, event())
+        with sqlite3.connect(self.database) as connection:
+            connection.execute(
+                "UPDATE workflow_events SET event_json = ? WHERE idempotency_key = ?",
+                ("[]", "key-1"),
+            )
+        with self.assertRaisesRegex(IdempotencyConflict, "must be an object"):
+            list_run_events(self.database, "project-1", "run-1")
+
+    def test_read_back_rejects_event_json_that_disagrees_with_indexed_columns(self):
+        import json
+
+        append_event(self.database, event())
+        with sqlite3.connect(self.database) as connection:
+            stored = connection.execute(
+                "SELECT event_json FROM workflow_events WHERE idempotency_key = ?",
+                ("key-1",),
+            ).fetchone()[0]
+            payload = json.loads(stored)
+            payload["status"] = "succeeded"
+            connection.execute(
+                "UPDATE workflow_events SET event_json = ? WHERE idempotency_key = ?",
+                (json.dumps(payload, sort_keys=True, separators=(",", ":")), "key-1"),
+            )
+        with self.assertRaisesRegex(IdempotencyConflict, "does not match its indexed columns"):
+            list_run_events(self.database, "project-1", "run-1")
+
+    def test_idempotent_replay_rejects_corrupted_non_object_event_json(self):
+        append_event(self.database, event())
+        with sqlite3.connect(self.database) as connection:
+            connection.execute(
+                "UPDATE workflow_events SET event_json = ? WHERE idempotency_key = ?",
+                ('"not-an-event-object"', "key-1"),
+            )
+        with self.assertRaisesRegex(IdempotencyConflict, "must be an object"):
+            append_event(self.database, event())
+        with sqlite3.connect(self.database) as connection:
+            self.assertEqual(
+                connection.execute("SELECT COUNT(*) FROM workflow_events").fetchone()[0],
+                1,
+            )
+
+
 if __name__ == "__main__":
     unittest.main()
