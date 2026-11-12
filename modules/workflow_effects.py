@@ -47,8 +47,30 @@ def _validate_attempt(attempt: int) -> int:
     return attempt
 
 
+def _require_text(value: Any, field: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{field} must be a non-empty string")
+    try:
+        value.encode("utf-8")
+    except UnicodeEncodeError as exc:
+        raise ValueError(
+            f"{field} must contain valid Unicode scalar values"
+        ) from exc
+    return value
+
+
 def _canonical(value: Any) -> str:
-    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False)
+    """Serialize finite JSON only when it is valid UTF-8."""
+    try:
+        encoded = json.dumps(
+            value, sort_keys=True, separators=(",", ":"), ensure_ascii=False,
+            allow_nan=False,
+        ).encode("utf-8")
+    except (TypeError, ValueError, UnicodeError) as exc:
+        raise ValueError(
+            "effect journal values must be finite JSON with valid Unicode scalar values"
+        ) from exc
+    return encoded.decode("utf-8")
 
 
 def _connect(database: str | Path) -> sqlite3.Connection:
@@ -112,8 +134,7 @@ class EffectJournal:
     ) -> EffectPreparation:
         for name, value in (("effect_key", effect_key), ("workflow_id", workflow_id),
                             ("run_id", run_id), ("effect_name", effect_name)):
-            if not isinstance(value, str) or not value.strip():
-                raise ValueError(f"{name} must be a non-empty string")
+            _require_text(value, name)
         if not isinstance(request, Mapping):
             raise ValueError("request must be a mapping")
         encoded = _canonical(request)
@@ -180,6 +201,8 @@ class EffectJournal:
     def confirm(self, effect_key: str, result: Mapping[str, Any], *, attempt: int) -> None:
         """Confirm only the exact attempt that performed the external action."""
         attempt = _validate_attempt(attempt)
+        if not isinstance(result, Mapping):
+            raise ValueError("effect result must be a mapping")
         encoded = _canonical(result)
         now = _now()
         with closing(_connect(self.database)) as connection:
@@ -258,7 +281,7 @@ class EffectJournal:
         """Record a verified downstream lookup for one exact attempt."""
         attempt = _validate_attempt(attempt)
         if confirmed:
-            if result is None:
+            if not isinstance(result, Mapping):
                 raise ValueError("a verified result mapping is required when confirmed=True")
             encoded = _canonical(result)
             target = "confirmed"
@@ -313,7 +336,17 @@ class EffectJournal:
         if row is None:
             return None
         item = dict(row)
-        item["result"] = json.loads(item.pop("result_json")) if item.get("result_json") else None
+        stored_result = item.pop("result_json")
+        if stored_result:
+            try:
+                decoded_result = json.loads(stored_result)
+            except (TypeError, ValueError) as exc:
+                raise EffectJournalError("stored effect result JSON is invalid") from exc
+            if not isinstance(decoded_result, dict):
+                raise EffectJournalError("stored effect result must be a JSON object")
+            item["result"] = decoded_result
+        else:
+            item["result"] = None
         return item
 
 
