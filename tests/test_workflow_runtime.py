@@ -169,6 +169,75 @@ class WorkflowRuntimeTests(unittest.TestCase):
         self.assertEqual(completed["result"], {"total": 10})
         self.assertEqual(completed["attempt"], 1)
 
+    def test_get_run_rejects_succeeded_run_without_result(self):
+        runtime = self.make_runtime(
+            self.database, handlers={"echo": lambda data: {"value": data["value"]}}
+        )
+        run_id = runtime.submit(workflow_id="p1", task_type="echo", payload={"value": "synthetic"})
+        runtime.execute_run(run_id)
+        with sqlite3.connect(self.database) as connection:
+            connection.execute(
+                "UPDATE workflow_runs SET result_json=NULL WHERE run_id=?", (run_id,)
+            )
+        with self.assertRaisesRegex(WorkflowStorageError, "Succeeded workflow run is missing its result"):
+            runtime.get_run(run_id)
+
+    def test_get_run_rejects_result_on_queued_run(self):
+        runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
+        run_id = runtime.submit(workflow_id="p1", task_type="echo", payload={"value": "synthetic"})
+        with sqlite3.connect(self.database) as connection:
+            connection.execute(
+                "UPDATE workflow_runs SET result_json=? WHERE run_id=?", ("{}", run_id)
+            )
+        with self.assertRaisesRegex(WorkflowStorageError, "Non-succeeded workflow run unexpectedly contains a result"):
+            runtime.get_run(run_id)
+
+    def test_get_run_rejects_non_object_succeeded_result(self):
+        runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
+        run_id = runtime.submit(workflow_id="p1", task_type="echo", payload={"value": "synthetic"})
+        runtime.execute_run(run_id)
+        with sqlite3.connect(self.database) as connection:
+            connection.execute(
+                "UPDATE workflow_runs SET result_json=? WHERE run_id=?", ("[]", run_id)
+            )
+        with self.assertRaisesRegex(WorkflowStorageError, "Stored workflow result must be a JSON object"):
+            runtime.get_run(run_id)
+
+    def test_get_run_rejects_failed_run_without_error_message(self):
+        runtime = self.make_runtime(
+            self.database, handlers={"fail": lambda _data: (_ for _ in ()).throw(RuntimeError("synthetic failure"))}
+        )
+        run_id = runtime.submit(
+            workflow_id="p1", task_type="fail", payload={}, max_attempts=1
+        )
+        runtime.execute_run(run_id)
+        with sqlite3.connect(self.database) as connection:
+            connection.execute(
+                "UPDATE workflow_runs SET error_message=NULL WHERE run_id=?", (run_id,)
+            )
+        with self.assertRaisesRegex(WorkflowStorageError, "Failed workflow run is missing its error message"):
+            runtime.get_run(run_id)
+
+    def test_get_run_rejects_running_run_without_claim_timestamp(self):
+        runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
+        run_id = runtime.submit(workflow_id="p1", task_type="echo", payload={"value": "synthetic"})
+        with sqlite3.connect(self.database) as connection:
+            connection.execute(
+                "UPDATE workflow_runs SET status='running' WHERE run_id=?", (run_id,)
+            )
+        with self.assertRaisesRegex(WorkflowStorageError, "Running workflow run is missing its claim timestamp"):
+            runtime.get_run(run_id)
+
+    def test_get_run_rejects_non_object_input(self):
+        runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
+        run_id = runtime.submit(workflow_id="p1", task_type="echo", payload={"value": "synthetic"})
+        with sqlite3.connect(self.database) as connection:
+            connection.execute(
+                "UPDATE workflow_runs SET input_json=? WHERE run_id=?", ("[]", run_id)
+            )
+        with self.assertRaisesRegex(WorkflowStorageError, "Stored workflow input must be a JSON object"):
+            runtime.get_run(run_id)
+
     def test_failed_attempt_is_requeued_then_preserved_as_failed(self):
         calls = {"count": 0}
 
