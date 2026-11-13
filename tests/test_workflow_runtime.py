@@ -108,6 +108,8 @@ class WorkflowRuntimeTests(unittest.TestCase):
         )
         loaded = runtime.get_run("legacy-run-001")
         self.assertEqual(loaded["input"], {"value": "preserved"})
+        self.assertIsNone(loaded["result"])
+        self.assertEqual(loaded["result_integrity"], "legacy_unverified")
         self.assertIs(loaded["synthetic_only_confirmed"], False)
         with sqlite3.connect(self.database) as connection:
             row_count = connection.execute(
@@ -169,6 +171,37 @@ class WorkflowRuntimeTests(unittest.TestCase):
         self.assertEqual(completed["result"], {"total": 10})
         self.assertEqual(completed["attempt"], 1)
 
+    def test_legacy_succeeded_result_is_verified_after_object_readback(self):
+        with sqlite3.connect(self.database) as connection:
+            connection.execute(
+                """
+                CREATE TABLE workflow_runs (
+                    run_id TEXT PRIMARY KEY, workflow_id TEXT NOT NULL, task_type TEXT NOT NULL,
+                    status TEXT NOT NULL, input_json TEXT NOT NULL, result_json TEXT,
+                    error_message TEXT, attempt INTEGER NOT NULL DEFAULT 0,
+                    max_attempts INTEGER NOT NULL DEFAULT 3, created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL, claimed_at TEXT
+                )
+                """
+            )
+            connection.execute(
+                """
+                INSERT INTO workflow_runs (
+                    run_id, workflow_id, task_type, status, input_json, result_json,
+                    attempt, max_attempts, created_at, updated_at
+                ) VALUES (?, ?, ?, 'succeeded', ?, ?, 1, 2, ?, ?)
+                """,
+                (
+                    "legacy-run-with-result", "legacy-project", "echo",
+                    '{"value":"input"}', '{"value":"preserved"}',
+                    "2026-11-01T10:00:00+00:00", "2026-11-01T10:01:00+00:00",
+                ),
+            )
+        runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
+        loaded = runtime.get_run("legacy-run-with-result")
+        self.assertEqual(loaded["result"], {"value": "preserved"})
+        self.assertEqual(loaded["result_integrity"], "verified")
+
     def test_get_run_rejects_succeeded_run_without_result(self):
         runtime = self.make_runtime(
             self.database, handlers={"echo": lambda data: {"value": data["value"]}}
@@ -179,7 +212,7 @@ class WorkflowRuntimeTests(unittest.TestCase):
             connection.execute(
                 "UPDATE workflow_runs SET result_json=NULL WHERE run_id=?", (run_id,)
             )
-        with self.assertRaisesRegex(WorkflowStorageError, "Succeeded workflow run is missing its result"):
+        with self.assertRaisesRegex(WorkflowStorageError, "Succeeded workflow run is missing its verified result"):
             runtime.get_run(run_id)
 
     def test_get_run_rejects_result_on_queued_run(self):
