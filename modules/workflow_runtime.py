@@ -50,7 +50,9 @@ CREATE TABLE IF NOT EXISTS workflow_runs (
     updated_at TEXT NOT NULL,
     claimed_at TEXT,
     synthetic_only_confirmed INTEGER NOT NULL DEFAULT 0
-        CHECK (synthetic_only_confirmed IN (0, 1))
+        CHECK (synthetic_only_confirmed IN (0, 1)),
+    result_integrity TEXT NOT NULL DEFAULT 'legacy_unverified'
+        CHECK (result_integrity IN ('not_applicable', 'verified', 'legacy_unverified'))
 );
 CREATE INDEX IF NOT EXISTS idx_workflow_runs_queue
     ON workflow_runs(status, created_at);
@@ -91,6 +93,16 @@ def _initialize(database: str | Path) -> None:
                     ALTER TABLE workflow_runs
                     ADD COLUMN synthetic_only_confirmed INTEGER NOT NULL DEFAULT 0
                     CHECK (synthetic_only_confirmed IN (0, 1))
+                    """
+                )
+            if "result_integrity" not in columns:
+                # Existing succeeded rows without a result remain explicitly legacy-unverified.
+                # No historical input, output, or status value is rewritten.
+                connection.execute(
+                    """
+                    ALTER TABLE workflow_runs
+                    ADD COLUMN result_integrity TEXT NOT NULL DEFAULT 'legacy_unverified'
+                    CHECK (result_integrity IN ('not_applicable', 'verified', 'legacy_unverified'))
                     """
                 )
             connection.execute("COMMIT")
@@ -235,8 +247,9 @@ class WorkflowRuntime:
                 connection.execute(
                     """INSERT INTO workflow_runs
                     (run_id, workflow_id, task_type, status, input_json, attempt,
-                     max_attempts, created_at, updated_at, synthetic_only_confirmed)
-                    VALUES (?, ?, ?, 'queued', ?, 0, ?, ?, ?, ?)""",
+                     max_attempts, created_at, updated_at, synthetic_only_confirmed,
+                     result_integrity)
+                    VALUES (?, ?, ?, 'queued', ?, 0, ?, ?, ?, ?, 'not_applicable')""",
                     (
                         run_id, workflow_id.strip(), task_type, encoded,
                         max_attempts, now, now, int(synthetic_only_confirmed),
@@ -299,18 +312,33 @@ class WorkflowRuntime:
 
         raw_result = result.pop("result_json")
         raw_error = result.get("error_message")
+        integrity = result.get("result_integrity")
+        if integrity not in {"not_applicable", "verified", "legacy_unverified"}:
+            raise WorkflowStorageError("Stored workflow run has an invalid result-integrity marker.")
+
         if status == "succeeded":
             if raw_result is None:
-                raise WorkflowStorageError("Succeeded workflow run is missing its result.")
-            decoded_result = decode_storage_json(raw_result, self.encryption_key)
-            if not isinstance(decoded_result, Mapping):
-                raise WorkflowStorageError("Stored workflow result must be a JSON object.")
+                if integrity != "legacy_unverified":
+                    raise WorkflowStorageError("Succeeded workflow run is missing its verified result.")
+                decoded_result = None
+                result["result_integrity"] = "legacy_unverified"
+            else:
+                if integrity == "not_applicable":
+                    raise WorkflowStorageError("Succeeded workflow run has a result marked not applicable.")
+                decoded_result = decode_storage_json(raw_result, self.encryption_key)
+                if not isinstance(decoded_result, Mapping):
+                    raise WorkflowStorageError("Stored workflow result must be a JSON object.")
+                # Legacy results become verified for this read after successful contract decoding.
+                result["result_integrity"] = "verified"
             if raw_error is not None:
                 raise WorkflowStorageError("Succeeded workflow run unexpectedly contains an error.")
         else:
             if raw_result is not None:
                 raise WorkflowStorageError("Non-succeeded workflow run unexpectedly contains a result.")
+            if integrity == "verified":
+                raise WorkflowStorageError("Non-succeeded workflow run has a verified result marker.")
             decoded_result = None
+            result["result_integrity"] = "not_applicable"
 
         if raw_error is not None:
             decoded_error = decrypt_storage_text(raw_error, self.encryption_key)
@@ -410,8 +438,12 @@ class WorkflowRuntime:
             connection.execute("BEGIN IMMEDIATE")
             try:
                 finalized = connection.execute(
-                    "UPDATE workflow_runs SET status=?, result_json=?, error_message=?, updated_at=?, claimed_at=NULL WHERE run_id=? AND status='running' AND attempt=?",
-                    (outcome, encoded_result, stored_error_message, now, run_id, attempt),
+                    "UPDATE workflow_runs SET status=?, result_json=?, error_message=?, result_integrity=?, updated_at=?, claimed_at=NULL WHERE run_id=? AND status='running' AND attempt=?",
+                    (
+                        outcome, encoded_result, stored_error_message,
+                        "verified" if outcome == "succeeded" else "not_applicable",
+                        now, run_id, attempt,
+                    ),
                 )
                 if finalized.rowcount != 1:
                     raise WorkflowContractError(
@@ -468,7 +500,7 @@ class WorkflowRuntime:
                     updated = now_dt.isoformat(timespec="seconds")
                     stored_error = encrypt_storage_text(error, self.encryption_key)
                     connection.execute(
-                        "UPDATE workflow_runs SET status=?, error_message=?, updated_at=?, claimed_at=NULL WHERE run_id=? AND status='running'",
+                        "UPDATE workflow_runs SET status=?, error_message=?, result_integrity='not_applicable', updated_at=?, claimed_at=NULL WHERE run_id=? AND status='running'",
                         (outcome, stored_error, updated, row["run_id"]),
                     )
                     append_event_in_transaction(
