@@ -52,8 +52,33 @@ def verify_workflow_backup(path: str | Path) -> dict[str, Any]:
         event_columns = {
             row["name"] for row in connection.execute("PRAGMA table_info(workflow_events)").fetchall()
         }
-        if not {"run_id", "input_json", "result_json", "error_message"}.issubset(run_columns):
-            raise BackupVerificationError("workflow_runs schema is incomplete")
+        if not {
+            "run_id", "input_json", "result_json", "error_message", "result_integrity"
+        }.issubset(run_columns):
+            raise BackupVerificationError(
+                "workflow_runs schema is incomplete or missing result_integrity"
+            )
+
+        invalid_integrity_count = int(connection.execute(
+            """
+            SELECT COUNT(*) FROM workflow_runs
+            WHERE result_integrity IS NULL
+               OR result_integrity NOT IN ('not_applicable', 'verified', 'legacy_unverified')
+            """
+        ).fetchone()[0])
+        if invalid_integrity_count:
+            raise BackupVerificationError(
+                "backup contains invalid workflow result-integrity markers"
+            )
+        result_integrity_counts = {
+            row["result_integrity"]: int(row["count"])
+            for row in connection.execute(
+                """
+                SELECT result_integrity, COUNT(*) AS count
+                FROM workflow_runs GROUP BY result_integrity
+                """
+            ).fetchall()
+        }
         if not {"event_id", "idempotency_key", "workflow_id", "run_id", "status"}.issubset(event_columns):
             raise BackupVerificationError("workflow_events schema is incomplete")
 
@@ -70,6 +95,7 @@ def verify_workflow_backup(path: str | Path) -> dict[str, Any]:
             "sqlite_integrity": "ok",
             "workflow_runs": run_count,
             "workflow_events": event_count,
+            "result_integrity_counts": result_integrity_counts,
             "encrypted_payload_field_counts": encrypted_counts,
             "verification_scope": [
                 "read-only SQLite integrity check",
