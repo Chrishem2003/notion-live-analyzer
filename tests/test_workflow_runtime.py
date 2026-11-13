@@ -600,6 +600,7 @@ class WorkflowRuntimeTests(unittest.TestCase):
         )
         self.assertEqual(rotated.get_run(run_id)["input"], {"value": "rotation-fixture"})
         self.assertEqual(rotated.get_run(run_id)["result"], {"echo": "rotation-fixture"})
+        self.assertEqual(rotated.get_run(run_id)["result_integrity"], "verified")
 
         backed_up = self.make_runtime(
             backup,
@@ -607,6 +608,74 @@ class WorkflowRuntimeTests(unittest.TestCase):
             encryption_key=old_key,
         )
         self.assertEqual(backed_up.get_run(run_id)["input"], {"value": "rotation-fixture"})
+        self.assertEqual(backed_up.get_run(run_id)["result_integrity"], "verified")
+
+    def test_key_rotation_preserves_legacy_unverified_result_marker(self):
+        old_key = Fernet.generate_key()
+        new_key = Fernet.generate_key()
+        with sqlite3.connect(self.database) as connection:
+            connection.execute(
+                """
+                CREATE TABLE workflow_runs (
+                    run_id TEXT PRIMARY KEY,
+                    workflow_id TEXT NOT NULL,
+                    task_type TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    input_json TEXT NOT NULL,
+                    result_json TEXT,
+                    error_message TEXT,
+                    attempt INTEGER NOT NULL DEFAULT 0,
+                    max_attempts INTEGER NOT NULL DEFAULT 3,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    claimed_at TEXT
+                )
+                """
+            )
+            connection.execute(
+                """
+                INSERT INTO workflow_runs (
+                    run_id, workflow_id, task_type, status, input_json,
+                    attempt, max_attempts, created_at, updated_at
+                ) VALUES (?, ?, ?, 'succeeded', ?, 1, 2, ?, ?)
+                """,
+                (
+                    "legacy-rotation-run", "legacy-project", "echo",
+                    '{"value":"legacy-fixture"}',
+                    "2026-11-01T10:00:00+00:00", "2026-11-01T10:01:00+00:00",
+                ),
+            )
+
+        legacy = WorkflowRuntime(
+            self.database,
+            handlers={"echo": lambda data: dict(data)},
+            encryption_key=old_key,
+        )
+        before = legacy.get_run("legacy-rotation-run")
+        self.assertIsNone(before["result"])
+        self.assertEqual(before["result_integrity"], "legacy_unverified")
+
+        backup = Path(self.tempdir.name) / "legacy-before-rotation.sqlite3"
+        rotate_workflow_encryption_key(self.database, backup, old_key, new_key)
+
+        rotated = WorkflowRuntime(
+            self.database,
+            handlers={"echo": lambda data: dict(data)},
+            encryption_key=new_key,
+        )
+        after = rotated.get_run("legacy-rotation-run")
+        self.assertEqual(after["input"], {"value": "legacy-fixture"})
+        self.assertIsNone(after["result"])
+        self.assertEqual(after["result_integrity"], "legacy_unverified")
+
+        backed_up = WorkflowRuntime(
+            backup,
+            handlers={"echo": lambda data: dict(data)},
+            encryption_key=old_key,
+        )
+        backup_row = backed_up.get_run("legacy-rotation-run")
+        self.assertIsNone(backup_row["result"])
+        self.assertEqual(backup_row["result_integrity"], "legacy_unverified")
 
     def test_failed_key_rotation_rolls_back_and_retains_backup(self):
         old_key = Fernet.generate_key()
