@@ -26,7 +26,8 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
                     run_id TEXT PRIMARY KEY,
                     input_json TEXT,
                     result_json TEXT,
-                    error_message TEXT
+                    error_message TEXT,
+                    result_integrity TEXT NOT NULL
                 );
                 CREATE TABLE workflow_events (
                     sequence INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -37,8 +38,8 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
                     status TEXT NOT NULL
                 );
                 INSERT INTO workflow_runs VALUES
-                    ('run-1', 'enc:v1:input', 'enc:v1:result', NULL),
-                    ('run-2', '{"synthetic": true}', NULL, 'enc:v1:error');
+                    ('run-1', 'enc:v1:input', 'enc:v1:result', NULL, 'verified'),
+                    ('run-2', '{"synthetic": true}', NULL, 'enc:v1:error', 'not_applicable');
                 INSERT INTO workflow_events (event_id, idempotency_key, workflow_id, run_id, status)
                     VALUES ('evt-1', 'idem-1', 'demo', 'run-1', 'queued'),
                            ('evt-2', 'idem-2', 'demo', 'run-1', 'succeeded');
@@ -56,6 +57,10 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
         self.assertEqual(result["sqlite_integrity"], "ok")
         self.assertEqual(result["workflow_runs"], 2)
         self.assertEqual(result["workflow_events"], 2)
+        self.assertEqual(
+            result["result_integrity_counts"],
+            {"verified": 1, "not_applicable": 1},
+        )
         self.assertEqual(result["encrypted_payload_field_counts"]["input_json"], 1)
         self.assertEqual(result["encrypted_payload_field_counts"]["result_json"], 1)
         self.assertEqual(result["encrypted_payload_field_counts"]["error_message"], 1)
@@ -80,6 +85,18 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
                 "workflow_id TEXT, run_id TEXT, status TEXT)"
             )
         with self.assertRaisesRegex(BackupVerificationError, "workflow_runs schema is incomplete"):
+            verify_workflow_backup(self.backup)
+
+    def test_invalid_result_integrity_marker_fails_closed(self):
+        self.make_valid_backup()
+        with sqlite3.connect(self.backup) as connection:
+            connection.execute("PRAGMA ignore_check_constraints=ON")
+            connection.execute(
+                "UPDATE workflow_runs SET result_integrity='unexpected' WHERE run_id='run-1'"
+            )
+        with self.assertRaisesRegex(
+            BackupVerificationError, "invalid workflow result-integrity markers"
+        ):
             verify_workflow_backup(self.backup)
 
     def test_non_sqlite_file_fails_with_safe_error(self):
@@ -114,6 +131,7 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
         self.assertTrue(result["verified"])
         self.assertGreaterEqual(result["workflow_runs"], 1)
         self.assertGreaterEqual(result["workflow_events"], 3)
+        self.assertEqual(result["result_integrity_counts"], {"verified": 1})
         self.assertEqual(
             result["encrypted_payload_field_counts"]["input_json"],
             result["workflow_runs"],
