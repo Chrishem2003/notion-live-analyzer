@@ -267,13 +267,62 @@ class WorkflowRuntime:
         if row is None:
             return None
         result = dict(row)
-        result["synthetic_only_confirmed"] = result["synthetic_only_confirmed"] == 1
-        result["input"] = decode_storage_json(result.pop("input_json"), self.encryption_key)
+
+        status = result.get("status")
+        if status not in {"queued", "running", "succeeded", "failed"}:
+            raise WorkflowStorageError("Stored workflow run has an invalid status.")
+        synthetic_flag = result.get("synthetic_only_confirmed")
+        if type(synthetic_flag) is not int or synthetic_flag not in (0, 1):
+            raise WorkflowStorageError("Stored workflow run has an invalid synthetic-attestation flag.")
+        attempt = result.get("attempt")
+        max_attempts = result.get("max_attempts")
+        if (
+            type(attempt) is not int
+            or type(max_attempts) is not int
+            or max_attempts < 1
+            or max_attempts > 10
+            or attempt < 0
+            or attempt > max_attempts
+        ):
+            raise WorkflowStorageError("Stored workflow run has invalid attempt counters.")
+
+        claimed_at = result.get("claimed_at")
+        if status == "running":
+            if not isinstance(claimed_at, str) or not claimed_at.strip():
+                raise WorkflowStorageError("Running workflow run is missing its claim timestamp.")
+        elif claimed_at is not None:
+            raise WorkflowStorageError("Non-running workflow run unexpectedly has a claim timestamp.")
+
+        decoded_input = decode_storage_json(result.pop("input_json"), self.encryption_key)
+        if not isinstance(decoded_input, Mapping):
+            raise WorkflowStorageError("Stored workflow input must be a JSON object.")
+
         raw_result = result.pop("result_json")
-        result["result"] = decode_storage_json(raw_result, self.encryption_key) if raw_result else None
         raw_error = result.get("error_message")
+        if status == "succeeded":
+            if raw_result is None:
+                raise WorkflowStorageError("Succeeded workflow run is missing its result.")
+            decoded_result = decode_storage_json(raw_result, self.encryption_key)
+            if not isinstance(decoded_result, Mapping):
+                raise WorkflowStorageError("Stored workflow result must be a JSON object.")
+            if raw_error is not None:
+                raise WorkflowStorageError("Succeeded workflow run unexpectedly contains an error.")
+        else:
+            if raw_result is not None:
+                raise WorkflowStorageError("Non-succeeded workflow run unexpectedly contains a result.")
+            decoded_result = None
+
         if raw_error is not None:
-            result["error_message"] = decrypt_storage_text(raw_error, self.encryption_key)
+            decoded_error = decrypt_storage_text(raw_error, self.encryption_key)
+            if not decoded_error.strip():
+                raise WorkflowStorageError("Stored workflow error message is empty.")
+            result["error_message"] = decoded_error
+        elif status == "failed":
+            raise WorkflowStorageError("Failed workflow run is missing its error message.")
+
+        result["synthetic_only_confirmed"] = synthetic_flag == 1
+        result["input"] = decoded_input
+        result["result"] = decoded_result
         return result
 
     def list_runs(self, *, limit: int = 100) -> list[dict[str, Any]]:
