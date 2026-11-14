@@ -52,11 +52,14 @@ def verify_workflow_backup(path: str | Path) -> dict[str, Any]:
         event_columns = {
             row["name"] for row in connection.execute("PRAGMA table_info(workflow_events)").fetchall()
         }
-        if not {
-            "run_id", "input_json", "result_json", "error_message", "result_integrity"
-        }.issubset(run_columns):
+        required_run_columns = {
+            "run_id", "status", "input_json", "result_json", "error_message",
+            "attempt", "max_attempts", "claimed_at", "synthetic_only_confirmed",
+            "result_integrity",
+        }
+        if not required_run_columns.issubset(run_columns):
             raise BackupVerificationError(
-                "workflow_runs schema is incomplete or missing result_integrity"
+                "workflow_runs schema is incomplete or missing required integrity fields"
             )
 
         invalid_integrity_count = int(connection.execute(
@@ -79,6 +82,41 @@ def verify_workflow_backup(path: str | Path) -> dict[str, Any]:
                 """
             ).fetchall()
         }
+
+        # Mirror the runtime's row-level contract without decrypting payloads.
+        # Historical rows retain the additive legacy_unverified marker; it is
+        # accepted where the runtime can safely classify the row on read.
+        invalid_run_state_count = int(connection.execute(
+            """
+            SELECT COUNT(*) FROM workflow_runs
+            WHERE status NOT IN ('queued', 'running', 'succeeded', 'failed')
+               OR input_json IS NULL
+               OR typeof(attempt) != 'integer'
+               OR typeof(max_attempts) != 'integer'
+               OR max_attempts < 1 OR max_attempts > 10
+               OR attempt < 0 OR attempt > max_attempts
+               OR typeof(synthetic_only_confirmed) != 'integer'
+               OR synthetic_only_confirmed NOT IN (0, 1)
+               OR (status = 'running' AND (
+                    claimed_at IS NULL OR typeof(claimed_at) != 'text' OR TRIM(claimed_at) = ''
+               ))
+               OR (status != 'running' AND claimed_at IS NOT NULL)
+               OR (status = 'succeeded' AND (
+                    (result_json IS NULL AND result_integrity != 'legacy_unverified')
+                    OR (result_json IS NOT NULL AND result_integrity = 'not_applicable')
+                    OR error_message IS NOT NULL
+               ))
+               OR (status != 'succeeded' AND (
+                    result_json IS NOT NULL OR result_integrity = 'verified'
+               ))
+               OR (status = 'failed' AND error_message IS NULL)
+            """
+        ).fetchone()[0])
+        if invalid_run_state_count:
+            raise BackupVerificationError(
+                "backup contains inconsistent workflow run state or result-integrity metadata"
+            )
+
         if not {"event_id", "idempotency_key", "workflow_id", "run_id", "status"}.issubset(event_columns):
             raise BackupVerificationError("workflow_events schema is incomplete")
 
@@ -100,6 +138,7 @@ def verify_workflow_backup(path: str | Path) -> dict[str, Any]:
             "verification_scope": [
                 "read-only SQLite integrity check",
                 "required workflow table and column checks",
+                "workflow run status, attempt, claim, attestation, and result-integrity consistency",
                 "record counts and versioned-encryption prefix counts",
             ],
             "limitations": [
