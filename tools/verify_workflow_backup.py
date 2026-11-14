@@ -13,6 +13,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from modules.workflow_store import IdempotencyConflict, _decode_stored_event
+
 
 class BackupVerificationError(RuntimeError):
     """Raised when a backup fails structural or SQLite integrity checks."""
@@ -117,11 +119,44 @@ def verify_workflow_backup(path: str | Path) -> dict[str, Any]:
                 "backup contains inconsistent workflow run state or result-integrity metadata"
             )
 
-        if not {"event_id", "idempotency_key", "workflow_id", "run_id", "status"}.issubset(event_columns):
+        required_event_columns = {
+            "sequence", "event_id", "idempotency_key", "workflow_id", "run_id",
+            "event_type", "stage", "status", "occurred_at", "payload_digest",
+            "event_json", "stored_at",
+        }
+        if not required_event_columns.issubset(event_columns):
             raise BackupVerificationError("workflow_events schema is incomplete")
 
+        event_rows = connection.execute(
+            "SELECT * FROM workflow_events ORDER BY sequence"
+        ).fetchall()
+        for event_row in event_rows:
+            if (
+                type(event_row["sequence"]) is not int
+                or event_row["sequence"] < 1
+                or not isinstance(event_row["stored_at"], str)
+                or not event_row["stored_at"].strip()
+            ):
+                raise BackupVerificationError("backup contains invalid workflow event metadata")
+            try:
+                decoded_event = _decode_stored_event(event_row)
+            except IdempotencyConflict as exc:
+                raise BackupVerificationError(
+                    "backup contains invalid workflow event records"
+                ) from exc
+            canonical_event_json = json.dumps(
+                decoded_event.to_dict(),
+                sort_keys=True,
+                separators=(",", ":"),
+                ensure_ascii=False,
+            )
+            if event_row["event_json"] != canonical_event_json:
+                raise BackupVerificationError(
+                    "backup contains non-canonical workflow event JSON"
+                )
+
         run_count = int(connection.execute("SELECT COUNT(*) FROM workflow_runs").fetchone()[0])
-        event_count = int(connection.execute("SELECT COUNT(*) FROM workflow_events").fetchone()[0])
+        event_count = len(event_rows)
         encrypted_counts: dict[str, int] = {}
         for column in ("input_json", "result_json", "error_message"):
             encrypted_counts[column] = int(connection.execute(
@@ -139,6 +174,7 @@ def verify_workflow_backup(path: str | Path) -> dict[str, Any]:
                 "read-only SQLite integrity check",
                 "required workflow table and column checks",
                 "workflow run status, attempt, claim, attestation, and result-integrity consistency",
+                "workflow event contract, canonical JSON, and indexed-column consistency",
                 "record counts and versioned-encryption prefix counts",
             ],
             "limitations": [
