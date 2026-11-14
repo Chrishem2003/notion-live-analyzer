@@ -24,9 +24,14 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
                 """
                 CREATE TABLE workflow_runs (
                     run_id TEXT PRIMARY KEY,
+                    status TEXT NOT NULL,
                     input_json TEXT,
                     result_json TEXT,
                     error_message TEXT,
+                    attempt INTEGER NOT NULL,
+                    max_attempts INTEGER NOT NULL,
+                    claimed_at TEXT,
+                    synthetic_only_confirmed INTEGER NOT NULL,
                     result_integrity TEXT NOT NULL
                 );
                 CREATE TABLE workflow_events (
@@ -37,9 +42,13 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
                     run_id TEXT NOT NULL,
                     status TEXT NOT NULL
                 );
-                INSERT INTO workflow_runs VALUES
-                    ('run-1', 'enc:v1:input', 'enc:v1:result', NULL, 'verified'),
-                    ('run-2', '{"synthetic": true}', NULL, 'enc:v1:error', 'not_applicable');
+                INSERT INTO workflow_runs (
+                    run_id, status, input_json, result_json, error_message,
+                    attempt, max_attempts, claimed_at, synthetic_only_confirmed, result_integrity
+                ) VALUES
+                    ('run-1', 'succeeded', 'enc:v1:input', 'enc:v1:result', NULL, 1, 3, NULL, 1, 'verified'),
+                    ('run-2', 'failed', '{"synthetic": true}', NULL, 'enc:v1:error', 3, 3, NULL, 1, 'not_applicable'),
+                    ('run-3', 'succeeded', 'enc:v1:legacy-input', 'enc:v1:legacy-result', NULL, 1, 3, NULL, 1, 'legacy_unverified');
                 INSERT INTO workflow_events (event_id, idempotency_key, workflow_id, run_id, status)
                     VALUES ('evt-1', 'idem-1', 'demo', 'run-1', 'queued'),
                            ('evt-2', 'idem-2', 'demo', 'run-1', 'succeeded');
@@ -55,14 +64,14 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
         result = verify_workflow_backup(self.backup)
         self.assertTrue(result["verified"])
         self.assertEqual(result["sqlite_integrity"], "ok")
-        self.assertEqual(result["workflow_runs"], 2)
+        self.assertEqual(result["workflow_runs"], 3)
         self.assertEqual(result["workflow_events"], 2)
         self.assertEqual(
             result["result_integrity_counts"],
-            {"verified": 1, "not_applicable": 1},
+            {"verified": 1, "not_applicable": 1, "legacy_unverified": 1},
         )
-        self.assertEqual(result["encrypted_payload_field_counts"]["input_json"], 1)
-        self.assertEqual(result["encrypted_payload_field_counts"]["result_json"], 1)
+        self.assertEqual(result["encrypted_payload_field_counts"]["input_json"], 2)
+        self.assertEqual(result["encrypted_payload_field_counts"]["result_json"], 2)
         self.assertEqual(result["encrypted_payload_field_counts"]["error_message"], 1)
         self.assertEqual(self.digest(), before, "verification must not modify the backup")
 
@@ -96,6 +105,47 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
             )
         with self.assertRaisesRegex(
             BackupVerificationError, "invalid workflow result-integrity markers"
+        ):
+            verify_workflow_backup(self.backup)
+
+
+    def test_succeeded_run_without_result_must_remain_legacy_unverified(self):
+        self.make_valid_backup()
+        with sqlite3.connect(self.backup) as connection:
+            connection.execute("UPDATE workflow_runs SET result_json=NULL WHERE run_id='run-1'")
+        with self.assertRaisesRegex(
+            BackupVerificationError, "inconsistent workflow run state or result-integrity metadata"
+        ):
+            verify_workflow_backup(self.backup)
+
+    def test_failed_run_cannot_be_marked_as_having_a_verified_result(self):
+        self.make_valid_backup()
+        with sqlite3.connect(self.backup) as connection:
+            connection.execute(
+                "UPDATE workflow_runs SET result_integrity='verified' WHERE run_id='run-2'"
+            )
+        with self.assertRaisesRegex(
+            BackupVerificationError, "inconsistent workflow run state or result-integrity metadata"
+        ):
+            verify_workflow_backup(self.backup)
+
+    def test_running_run_requires_a_nonempty_claim_timestamp(self):
+        self.make_valid_backup()
+        with sqlite3.connect(self.backup) as connection:
+            connection.execute("UPDATE workflow_runs SET status='running' WHERE run_id='run-2'")
+        with self.assertRaisesRegex(
+            BackupVerificationError, "inconsistent workflow run state or result-integrity metadata"
+        ):
+            verify_workflow_backup(self.backup)
+
+    def test_attempt_counters_must_be_within_the_runtime_limit(self):
+        self.make_valid_backup()
+        with sqlite3.connect(self.backup) as connection:
+            connection.execute(
+                "UPDATE workflow_runs SET attempt=4, max_attempts=3 WHERE run_id='run-1'"
+            )
+        with self.assertRaisesRegex(
+            BackupVerificationError, "inconsistent workflow run state or result-integrity metadata"
         ):
             verify_workflow_backup(self.backup)
 
