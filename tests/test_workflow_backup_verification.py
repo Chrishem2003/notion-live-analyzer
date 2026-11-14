@@ -103,6 +103,45 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
                     ),
                 )
 
+    def rebuild_event_table(self, *, sequence_primary_key=True, unique_keys=True):
+        sequence_definition = (
+            "INTEGER PRIMARY KEY AUTOINCREMENT" if sequence_primary_key else "INTEGER NOT NULL"
+        )
+        identity_definition = "TEXT NOT NULL UNIQUE" if unique_keys else "TEXT NOT NULL"
+        with sqlite3.connect(self.backup) as connection:
+            connection.execute("ALTER TABLE workflow_events RENAME TO workflow_events_before_rebuild")
+            connection.execute(
+                f"""
+                CREATE TABLE workflow_events (
+                    sequence {sequence_definition},
+                    event_id {identity_definition},
+                    idempotency_key {identity_definition},
+                    workflow_id TEXT NOT NULL,
+                    run_id TEXT NOT NULL,
+                    event_type TEXT NOT NULL,
+                    stage TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    occurred_at TEXT NOT NULL,
+                    payload_digest TEXT NOT NULL,
+                    event_json TEXT NOT NULL,
+                    stored_at TEXT NOT NULL
+                )
+                """
+            )
+            connection.execute(
+                """
+                INSERT INTO workflow_events (
+                    sequence, event_id, idempotency_key, workflow_id, run_id,
+                    event_type, stage, status, occurred_at, payload_digest, event_json, stored_at
+                )
+                SELECT
+                    sequence, event_id, idempotency_key, workflow_id, run_id,
+                    event_type, stage, status, occurred_at, payload_digest, event_json, stored_at
+                FROM workflow_events_before_rebuild
+                """
+            )
+            connection.execute("DROP TABLE workflow_events_before_rebuild")
+
     def digest(self):
         return hashlib.sha256(self.backup.read_bytes()).hexdigest()
 
@@ -250,6 +289,23 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
             )
         with self.assertRaisesRegex(
             BackupVerificationError, "invalid workflow event metadata"
+        ):
+            verify_workflow_backup(self.backup)
+
+
+    def test_event_table_must_preserve_unique_identity_indexes(self):
+        self.make_valid_backup()
+        self.rebuild_event_table(unique_keys=False)
+        with self.assertRaisesRegex(
+            BackupVerificationError, "missing required unique identity indexes"
+        ):
+            verify_workflow_backup(self.backup)
+
+    def test_event_sequence_must_remain_the_primary_key(self):
+        self.make_valid_backup()
+        self.rebuild_event_table(sequence_primary_key=False)
+        with self.assertRaisesRegex(
+            BackupVerificationError, "sequence must remain the primary key"
         ):
             verify_workflow_backup(self.backup)
 
