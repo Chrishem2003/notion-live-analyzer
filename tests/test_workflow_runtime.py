@@ -6,7 +6,8 @@ from unittest.mock import patch
 from pathlib import Path
 
 from modules.workflow_runtime import HandlerNotRegistered, WorkflowRuntime
-from modules.workflow_contract import WorkflowContractError
+from modules.workflow_handlers import default_handlers
+from modules.workflow_contract import WorkflowContractError, canonical_payload_digest
 from modules.workflow_store import list_run_events
 from modules.workflow_storage import WorkflowStorageError
 from modules.workflow_key_rotation import WorkflowKeyRotationError, rotate_workflow_encryption_key
@@ -34,6 +35,126 @@ class WorkflowRuntimeTests(unittest.TestCase):
         self.assertEqual(loaded["status"], "queued")
         self.assertEqual(loaded["input"], {"value": 7})
         self.assertEqual(loaded["attempt"], 0)
+        self.assertIs(loaded["synthetic_only_confirmed"], False)
+
+    def test_synthetic_confirmation_is_persisted_with_the_run(self):
+        runtime = self.make_runtime(
+            self.database,
+            handlers={"echo": lambda data: {"echo": data["value"]}},
+        )
+        run_id = runtime.submit(
+            workflow_id="project-1",
+            task_type="echo",
+            payload={"value": "synthetic"},
+            synthetic_only_confirmed=True,
+        )
+        reloaded = self.make_runtime(
+            self.database,
+            handlers={"echo": lambda data: {"echo": data["value"]}},
+        ).get_run(run_id)
+        self.assertIs(reloaded["synthetic_only_confirmed"], True)
+
+    def test_synthetic_confirmation_requires_an_exact_boolean(self):
+        runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
+        for invalid in (1, "true", None):
+            with self.subTest(value=invalid):
+                with self.assertRaisesRegex(ValueError, "must be a boolean"):
+                    runtime.submit(
+                        workflow_id="project-1",
+                        task_type="echo",
+                        payload={"value": "synthetic"},
+                        synthetic_only_confirmed=invalid,
+                    )
+        self.assertEqual(runtime.list_runs(), [])
+
+    def test_legacy_runtime_rows_migrate_as_unattested_without_data_loss(self):
+        with sqlite3.connect(self.database) as connection:
+            connection.execute(
+                """
+                CREATE TABLE workflow_runs (
+                    run_id TEXT PRIMARY KEY,
+                    workflow_id TEXT NOT NULL,
+                    task_type TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    input_json TEXT NOT NULL,
+                    result_json TEXT,
+                    error_message TEXT,
+                    attempt INTEGER NOT NULL DEFAULT 0,
+                    max_attempts INTEGER NOT NULL DEFAULT 3,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    claimed_at TEXT
+                )
+                """
+            )
+            connection.execute(
+                """
+                INSERT INTO workflow_runs (
+                    run_id, workflow_id, task_type, status, input_json,
+                    attempt, max_attempts, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    "legacy-run-001", "legacy-project", "echo", "succeeded",
+                    '{"value":"preserved"}', 1, 2,
+                    "2026-11-01T10:00:00+00:00",
+                    "2026-11-01T10:01:00+00:00",
+                ),
+            )
+
+        runtime = self.make_runtime(
+            self.database,
+            handlers={"echo": lambda data: dict(data)},
+        )
+        loaded = runtime.get_run("legacy-run-001")
+        self.assertEqual(loaded["input"], {"value": "preserved"})
+        self.assertIsNone(loaded["result"])
+        self.assertEqual(loaded["result_integrity"], "legacy_unverified")
+        self.assertIs(loaded["synthetic_only_confirmed"], False)
+        with sqlite3.connect(self.database) as connection:
+            row_count = connection.execute(
+                "SELECT COUNT(*) FROM workflow_runs"
+            ).fetchone()[0]
+            stored_flag = connection.execute(
+                "SELECT synthetic_only_confirmed FROM workflow_runs WHERE run_id=?",
+                ("legacy-run-001",),
+            ).fetchone()[0]
+        self.assertEqual(row_count, 1)
+        self.assertEqual(stored_flag, 0)
+
+    def test_register_handler_rejects_unpaired_surrogate_task_type(self):
+        runtime = self.make_runtime(self.database)
+        with self.assertRaisesRegex(ValueError, "valid Unicode scalar values"):
+            runtime.register_handler("echo\ud800", lambda data: dict(data))
+        self.assertEqual(runtime.handlers, {})
+
+    def test_submit_rejects_unpaired_surrogate_workflow_id_before_persistence(self):
+        runtime = self.make_runtime(
+            self.database,
+            handlers={"echo": lambda data: dict(data)},
+        )
+        with self.assertRaisesRegex(ValueError, "valid Unicode scalar values"):
+            runtime.submit(
+                workflow_id="project-\ud800",
+                task_type="echo",
+                payload={"value": "synthetic"},
+            )
+        self.assertEqual(runtime.list_runs(), [])
+
+    def test_submit_normalizes_task_type_to_registered_handler_key(self):
+        runtime = self.make_runtime(
+            self.database,
+            handlers={"echo": lambda data: {"value": data["value"]}},
+        )
+        run_id = runtime.submit(
+            workflow_id="project-1",
+            task_type=" echo ",
+            payload={"value": "synthetic"},
+        )
+        completed = runtime.execute_run(run_id)
+        self.assertEqual(completed["task_type"], "echo")
+        self.assertEqual(completed["status"], "succeeded")
+        self.assertEqual(completed["result"], {"value": "synthetic"})
 
     def test_unregistered_task_type_is_rejected_before_enqueue(self):
         runtime = self.make_runtime(self.database)
@@ -49,6 +170,106 @@ class WorkflowRuntimeTests(unittest.TestCase):
         self.assertEqual(completed["status"], "succeeded")
         self.assertEqual(completed["result"], {"total": 10})
         self.assertEqual(completed["attempt"], 1)
+
+    def test_legacy_succeeded_result_is_verified_after_object_readback(self):
+        with sqlite3.connect(self.database) as connection:
+            connection.execute(
+                """
+                CREATE TABLE workflow_runs (
+                    run_id TEXT PRIMARY KEY, workflow_id TEXT NOT NULL, task_type TEXT NOT NULL,
+                    status TEXT NOT NULL, input_json TEXT NOT NULL, result_json TEXT,
+                    error_message TEXT, attempt INTEGER NOT NULL DEFAULT 0,
+                    max_attempts INTEGER NOT NULL DEFAULT 3, created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL, claimed_at TEXT
+                )
+                """
+            )
+            connection.execute(
+                """
+                INSERT INTO workflow_runs (
+                    run_id, workflow_id, task_type, status, input_json, result_json,
+                    attempt, max_attempts, created_at, updated_at
+                ) VALUES (?, ?, ?, 'succeeded', ?, ?, 1, 2, ?, ?)
+                """,
+                (
+                    "legacy-run-with-result", "legacy-project", "echo",
+                    '{"value":"input"}', '{"value":"preserved"}',
+                    "2026-11-01T10:00:00+00:00", "2026-11-01T10:01:00+00:00",
+                ),
+            )
+        runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
+        loaded = runtime.get_run("legacy-run-with-result")
+        self.assertEqual(loaded["result"], {"value": "preserved"})
+        self.assertEqual(loaded["result_integrity"], "verified")
+
+    def test_get_run_rejects_succeeded_run_without_result(self):
+        runtime = self.make_runtime(
+            self.database, handlers={"echo": lambda data: {"value": data["value"]}}
+        )
+        run_id = runtime.submit(workflow_id="p1", task_type="echo", payload={"value": "synthetic"})
+        runtime.execute_run(run_id)
+        with sqlite3.connect(self.database) as connection:
+            connection.execute(
+                "UPDATE workflow_runs SET result_json=NULL WHERE run_id=?", (run_id,)
+            )
+        with self.assertRaisesRegex(WorkflowStorageError, "Succeeded workflow run is missing its verified result"):
+            runtime.get_run(run_id)
+
+    def test_get_run_rejects_result_on_queued_run(self):
+        runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
+        run_id = runtime.submit(workflow_id="p1", task_type="echo", payload={"value": "synthetic"})
+        with sqlite3.connect(self.database) as connection:
+            connection.execute(
+                "UPDATE workflow_runs SET result_json=? WHERE run_id=?", ("{}", run_id)
+            )
+        with self.assertRaisesRegex(WorkflowStorageError, "Non-succeeded workflow run unexpectedly contains a result"):
+            runtime.get_run(run_id)
+
+    def test_get_run_rejects_non_object_succeeded_result(self):
+        runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
+        run_id = runtime.submit(workflow_id="p1", task_type="echo", payload={"value": "synthetic"})
+        runtime.execute_run(run_id)
+        with sqlite3.connect(self.database) as connection:
+            connection.execute(
+                "UPDATE workflow_runs SET result_json=? WHERE run_id=?", ("[]", run_id)
+            )
+        with self.assertRaisesRegex(WorkflowStorageError, "Stored workflow result must be a JSON object"):
+            runtime.get_run(run_id)
+
+    def test_get_run_rejects_failed_run_without_error_message(self):
+        runtime = self.make_runtime(
+            self.database, handlers={"fail": lambda _data: (_ for _ in ()).throw(RuntimeError("synthetic failure"))}
+        )
+        run_id = runtime.submit(
+            workflow_id="p1", task_type="fail", payload={}, max_attempts=1
+        )
+        runtime.execute_run(run_id)
+        with sqlite3.connect(self.database) as connection:
+            connection.execute(
+                "UPDATE workflow_runs SET error_message=NULL WHERE run_id=?", (run_id,)
+            )
+        with self.assertRaisesRegex(WorkflowStorageError, "Failed workflow run is missing its error message"):
+            runtime.get_run(run_id)
+
+    def test_get_run_rejects_running_run_without_claim_timestamp(self):
+        runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
+        run_id = runtime.submit(workflow_id="p1", task_type="echo", payload={"value": "synthetic"})
+        with sqlite3.connect(self.database) as connection:
+            connection.execute(
+                "UPDATE workflow_runs SET status='running' WHERE run_id=?", (run_id,)
+            )
+        with self.assertRaisesRegex(WorkflowStorageError, "Running workflow run is missing its claim timestamp"):
+            runtime.get_run(run_id)
+
+    def test_get_run_rejects_non_object_input(self):
+        runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
+        run_id = runtime.submit(workflow_id="p1", task_type="echo", payload={"value": "synthetic"})
+        with sqlite3.connect(self.database) as connection:
+            connection.execute(
+                "UPDATE workflow_runs SET input_json=? WHERE run_id=?", ("[]", run_id)
+            )
+        with self.assertRaisesRegex(WorkflowStorageError, "Stored workflow input must be a JSON object"):
+            runtime.get_run(run_id)
 
     def test_failed_attempt_is_requeued_then_preserved_as_failed(self):
         calls = {"count": 0}
@@ -133,6 +354,47 @@ class WorkflowRuntimeTests(unittest.TestCase):
         runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
         with self.assertRaises(ValueError):
             runtime.submit(workflow_id="p1", task_type="echo", payload={}, max_attempts=99)
+
+    def test_unpaired_surrogate_payload_is_rejected_before_persistence(self):
+        runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
+        with self.assertRaisesRegex(ValueError, "valid Unicode scalar values"):
+            runtime.submit(
+                workflow_id="p1",
+                task_type="echo",
+                payload={"value": "\ud800"},
+            )
+        self.assertEqual(runtime.list_runs(), [])
+
+    def test_fasta_handler_executes_through_runtime_with_human_review_gate(self):
+        runtime = self.make_runtime(self.database, handlers=default_handlers())
+        run_id = runtime.submit(
+            workflow_id="synthetic-fasta-project",
+            task_type="fasta_validate",
+            payload={"fasta_text": ">DEMO-001 synthetic fixture\nACGTNN\n"},
+            synthetic_only_confirmed=True,
+        )
+        completed = runtime.execute_run(run_id)
+        self.assertEqual(completed["status"], "succeeded")
+        self.assertIs(completed["synthetic_only_confirmed"], True)
+        self.assertTrue(completed["result"]["valid"])
+        self.assertTrue(completed["result"]["human_review_required"])
+        self.assertTrue(any("not alignment" in item for item in completed["result"]["limitations"]))
+
+    def test_invalid_fasta_header_returns_failed_validation_result_through_runtime(self):
+        runtime = self.make_runtime(self.database, handlers=default_handlers())
+        run_id = runtime.submit(
+            workflow_id="synthetic-fasta-project",
+            task_type="fasta_validate",
+            payload={"fasta_text": ">   \nACGT\n"},
+            max_attempts=1,
+            synthetic_only_confirmed=True,
+        )
+        completed = runtime.execute_run(run_id)
+        # Runtime execution succeeded; the validator's structured data-quality result failed.
+        self.assertEqual(completed["status"], "succeeded")
+        self.assertFalse(completed["result"]["valid"])
+        self.assertFalse(completed["result"]["records"][0]["valid_record"])
+        self.assertIn("FASTA header is empty", " ".join(completed["result"]["errors"]))
 
     def test_oversized_input_is_rejected_before_persistence(self):
         runtime = self.make_runtime(self.database, handlers={"echo": lambda data: dict(data)})
@@ -338,6 +600,7 @@ class WorkflowRuntimeTests(unittest.TestCase):
         )
         self.assertEqual(rotated.get_run(run_id)["input"], {"value": "rotation-fixture"})
         self.assertEqual(rotated.get_run(run_id)["result"], {"echo": "rotation-fixture"})
+        self.assertEqual(rotated.get_run(run_id)["result_integrity"], "verified")
 
         backed_up = self.make_runtime(
             backup,
@@ -345,6 +608,74 @@ class WorkflowRuntimeTests(unittest.TestCase):
             encryption_key=old_key,
         )
         self.assertEqual(backed_up.get_run(run_id)["input"], {"value": "rotation-fixture"})
+        self.assertEqual(backed_up.get_run(run_id)["result_integrity"], "verified")
+
+    def test_key_rotation_preserves_legacy_unverified_result_marker(self):
+        old_key = Fernet.generate_key()
+        new_key = Fernet.generate_key()
+        with sqlite3.connect(self.database) as connection:
+            connection.execute(
+                """
+                CREATE TABLE workflow_runs (
+                    run_id TEXT PRIMARY KEY,
+                    workflow_id TEXT NOT NULL,
+                    task_type TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    input_json TEXT NOT NULL,
+                    result_json TEXT,
+                    error_message TEXT,
+                    attempt INTEGER NOT NULL DEFAULT 0,
+                    max_attempts INTEGER NOT NULL DEFAULT 3,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    claimed_at TEXT
+                )
+                """
+            )
+            connection.execute(
+                """
+                INSERT INTO workflow_runs (
+                    run_id, workflow_id, task_type, status, input_json,
+                    attempt, max_attempts, created_at, updated_at
+                ) VALUES (?, ?, ?, 'succeeded', ?, 1, 2, ?, ?)
+                """,
+                (
+                    "legacy-rotation-run", "legacy-project", "echo",
+                    '{"value":"legacy-fixture"}',
+                    "2026-11-01T10:00:00+00:00", "2026-11-01T10:01:00+00:00",
+                ),
+            )
+
+        legacy = WorkflowRuntime(
+            self.database,
+            handlers={"echo": lambda data: dict(data)},
+            encryption_key=old_key,
+        )
+        before = legacy.get_run("legacy-rotation-run")
+        self.assertIsNone(before["result"])
+        self.assertEqual(before["result_integrity"], "legacy_unverified")
+
+        backup = Path(self.tempdir.name) / "legacy-before-rotation.sqlite3"
+        rotate_workflow_encryption_key(self.database, backup, old_key, new_key)
+
+        rotated = WorkflowRuntime(
+            self.database,
+            handlers={"echo": lambda data: dict(data)},
+            encryption_key=new_key,
+        )
+        after = rotated.get_run("legacy-rotation-run")
+        self.assertEqual(after["input"], {"value": "legacy-fixture"})
+        self.assertIsNone(after["result"])
+        self.assertEqual(after["result_integrity"], "legacy_unverified")
+
+        backed_up = WorkflowRuntime(
+            backup,
+            handlers={"echo": lambda data: dict(data)},
+            encryption_key=old_key,
+        )
+        backup_row = backed_up.get_run("legacy-rotation-run")
+        self.assertIsNone(backup_row["result"])
+        self.assertEqual(backup_row["result_integrity"], "legacy_unverified")
 
     def test_failed_key_rotation_rolls_back_and_retains_backup(self):
         old_key = Fernet.generate_key()
@@ -424,6 +755,11 @@ class WorkflowRuntimeTests(unittest.TestCase):
             self.skipTest("POSIX permission bits are not portable to Windows")
         old_key = Fernet.generate_key()
         new_key = Fernet.generate_key()
+        self.make_runtime(
+            self.database,
+            handlers={"echo": lambda data: dict(data)},
+            encryption_key=old_key,
+        )
         backup = Path(self.tempdir.name) / "runtime-private-backup.sqlite3"
         rotate_workflow_encryption_key(self.database, backup, old_key, new_key)
         self.assertEqual(stat.S_IMODE(backup.stat().st_mode), 0o600)
@@ -439,10 +775,103 @@ class WorkflowRuntimeTests(unittest.TestCase):
         except (OSError, NotImplementedError):
             self.skipTest("Unable to create symlink in this environment")
         key = Fernet.generate_key()
+        self.make_runtime(
+            self.database,
+            handlers={"echo": lambda data: dict(data)},
+            encryption_key=key,
+        )
         with self.assertRaisesRegex(WorkflowKeyRotationError, "refusing to overwrite"):
             rotate_workflow_encryption_key(self.database, backup, key, Fernet.generate_key())
         self.assertTrue(backup.is_symlink())
         self.assertFalse(target.exists())
+
+
+    def test_recovered_retry_fences_late_worker_before_finalization(self):
+        import threading
+        from concurrent.futures import ThreadPoolExecutor
+
+        first_started = threading.Event()
+        second_started = threading.Event()
+        release_first = threading.Event()
+        release_second = threading.Event()
+        calls_lock = threading.Lock()
+        calls = {"count": 0}
+
+        def controlled_handler(_payload):
+            with calls_lock:
+                calls["count"] += 1
+                attempt_number = calls["count"]
+            if attempt_number == 1:
+                first_started.set()
+                if not release_first.wait(timeout=10):
+                    raise TimeoutError("first synthetic worker was not released")
+                return {"worker": "first-attempt"}
+            if attempt_number == 2:
+                second_started.set()
+                if not release_second.wait(timeout=10):
+                    raise TimeoutError("second synthetic worker was not released")
+                return {"worker": "second-attempt"}
+            raise AssertionError("unexpected extra handler invocation")
+
+        runtime = self.make_runtime(
+            self.database,
+            handlers={"controlled": controlled_handler},
+        )
+        run_id = runtime.submit(
+            workflow_id="stale-retry-fence-test",
+            task_type="controlled",
+            payload={"fixture": "synthetic"},
+            max_attempts=3,
+        )
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            first_future = executor.submit(runtime.execute_run, run_id)
+            try:
+                self.assertTrue(first_started.wait(timeout=5))
+                # Simulate a maintenance process identifying the first claim as stale.
+                with sqlite3.connect(self.database) as connection:
+                    connection.execute(
+                        "UPDATE workflow_runs SET claimed_at=? WHERE run_id=?",
+                        ("2000-01-01T00:00:00+00:00", run_id),
+                    )
+                recovered = runtime.recover_stale_runs(older_than_seconds=60)
+                self.assertEqual(recovered[0]["status"], "queued")
+
+                second_future = executor.submit(runtime.execute_run, run_id)
+                self.assertTrue(second_started.wait(timeout=5))
+
+                # The second attempt is now running. The first worker returns late;
+                # its old attempt token must not finalize over the newer claim.
+                release_first.set()
+                with self.assertRaisesRegex(WorkflowContractError, "lost its running claim"):
+                    first_future.result(timeout=5)
+
+                in_flight = runtime.get_run(run_id)
+                self.assertEqual(in_flight["status"], "running")
+                self.assertEqual(in_flight["attempt"], 2)
+                self.assertIsNone(in_flight["result"])
+
+                release_second.set()
+                completed = second_future.result(timeout=5)
+            finally:
+                release_first.set()
+                release_second.set()
+
+        self.assertEqual(completed["status"], "succeeded")
+        self.assertEqual(completed["attempt"], 2)
+        self.assertEqual(completed["result"], {"worker": "second-attempt"})
+        history = list_run_events(self.database, "stale-retry-fence-test", run_id)
+        self.assertEqual(
+            [event["status"] for event in history],
+            ["queued", "running", "queued", "running", "succeeded"],
+        )
+        self.assertEqual(
+            history[-1]["event"]["payload_digest"],
+            canonical_payload_digest({
+                "attempt": 2,
+                "result": {"worker": "second-attempt"},
+            }),
+        )
 
 
 if __name__ == "__main__":

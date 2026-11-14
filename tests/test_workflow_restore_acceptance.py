@@ -61,6 +61,7 @@ class WorkflowRestoreAcceptanceTests(unittest.TestCase):
         self.assertEqual(restored_run["status"], "succeeded")
         self.assertEqual(restored_run["input"], {"value": "restore-fixture-only"})
         self.assertEqual(restored_run["result"], {"echo": "restore-fixture-only"})
+        self.assertEqual(restored_run["result_integrity"], "verified")
         events = list_run_events(self.restored, "synthetic-restore-acceptance", run_id)
         self.assertEqual(
             [event["status"] for event in events],

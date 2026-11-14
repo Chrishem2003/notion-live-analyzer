@@ -1,8 +1,9 @@
-"""Explicit, duplicate-aware handoff of successful local workflow runs to Notion.
+"""Metadata-only, duplicate-aware handoff of successful local workflow runs to Notion.
 
 This adapter requires a user-configured Notion integration token and a database ID.
-It does not mark scientific QC or reproducibility as passed; the created record stays
-pending review and is classified Synthetic/Test until a reviewer changes it.
+It never exports raw input, result, or error payloads. The created record stays
+pending review and is classified Synthetic/Test; its manifest hash is an
+integrity/idempotency fingerprint, not anonymization.
 """
 from __future__ import annotations
 
@@ -37,6 +38,7 @@ def manifest_digest(run: Mapping[str, Any]) -> str:
         "input": run.get("input"),
         "result": run.get("result"),
         "status": run.get("status"),
+        "synthetic_only_confirmed": run.get("synthetic_only_confirmed") is True,
     }
     try:
         encoded = json.dumps(
@@ -190,6 +192,10 @@ def _sync_run_to_notion_unlocked(
     by manifest hash before creating a page; Notion does not provide an atomic unique
     constraint for this property, so concurrent simultaneous calls can still race.
     """
+    if run.get("synthetic_only_confirmed") is not True:
+        raise NotionHandoffError(
+            "run lacks a persisted, run-scoped synthetic/demo-only attestation"
+        )
     api_token = token or os.environ.get("NOTION_API_KEY")
     target_database = database_id or os.environ.get("NOTION_ANALYSIS_RUNS_DATABASE_ID") or DEFAULT_ANALYSIS_RUNS_DATABASE_ID
     if not isinstance(api_token, str) or not api_token.strip():
@@ -247,8 +253,15 @@ def _sync_run_to_notion_unlocked(
             "manifest_hash": digest,
         }
 
+    # Metadata-only export: arbitrary input/result/error values can contain research,
+    # personal, or confidential content even when an operator attests that a run is synthetic.
+    # Preserve source payloads in the local run store; never serialize them into Notion.
+    metadata_only_note = (
+        "Omitted from Notion by metadata-only handoff policy; "
+        "consult the authorized local run store."
+    )
     properties: dict[str, Any] = {
-        "Run Name": {"title": [{"type": "text", "text": {"content": f"{task_type}: {workflow_id} · {run_id}"[:1800]}}]},
+        "Run Name": {"title": [{"type": "text", "text": {"content": f"{task_type} · {run_id}"[:1800]}}]},
         "Run Status": {"select": {"name": "Complete"}},
         "Workflow Gate": {"select": {"name": "Execution Recorded"}},
         "QC Outcome": {"select": {"name": "Pending"}},
@@ -258,23 +271,18 @@ def _sync_run_to_notion_unlocked(
         "Code Revision": _rich_text(
             str(run.get("code_revision") or os.environ.get("GIT_COMMIT_SHA") or "Not supplied by runtime")
         ),
-        "Input Dataset Version": _rich_text(
-            str((run.get("input") or {}).get("dataset_version") or "Not supplied by runtime")
-            if isinstance(run.get("input"), Mapping) else "Not supplied by runtime"
-        ),
+        "Input Dataset Version": _rich_text(metadata_only_note),
         "Run Manifest Hash": _rich_text(digest),
         "Execution Evidence / Handoff": _rich_text(
-            f"Local run ID: {run_id}; workflow: {workflow_id}; task: {task_type}; "
-            f"result: {json.dumps(run.get('result'), sort_keys=True, ensure_ascii=False, allow_nan=False)}; "
+            f"Local run ID: {run_id}; task: {task_type}; manifest hash: {digest}; "
+            "input, result, and error payloads are not exported; "
             "handoff status: delivered; QC and reproducibility are still pending."
         ),
-        "Environment": _rich_text("Local SQLite workflow runtime; explicit user-triggered Notion handoff"),
-        "Parameters": _rich_text(json.dumps(run.get("input"), sort_keys=True, ensure_ascii=False, allow_nan=False)),
+        "Environment": _rich_text("Local SQLite workflow runtime; explicit user-triggered metadata-only Notion handoff"),
+        "Parameters": _rich_text(metadata_only_note),
     }
     properties["Started At"] = {"date": {"start": started_at}}
     properties["Completed At"] = {"date": {"start": completed_at}}
-    if run.get("error_message"):
-        properties["Blocker / Recovery Action"] = _rich_text(str(run["error_message"]))
     try:
         created_response = session.post(
             f"{NOTION_API_BASE}/pages",
@@ -290,6 +298,15 @@ def _sync_run_to_notion_unlocked(
             "Notion page creation outcome is unknown after a transport failure; "
             "retry the handoff action to reconcile by manifest hash before creating again"
         ) from exc
+    create_status = getattr(created_response, "status_code", 500)
+    if create_status >= 500:
+        # A server error can be returned after the remote page was committed.
+        # Preserve the ambiguous outcome and require a fresh manifest lookup.
+        raise NotionHandoffError(
+            f"Notion page creation outcome is unknown after HTTP {create_status}; "
+            "the server may have committed the page. Retry the handoff action to "
+            "reconcile by manifest hash before any new create"
+        )
     created = _response_json(created_response)
     page_id = created.get("id")
     page_url = created.get("url")
@@ -354,6 +371,10 @@ def sync_run_to_notion(
     documented query-before-create race. Separate hosts/filesystems still require a
     centralized outbox/worker to guarantee cross-host serialization.
     """
+    if run.get("synthetic_only_confirmed") is not True:
+        raise NotionHandoffError(
+            "run lacks a persisted, run-scoped synthetic/demo-only attestation"
+        )
     if ledger_database is None:
         configured_path = os.environ.get("WORKFLOW_RUNTIME_DB")
         if configured_path:

@@ -13,6 +13,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from modules.workflow_store import IdempotencyConflict, _decode_stored_event
+
 
 class BackupVerificationError(RuntimeError):
     """Raised when a backup fails structural or SQLite integrity checks."""
@@ -52,13 +54,141 @@ def verify_workflow_backup(path: str | Path) -> dict[str, Any]:
         event_columns = {
             row["name"] for row in connection.execute("PRAGMA table_info(workflow_events)").fetchall()
         }
-        if not {"run_id", "input_json", "result_json", "error_message"}.issubset(run_columns):
-            raise BackupVerificationError("workflow_runs schema is incomplete")
-        if not {"event_id", "idempotency_key", "workflow_id", "run_id", "status"}.issubset(event_columns):
+        required_run_columns = {
+            "run_id", "status", "input_json", "result_json", "error_message",
+            "attempt", "max_attempts", "claimed_at", "synthetic_only_confirmed",
+            "result_integrity",
+        }
+        if not required_run_columns.issubset(run_columns):
+            raise BackupVerificationError(
+                "workflow_runs schema is incomplete or missing required integrity fields"
+            )
+
+        invalid_integrity_count = int(connection.execute(
+            """
+            SELECT COUNT(*) FROM workflow_runs
+            WHERE result_integrity IS NULL
+               OR result_integrity NOT IN ('not_applicable', 'verified', 'legacy_unverified')
+            """
+        ).fetchone()[0])
+        if invalid_integrity_count:
+            raise BackupVerificationError(
+                "backup contains invalid workflow result-integrity markers"
+            )
+        result_integrity_counts = {
+            row["result_integrity"]: int(row["count"])
+            for row in connection.execute(
+                """
+                SELECT result_integrity, COUNT(*) AS count
+                FROM workflow_runs GROUP BY result_integrity
+                """
+            ).fetchall()
+        }
+
+        # Mirror the runtime's row-level contract without decrypting payloads.
+        # Historical rows retain the additive legacy_unverified marker; it is
+        # accepted where the runtime can safely classify the row on read.
+        invalid_run_state_count = int(connection.execute(
+            """
+            SELECT COUNT(*) FROM workflow_runs
+            WHERE status NOT IN ('queued', 'running', 'succeeded', 'failed')
+               OR input_json IS NULL
+               OR typeof(attempt) != 'integer'
+               OR typeof(max_attempts) != 'integer'
+               OR max_attempts < 1 OR max_attempts > 10
+               OR attempt < 0 OR attempt > max_attempts
+               OR typeof(synthetic_only_confirmed) != 'integer'
+               OR synthetic_only_confirmed NOT IN (0, 1)
+               OR (status = 'running' AND (
+                    claimed_at IS NULL OR typeof(claimed_at) != 'text' OR TRIM(claimed_at) = ''
+               ))
+               OR (status != 'running' AND claimed_at IS NOT NULL)
+               OR (status = 'succeeded' AND (
+                    (result_json IS NULL AND result_integrity != 'legacy_unverified')
+                    OR (result_json IS NOT NULL AND result_integrity = 'not_applicable')
+                    OR error_message IS NOT NULL
+               ))
+               OR (status != 'succeeded' AND (
+                    result_json IS NOT NULL OR result_integrity = 'verified'
+               ))
+               OR (status = 'failed' AND error_message IS NULL)
+            """
+        ).fetchone()[0])
+        if invalid_run_state_count:
+            raise BackupVerificationError(
+                "backup contains inconsistent workflow run state or result-integrity metadata"
+            )
+
+        required_event_columns = {
+            "sequence", "event_id", "idempotency_key", "workflow_id", "run_id",
+            "event_type", "stage", "status", "occurred_at", "payload_digest",
+            "event_json", "stored_at",
+        }
+        if not required_event_columns.issubset(event_columns):
             raise BackupVerificationError("workflow_events schema is incomplete")
 
+        event_schema = connection.execute("PRAGMA table_info(workflow_events)").fetchall()
+        event_info = {row["name"]: row for row in event_schema}
+        if event_info["sequence"]["pk"] != 1:
+            raise BackupVerificationError(
+                "workflow_events sequence must remain the primary key"
+            )
+        if (
+            event_info["event_id"]["notnull"] != 1
+            or event_info["idempotency_key"]["notnull"] != 1
+        ):
+            raise BackupVerificationError(
+                "workflow_events identity columns must be non-null"
+            )
+
+        unique_identity_columns: set[str] = set()
+        for index in connection.execute("PRAGMA index_list(workflow_events)").fetchall():
+            is_unique = int(index["unique"]) == 1
+            is_partial = int(index["partial"]) == 1 if "partial" in index.keys() else False
+            if not is_unique or is_partial:
+                continue
+            index_name = str(index["name"]).replace('"', '""')
+            indexed_columns = connection.execute(
+                f'PRAGMA index_info("{index_name}")'
+            ).fetchall()
+            names = [row["name"] for row in indexed_columns]
+            if len(names) == 1 and names[0] in {"event_id", "idempotency_key"}:
+                unique_identity_columns.add(names[0])
+        if unique_identity_columns != {"event_id", "idempotency_key"}:
+            raise BackupVerificationError(
+                "workflow_events is missing required unique identity indexes"
+            )
+
+        event_rows = connection.execute(
+            "SELECT * FROM workflow_events ORDER BY sequence"
+        ).fetchall()
+        for event_row in event_rows:
+            if (
+                type(event_row["sequence"]) is not int
+                or event_row["sequence"] < 1
+                or not isinstance(event_row["stored_at"], str)
+                or not event_row["stored_at"].strip()
+            ):
+                raise BackupVerificationError("backup contains invalid workflow event metadata")
+            try:
+                decoded_event = _decode_stored_event(event_row)
+            except IdempotencyConflict as exc:
+                raise BackupVerificationError(
+                    "backup contains invalid workflow event records"
+                ) from exc
+            canonical_event_json = json.dumps(
+                decoded_event.to_dict(),
+                sort_keys=True,
+                separators=(",", ":"),
+                ensure_ascii=False,
+            )
+            if event_row["event_json"] != canonical_event_json:
+                raise BackupVerificationError(
+                    "backup contains non-canonical workflow event JSON"
+                )
+
         run_count = int(connection.execute("SELECT COUNT(*) FROM workflow_runs").fetchone()[0])
-        event_count = int(connection.execute("SELECT COUNT(*) FROM workflow_events").fetchone()[0])
+        event_count = len(event_rows)
         encrypted_counts: dict[str, int] = {}
         for column in ("input_json", "result_json", "error_message"):
             encrypted_counts[column] = int(connection.execute(
@@ -70,10 +200,14 @@ def verify_workflow_backup(path: str | Path) -> dict[str, Any]:
             "sqlite_integrity": "ok",
             "workflow_runs": run_count,
             "workflow_events": event_count,
+            "result_integrity_counts": result_integrity_counts,
             "encrypted_payload_field_counts": encrypted_counts,
             "verification_scope": [
                 "read-only SQLite integrity check",
                 "required workflow table and column checks",
+                "workflow run status, attempt, claim, attestation, and result-integrity consistency",
+                "workflow event contract, canonical JSON, and indexed-column consistency",
+                "event sequence primary key and unique idempotency constraints",
                 "record counts and versioned-encryption prefix counts",
             ],
             "limitations": [

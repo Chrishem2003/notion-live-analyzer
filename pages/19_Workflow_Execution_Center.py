@@ -142,7 +142,8 @@ payload_text = st.text_area(
     help="Only JSON data is accepted. The selected trusted handler determines how the payload is interpreted.",
 )
 synthetic_only_confirmed = st.checkbox(
-    "I confirm this payload contains only synthetic/demo test data and no real or confidential research content."
+    "I confirm this submitted payload contains only synthetic/demo test data and no real or confidential research content.",
+    help="This confirmation is stored with this exact run. Older runs without a saved confirmation remain blocked from Notion handoff.",
 )
 max_attempts = st.number_input("Maximum attempts", min_value=1, max_value=5, value=2, step=1)
 
@@ -160,6 +161,7 @@ if st.button("Validate, submit and execute", type="primary"):
             task_type=task_type,
             payload=payload,
             max_attempts=int(max_attempts),
+            synthetic_only_confirmed=synthetic_only_confirmed,
         )
         result = runtime.execute_run(run_id)
         st.session_state["workflow_runtime_last_run_id"] = run_id
@@ -236,6 +238,7 @@ try:
                 "workflow_id": selected_run["workflow_id"],
                 "task_type": selected_run["task_type"],
                 "status": selected_run["status"],
+                "synthetic_only_confirmed": selected_run["synthetic_only_confirmed"],
                 "input": selected_run["input"],
                 "result": selected_run["result"],
                 "error_message": selected_run["error_message"],
@@ -243,11 +246,16 @@ try:
             if selected_run["status"] == "succeeded":
                 st.markdown("#### Notion handoff")
                 st.caption(
-                    "Sending this execution record does not approve its science: QC remains Pending, "
-                    "reproducibility remains Not Checked, and the record is classified Synthetic/Test."
+                    "Only a run with a persisted synthetic/demo-only attestation can be sent. "
+                    "Handoff is metadata-only: raw input, results, and error text are not exported. "
+                    "The manifest hash is an integrity/idempotency fingerprint, not anonymization. "
+                    "Handoff does not approve its science: QC remains Pending and reproducibility remains Not Checked."
                 )
-                if not synthetic_only_confirmed:
-                    st.info("Confirm synthetic/demo-only data above to enable Notion handoff.")
+                if selected_run.get("synthetic_only_confirmed") is not True:
+                    st.warning(
+                        "This run has no saved synthetic/demo-only attestation. Legacy runs default to unapproved; "
+                        "submit a new synthetic test run before using Notion handoff."
+                    )
                 elif st.button("Send execution record to Notion", key="handoff_selected_run"):
                     try:
                         delivery = sync_run_to_notion(selected_run, ledger_database=str(db_path))
