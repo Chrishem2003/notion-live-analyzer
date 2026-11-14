@@ -127,6 +127,38 @@ def verify_workflow_backup(path: str | Path) -> dict[str, Any]:
         if not required_event_columns.issubset(event_columns):
             raise BackupVerificationError("workflow_events schema is incomplete")
 
+        event_schema = connection.execute("PRAGMA table_info(workflow_events)").fetchall()
+        event_info = {row["name"]: row for row in event_schema}
+        if event_info["sequence"]["pk"] != 1:
+            raise BackupVerificationError(
+                "workflow_events sequence must remain the primary key"
+            )
+        if (
+            event_info["event_id"]["notnull"] != 1
+            or event_info["idempotency_key"]["notnull"] != 1
+        ):
+            raise BackupVerificationError(
+                "workflow_events identity columns must be non-null"
+            )
+
+        unique_identity_columns: set[str] = set()
+        for index in connection.execute("PRAGMA index_list(workflow_events)").fetchall():
+            is_unique = int(index["unique"]) == 1
+            is_partial = int(index["partial"]) == 1 if "partial" in index.keys() else False
+            if not is_unique or is_partial:
+                continue
+            index_name = str(index["name"]).replace('"', '""')
+            indexed_columns = connection.execute(
+                f'PRAGMA index_info("{index_name}")'
+            ).fetchall()
+            names = [row["name"] for row in indexed_columns]
+            if len(names) == 1 and names[0] in {"event_id", "idempotency_key"}:
+                unique_identity_columns.add(names[0])
+        if unique_identity_columns != {"event_id", "idempotency_key"}:
+            raise BackupVerificationError(
+                "workflow_events is missing required unique identity indexes"
+            )
+
         event_rows = connection.execute(
             "SELECT * FROM workflow_events ORDER BY sequence"
         ).fetchall()
@@ -175,6 +207,7 @@ def verify_workflow_backup(path: str | Path) -> dict[str, Any]:
                 "required workflow table and column checks",
                 "workflow run status, attempt, claim, attestation, and result-integrity consistency",
                 "workflow event contract, canonical JSON, and indexed-column consistency",
+                "event sequence primary key and unique idempotency constraints",
                 "record counts and versioned-encryption prefix counts",
             ],
             "limitations": [
