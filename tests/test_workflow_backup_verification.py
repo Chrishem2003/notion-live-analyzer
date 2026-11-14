@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import sqlite3
 import tempfile
 import unittest
@@ -36,11 +37,17 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
                 );
                 CREATE TABLE workflow_events (
                     sequence INTEGER PRIMARY KEY AUTOINCREMENT,
-                    event_id TEXT NOT NULL,
-                    idempotency_key TEXT NOT NULL,
+                    event_id TEXT NOT NULL UNIQUE,
+                    idempotency_key TEXT NOT NULL UNIQUE,
                     workflow_id TEXT NOT NULL,
                     run_id TEXT NOT NULL,
-                    status TEXT NOT NULL
+                    event_type TEXT NOT NULL,
+                    stage TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    occurred_at TEXT NOT NULL,
+                    payload_digest TEXT NOT NULL,
+                    event_json TEXT NOT NULL,
+                    stored_at TEXT NOT NULL
                 );
                 INSERT INTO workflow_runs (
                     run_id, status, input_json, result_json, error_message,
@@ -49,11 +56,52 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
                     ('run-1', 'succeeded', 'enc:v1:input', 'enc:v1:result', NULL, 1, 3, NULL, 1, 'verified'),
                     ('run-2', 'failed', '{"synthetic": true}', NULL, 'enc:v1:error', 3, 3, NULL, 1, 'not_applicable'),
                     ('run-3', 'succeeded', 'enc:v1:legacy-input', 'enc:v1:legacy-result', NULL, 1, 3, NULL, 1, 'legacy_unverified');
-                INSERT INTO workflow_events (event_id, idempotency_key, workflow_id, run_id, status)
-                    VALUES ('evt-1', 'idem-1', 'demo', 'run-1', 'queued'),
-                           ('evt-2', 'idem-2', 'demo', 'run-1', 'succeeded');
                 """
             )
+            events = [
+                {
+                    "schema_version": "1.0",
+                    "event_id": "evt-1",
+                    "idempotency_key": "idem-1",
+                    "workflow_id": "demo",
+                    "run_id": "run-1",
+                    "event_type": "analysis.started",
+                    "stage": "analysis",
+                    "status": "queued",
+                    "occurred_at": "2026-11-14T12:00:00+00:00",
+                    "payload_digest": "a" * 64,
+                    "evidence_refs": [],
+                },
+                {
+                    "schema_version": "1.0",
+                    "event_id": "evt-2",
+                    "idempotency_key": "idem-2",
+                    "workflow_id": "demo",
+                    "run_id": "run-1",
+                    "event_type": "analysis.finished",
+                    "stage": "analysis",
+                    "status": "succeeded",
+                    "occurred_at": "2026-11-14T12:01:00+00:00",
+                    "payload_digest": "b" * 64,
+                    "evidence_refs": [],
+                },
+            ]
+            for index, event in enumerate(events, start=1):
+                connection.execute(
+                    """
+                    INSERT INTO workflow_events (
+                        event_id, idempotency_key, workflow_id, run_id, event_type,
+                        stage, status, occurred_at, payload_digest, event_json, stored_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        event["event_id"], event["idempotency_key"], event["workflow_id"],
+                        event["run_id"], event["event_type"], event["stage"], event["status"],
+                        event["occurred_at"], event["payload_digest"],
+                        json.dumps(event, sort_keys=True, separators=(",", ":"), ensure_ascii=False),
+                        f"2026-11-14T12:00:0{index}.000Z",
+                    ),
+                )
 
     def digest(self):
         return hashlib.sha256(self.backup.read_bytes()).hexdigest()
@@ -146,6 +194,62 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
             )
         with self.assertRaisesRegex(
             BackupVerificationError, "inconsistent workflow run state or result-integrity metadata"
+        ):
+            verify_workflow_backup(self.backup)
+
+
+    def test_corrupt_non_object_event_json_fails_backup_verification(self):
+        self.make_valid_backup()
+        with sqlite3.connect(self.backup) as connection:
+            connection.execute(
+                "UPDATE workflow_events SET event_json='[]' WHERE event_id='evt-1'"
+            )
+        with self.assertRaisesRegex(
+            BackupVerificationError, "invalid workflow event records"
+        ):
+            verify_workflow_backup(self.backup)
+
+    def test_event_json_must_match_its_indexed_columns(self):
+        self.make_valid_backup()
+        with sqlite3.connect(self.backup) as connection:
+            raw = connection.execute(
+                "SELECT event_json FROM workflow_events WHERE event_id='evt-1'"
+            ).fetchone()[0]
+            payload = json.loads(raw)
+            payload["status"] = "succeeded"
+            connection.execute(
+                "UPDATE workflow_events SET event_json=? WHERE event_id='evt-1'",
+                (json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False),),
+            )
+        with self.assertRaisesRegex(
+            BackupVerificationError, "invalid workflow event records"
+        ):
+            verify_workflow_backup(self.backup)
+
+    def test_event_json_must_use_canonical_serialization(self):
+        self.make_valid_backup()
+        with sqlite3.connect(self.backup) as connection:
+            raw = connection.execute(
+                "SELECT event_json FROM workflow_events WHERE event_id='evt-1'"
+            ).fetchone()[0]
+            payload = json.loads(raw)
+            connection.execute(
+                "UPDATE workflow_events SET event_json=? WHERE event_id='evt-1'",
+                (json.dumps(payload, sort_keys=True, indent=2, ensure_ascii=False),),
+            )
+        with self.assertRaisesRegex(
+            BackupVerificationError, "non-canonical workflow event JSON"
+        ):
+            verify_workflow_backup(self.backup)
+
+    def test_event_storage_metadata_must_be_present(self):
+        self.make_valid_backup()
+        with sqlite3.connect(self.backup) as connection:
+            connection.execute(
+                "UPDATE workflow_events SET stored_at='' WHERE event_id='evt-1'"
+            )
+        with self.assertRaisesRegex(
+            BackupVerificationError, "invalid workflow event metadata"
         ):
             verify_workflow_backup(self.backup)
 
