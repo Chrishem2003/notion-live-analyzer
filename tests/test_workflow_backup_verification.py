@@ -25,12 +25,16 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
                 """
                 CREATE TABLE workflow_runs (
                     run_id TEXT PRIMARY KEY,
+                    workflow_id TEXT NOT NULL,
+                    task_type TEXT NOT NULL,
                     status TEXT NOT NULL,
-                    input_json TEXT,
+                    input_json TEXT NOT NULL,
                     result_json TEXT,
                     error_message TEXT,
                     attempt INTEGER NOT NULL,
                     max_attempts INTEGER NOT NULL,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
                     claimed_at TEXT,
                     synthetic_only_confirmed INTEGER NOT NULL,
                     result_integrity TEXT NOT NULL
@@ -50,12 +54,16 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
                     stored_at TEXT NOT NULL
                 );
                 INSERT INTO workflow_runs (
-                    run_id, status, input_json, result_json, error_message,
-                    attempt, max_attempts, claimed_at, synthetic_only_confirmed, result_integrity
+                    run_id, workflow_id, task_type, status, input_json, result_json,
+                    error_message, attempt, max_attempts, created_at, updated_at,
+                    claimed_at, synthetic_only_confirmed, result_integrity
                 ) VALUES
-                    ('run-1', 'succeeded', 'enc:v1:input', 'enc:v1:result', NULL, 1, 3, NULL, 1, 'verified'),
-                    ('run-2', 'failed', '{"synthetic": true}', NULL, 'enc:v1:error', 3, 3, NULL, 1, 'not_applicable'),
-                    ('run-3', 'succeeded', 'enc:v1:legacy-input', 'enc:v1:legacy-result', NULL, 1, 3, NULL, 1, 'legacy_unverified');
+                    ('run-1', 'demo', 'echo', 'succeeded', 'enc:v1:input', 'enc:v1:result', NULL,
+                     1, 3, '2026-11-14T12:00:00Z', '2026-11-14T12:01:00Z', NULL, 1, 'verified'),
+                    ('run-2', 'demo', 'echo', 'failed', '{"synthetic": true}', NULL, 'enc:v1:error',
+                     3, 3, '2026-11-14T12:00:00Z', '2026-11-14T12:02:00Z', NULL, 1, 'not_applicable'),
+                    ('run-3', 'demo', 'echo', 'succeeded', 'enc:v1:legacy-input', 'enc:v1:legacy-result', NULL,
+                     1, 3, '2026-11-14T12:00:00Z', '2026-11-14T12:01:00Z', NULL, 1, 'legacy_unverified');
                 """
             )
             events = [
@@ -103,42 +111,43 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
                     ),
                 )
 
-    def rebuild_run_table(self, run_id_definition, *, copy_rows=True):
+    def rebuild_run_table(
+        self, run_id_definition, *, copy_rows=True, column_definitions=None
+    ):
+        definitions = {
+            "run_id": run_id_definition,
+            "workflow_id": "TEXT NOT NULL",
+            "task_type": "TEXT NOT NULL",
+            "status": "TEXT NOT NULL",
+            "input_json": "TEXT NOT NULL",
+            "result_json": "TEXT",
+            "error_message": "TEXT",
+            "attempt": "INTEGER NOT NULL",
+            "max_attempts": "INTEGER NOT NULL",
+            "created_at": "TEXT NOT NULL",
+            "updated_at": "TEXT NOT NULL",
+            "claimed_at": "TEXT",
+            "synthetic_only_confirmed": "INTEGER NOT NULL",
+            "result_integrity": "TEXT NOT NULL",
+        }
+        definitions.update(column_definitions or {})
+        schema = ",\\n                    ".join(
+            f"{column} {definition}" for column, definition in definitions.items()
+        )
         with sqlite3.connect(self.backup) as connection:
             connection.execute("ALTER TABLE workflow_runs RENAME TO workflow_runs_before_rebuild")
-            connection.execute(
-                f"""
-                CREATE TABLE workflow_runs (
-                    run_id {run_id_definition},
-                    status TEXT NOT NULL,
-                    input_json TEXT,
-                    result_json TEXT,
-                    error_message TEXT,
-                    attempt INTEGER NOT NULL,
-                    max_attempts INTEGER NOT NULL,
-                    claimed_at TEXT,
-                    synthetic_only_confirmed INTEGER NOT NULL,
-                    result_integrity TEXT NOT NULL
-                )
-                """
-            )
+            connection.execute(f"CREATE TABLE workflow_runs ({schema})")
             if copy_rows:
+                columns = ", ".join(definitions)
                 connection.execute(
-                    """
-                    INSERT INTO workflow_runs (
-                        run_id, status, input_json, result_json, error_message,
-                        attempt, max_attempts, claimed_at, synthetic_only_confirmed, result_integrity
-                    )
-                    SELECT
-                        run_id, status, input_json, result_json, error_message,
-                        attempt, max_attempts, claimed_at, synthetic_only_confirmed, result_integrity
-                    FROM workflow_runs_before_rebuild
-                    """
+                    f"INSERT INTO workflow_runs ({columns}) "
+                    f"SELECT {columns} FROM workflow_runs_before_rebuild"
                 )
             connection.execute("DROP TABLE workflow_runs_before_rebuild")
 
     def rebuild_event_table(
-        self, *, sequence_primary_key=True, unique_keys=True, sequence_type="INTEGER"
+        self, *, sequence_primary_key=True, unique_keys=True, sequence_type="INTEGER",
+        column_definitions=None
     ):
         if sequence_primary_key and sequence_type.upper() == "INTEGER":
             sequence_definition = f"{sequence_type} PRIMARY KEY AUTOINCREMENT"
@@ -147,37 +156,31 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
         else:
             sequence_definition = f"{sequence_type} NOT NULL"
         identity_definition = "TEXT NOT NULL UNIQUE" if unique_keys else "TEXT NOT NULL"
+        definitions = {
+            "sequence": sequence_definition,
+            "event_id": identity_definition,
+            "idempotency_key": identity_definition,
+            "workflow_id": "TEXT NOT NULL",
+            "run_id": "TEXT NOT NULL",
+            "event_type": "TEXT NOT NULL",
+            "stage": "TEXT NOT NULL",
+            "status": "TEXT NOT NULL",
+            "occurred_at": "TEXT NOT NULL",
+            "payload_digest": "TEXT NOT NULL",
+            "event_json": "TEXT NOT NULL",
+            "stored_at": "TEXT NOT NULL",
+        }
+        definitions.update(column_definitions or {})
+        schema = ",\\n                    ".join(
+            f"{column} {definition}" for column, definition in definitions.items()
+        )
         with sqlite3.connect(self.backup) as connection:
             connection.execute("ALTER TABLE workflow_events RENAME TO workflow_events_before_rebuild")
+            connection.execute(f"CREATE TABLE workflow_events ({schema})")
+            columns = ", ".join(definitions)
             connection.execute(
-                f"""
-                CREATE TABLE workflow_events (
-                    sequence {sequence_definition},
-                    event_id {identity_definition},
-                    idempotency_key {identity_definition},
-                    workflow_id TEXT NOT NULL,
-                    run_id TEXT NOT NULL,
-                    event_type TEXT NOT NULL,
-                    stage TEXT NOT NULL,
-                    status TEXT NOT NULL,
-                    occurred_at TEXT NOT NULL,
-                    payload_digest TEXT NOT NULL,
-                    event_json TEXT NOT NULL,
-                    stored_at TEXT NOT NULL
-                )
-                """
-            )
-            connection.execute(
-                """
-                INSERT INTO workflow_events (
-                    sequence, event_id, idempotency_key, workflow_id, run_id,
-                    event_type, stage, status, occurred_at, payload_digest, event_json, stored_at
-                )
-                SELECT
-                    sequence, event_id, idempotency_key, workflow_id, run_id,
-                    event_type, stage, status, occurred_at, payload_digest, event_json, stored_at
-                FROM workflow_events_before_rebuild
-                """
+                f"INSERT INTO workflow_events ({columns}) "
+                f"SELECT {columns} FROM workflow_events_before_rebuild"
             )
             connection.execute("DROP TABLE workflow_events_before_rebuild")
 
@@ -247,6 +250,49 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
         self.rebuild_run_table("INTEGER PRIMARY KEY", copy_rows=False)
         with self.assertRaisesRegex(
             BackupVerificationError, "workflow_runs run_id must remain a TEXT primary key"
+        ):
+            verify_workflow_backup(self.backup)
+
+    def test_workflow_run_columns_must_preserve_sqlite_affinity(self):
+        self.make_valid_backup()
+        self.rebuild_run_table(
+            "TEXT PRIMARY KEY",
+            column_definitions={"workflow_id": "BLOB NOT NULL"},
+        )
+        with self.assertRaisesRegex(
+            BackupVerificationError, "workflow_runs column workflow_id has invalid SQLite affinity"
+        ):
+            verify_workflow_backup(self.backup)
+
+    def test_workflow_run_required_columns_must_remain_not_null(self):
+        self.make_valid_backup()
+        self.rebuild_run_table(
+            "TEXT PRIMARY KEY",
+            column_definitions={"task_type": "TEXT"},
+        )
+        with self.assertRaisesRegex(
+            BackupVerificationError, "workflow_runs required columns must remain NOT NULL"
+        ):
+            verify_workflow_backup(self.backup)
+
+    def test_workflow_run_optional_result_must_remain_nullable(self):
+        self.make_valid_backup()
+        self.rebuild_run_table(
+            "TEXT PRIMARY KEY",
+            copy_rows=False,
+            column_definitions={"result_json": "TEXT NOT NULL"},
+        )
+        with self.assertRaisesRegex(
+            BackupVerificationError, "workflow_runs optional columns must remain nullable"
+        ):
+            verify_workflow_backup(self.backup)
+
+    def test_workflow_run_identity_value_must_not_be_empty(self):
+        self.make_valid_backup()
+        with sqlite3.connect(self.backup) as connection:
+            connection.execute("UPDATE workflow_runs SET run_id='' WHERE run_id='run-1'")
+        with self.assertRaisesRegex(
+            BackupVerificationError, "inconsistent workflow run state or result-integrity metadata"
         ):
             verify_workflow_backup(self.backup)
 
@@ -369,6 +415,26 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
         self.rebuild_event_table(sequence_type="TEXT")
         with self.assertRaisesRegex(
             BackupVerificationError, "workflow_events sequence must be declared INTEGER"
+        ):
+            verify_workflow_backup(self.backup)
+
+    def test_workflow_event_columns_must_preserve_sqlite_affinity(self):
+        self.make_valid_backup()
+        self.rebuild_event_table(
+            column_definitions={"event_json": "BLOB NOT NULL"},
+        )
+        with self.assertRaisesRegex(
+            BackupVerificationError, "workflow_events column event_json has invalid SQLite affinity"
+        ):
+            verify_workflow_backup(self.backup)
+
+    def test_workflow_event_required_columns_must_remain_not_null(self):
+        self.make_valid_backup()
+        self.rebuild_event_table(
+            column_definitions={"workflow_id": "TEXT"},
+        )
+        with self.assertRaisesRegex(
+            BackupVerificationError, "workflow_events required columns must remain NOT NULL"
         ):
             verify_workflow_backup(self.backup)
 
