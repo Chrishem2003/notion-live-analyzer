@@ -438,10 +438,36 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
         ):
             verify_workflow_backup(self.backup)
 
-    def test_non_sqlite_file_fails_with_safe_error(self):
+    def test_non_sqlite_file_fails_without_modifying_the_input(self):
         self.backup.write_text("not a sqlite database", encoding="utf-8")
+        before = self.digest()
         with self.assertRaisesRegex(BackupVerificationError, "could not be verified safely"):
             verify_workflow_backup(self.backup)
+        self.assertEqual(self.digest(), before, "failed verification must not modify the input")
+
+    def test_symlink_to_valid_backup_is_verified_read_only(self):
+        self.make_valid_backup()
+        before = self.digest()
+        alias = Path(self.tempdir.name) / "workflow-backup-alias.sqlite3"
+        try:
+            alias.symlink_to(self.backup)
+        except (OSError, NotImplementedError) as exc:
+            self.skipTest(f"symlinks are unavailable in this environment: {exc}")
+        result = verify_workflow_backup(alias)
+        self.assertTrue(result["verified"])
+        self.assertEqual(self.digest(), before)
+
+    def test_dangling_symlink_fails_without_creating_target(self):
+        target = Path(self.tempdir.name) / "missing-target.sqlite3"
+        alias = Path(self.tempdir.name) / "dangling-backup.sqlite3"
+        try:
+            alias.symlink_to(target)
+        except (OSError, NotImplementedError) as exc:
+            self.skipTest(f"symlinks are unavailable in this environment: {exc}")
+        with self.assertRaisesRegex(BackupVerificationError, "does not exist"):
+            verify_workflow_backup(alias)
+        self.assertTrue(alias.is_symlink())
+        self.assertFalse(target.exists())
 
 
     def test_real_runtime_backup_passes_verifier_after_sqlite_backup(self):
