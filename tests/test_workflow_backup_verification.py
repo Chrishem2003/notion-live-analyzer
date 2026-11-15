@@ -131,7 +131,7 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
             "result_integrity": "TEXT NOT NULL",
         }
         definitions.update(column_definitions or {})
-        schema = ",\\n                    ".join(
+        schema = ",\n                    ".join(
             f"{column} {definition}" for column, definition in definitions.items()
         )
         with sqlite3.connect(self.backup) as connection:
@@ -171,7 +171,7 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
             "stored_at": "TEXT NOT NULL",
         }
         definitions.update(column_definitions or {})
-        schema = ",\\n                    ".join(
+        schema = ",\n                    ".join(
             f"{column} {definition}" for column, definition in definitions.items()
         )
         with sqlite3.connect(self.backup) as connection:
