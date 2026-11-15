@@ -204,6 +204,25 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
         self.assertEqual(result["encrypted_payload_field_counts"]["error_message"], 1)
         self.assertEqual(self.digest(), before, "verification must not modify the backup")
 
+    def test_verification_report_exposes_aggregate_metadata_not_raw_payloads(self):
+        self.make_valid_backup()
+        result = verify_workflow_backup(self.backup)
+        rendered = json.dumps(result, sort_keys=True)
+        self.assertEqual(
+            result["encrypted_payload_field_counts"],
+            {"input_json": 2, "result_json": 2, "error_message": 1},
+        )
+        for marker in (
+            "enc:v1:input",
+            "enc:v1:result",
+            "enc:v1:error",
+            "evt-1",
+            "idem-1",
+            "analysis.started",
+            "run-1",
+        ):
+            self.assertNotIn(marker, rendered)
+
     def test_missing_backup_fails_without_creating_file(self):
         with self.assertRaisesRegex(BackupVerificationError, "does not exist"):
             verify_workflow_backup(self.backup)
