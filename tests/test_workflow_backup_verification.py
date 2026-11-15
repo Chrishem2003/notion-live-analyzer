@@ -469,6 +469,16 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
         self.assertTrue(alias.is_symlink())
         self.assertFalse(target.exists())
 
+    def test_path_with_spaces_unicode_and_uri_reserved_characters_is_verified_read_only(self):
+        self.make_valid_backup()
+        special_path = Path(self.tempdir.name) / "workflow backup #1? café.sqlite3"
+        self.backup.replace(special_path)
+        before = hashlib.sha256(special_path.read_bytes()).hexdigest()
+        result = verify_workflow_backup(special_path)
+        after = hashlib.sha256(special_path.read_bytes()).hexdigest()
+        self.assertTrue(result["verified"])
+        self.assertEqual(after, before)
+
 
     def test_real_runtime_backup_passes_verifier_after_sqlite_backup(self):
         from cryptography.fernet import Fernet
