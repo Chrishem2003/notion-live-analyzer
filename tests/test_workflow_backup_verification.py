@@ -103,10 +103,49 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
                     ),
                 )
 
-    def rebuild_event_table(self, *, sequence_primary_key=True, unique_keys=True):
-        sequence_definition = (
-            "INTEGER PRIMARY KEY AUTOINCREMENT" if sequence_primary_key else "INTEGER NOT NULL"
-        )
+    def rebuild_run_table(self, run_id_definition, *, copy_rows=True):
+        with sqlite3.connect(self.backup) as connection:
+            connection.execute("ALTER TABLE workflow_runs RENAME TO workflow_runs_before_rebuild")
+            connection.execute(
+                f"""
+                CREATE TABLE workflow_runs (
+                    run_id {run_id_definition},
+                    status TEXT NOT NULL,
+                    input_json TEXT,
+                    result_json TEXT,
+                    error_message TEXT,
+                    attempt INTEGER NOT NULL,
+                    max_attempts INTEGER NOT NULL,
+                    claimed_at TEXT,
+                    synthetic_only_confirmed INTEGER NOT NULL,
+                    result_integrity TEXT NOT NULL
+                )
+                """
+            )
+            if copy_rows:
+                connection.execute(
+                    """
+                    INSERT INTO workflow_runs (
+                        run_id, status, input_json, result_json, error_message,
+                        attempt, max_attempts, claimed_at, synthetic_only_confirmed, result_integrity
+                    )
+                    SELECT
+                        run_id, status, input_json, result_json, error_message,
+                        attempt, max_attempts, claimed_at, synthetic_only_confirmed, result_integrity
+                    FROM workflow_runs_before_rebuild
+                    """
+                )
+            connection.execute("DROP TABLE workflow_runs_before_rebuild")
+
+    def rebuild_event_table(
+        self, *, sequence_primary_key=True, unique_keys=True, sequence_type="INTEGER"
+    ):
+        if sequence_primary_key and sequence_type.upper() == "INTEGER":
+            sequence_definition = f"{sequence_type} PRIMARY KEY AUTOINCREMENT"
+        elif sequence_primary_key:
+            sequence_definition = f"{sequence_type} PRIMARY KEY"
+        else:
+            sequence_definition = f"{sequence_type} NOT NULL"
         identity_definition = "TEXT NOT NULL UNIQUE" if unique_keys else "TEXT NOT NULL"
         with sqlite3.connect(self.backup) as connection:
             connection.execute("ALTER TABLE workflow_events RENAME TO workflow_events_before_rebuild")
@@ -192,6 +231,22 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
             )
         with self.assertRaisesRegex(
             BackupVerificationError, "invalid workflow result-integrity markers"
+        ):
+            verify_workflow_backup(self.backup)
+
+    def test_workflow_runs_must_preserve_text_run_id_primary_key(self):
+        self.make_valid_backup()
+        self.rebuild_run_table("TEXT NOT NULL")
+        with self.assertRaisesRegex(
+            BackupVerificationError, "workflow_runs run_id must remain a TEXT primary key"
+        ):
+            verify_workflow_backup(self.backup)
+
+    def test_workflow_runs_run_id_primary_key_must_be_text(self):
+        self.make_valid_backup()
+        self.rebuild_run_table("INTEGER PRIMARY KEY", copy_rows=False)
+        with self.assertRaisesRegex(
+            BackupVerificationError, "workflow_runs run_id must remain a TEXT primary key"
         ):
             verify_workflow_backup(self.backup)
 
@@ -306,6 +361,14 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
         self.rebuild_event_table(sequence_primary_key=False)
         with self.assertRaisesRegex(
             BackupVerificationError, "sequence must remain the primary key"
+        ):
+            verify_workflow_backup(self.backup)
+
+    def test_event_sequence_primary_key_must_be_declared_integer(self):
+        self.make_valid_backup()
+        self.rebuild_event_table(sequence_type="TEXT")
+        with self.assertRaisesRegex(
+            BackupVerificationError, "workflow_events sequence must be declared INTEGER"
         ):
             verify_workflow_backup(self.backup)
 
