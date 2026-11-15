@@ -64,6 +64,17 @@ def verify_workflow_backup(path: str | Path) -> dict[str, Any]:
                 "workflow_runs schema is incomplete or missing required integrity fields"
             )
 
+        run_schema = connection.execute("PRAGMA table_info(workflow_runs)").fetchall()
+        run_info = {row["name"]: row for row in run_schema}
+        if (
+            run_info["run_id"]["pk"] != 1
+            or sum(int(row["pk"]) for row in run_schema) != 1
+            or str(run_info["run_id"]["type"]).upper() != "TEXT"
+        ):
+            raise BackupVerificationError(
+                "workflow_runs run_id must remain a TEXT primary key"
+            )
+
         invalid_integrity_count = int(connection.execute(
             """
             SELECT COUNT(*) FROM workflow_runs
@@ -129,9 +140,16 @@ def verify_workflow_backup(path: str | Path) -> dict[str, Any]:
 
         event_schema = connection.execute("PRAGMA table_info(workflow_events)").fetchall()
         event_info = {row["name"]: row for row in event_schema}
-        if event_info["sequence"]["pk"] != 1:
+        if (
+            event_info["sequence"]["pk"] != 1
+            or sum(int(row["pk"]) for row in event_schema) != 1
+        ):
             raise BackupVerificationError(
                 "workflow_events sequence must remain the primary key"
+            )
+        if str(event_info["sequence"]["type"]).upper() != "INTEGER":
+            raise BackupVerificationError(
+                "workflow_events sequence must be declared INTEGER"
             )
         if (
             event_info["event_id"]["notnull"] != 1
