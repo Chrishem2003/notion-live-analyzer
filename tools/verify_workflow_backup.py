@@ -20,6 +20,20 @@ class BackupVerificationError(RuntimeError):
     """Raised when a backup fails structural or SQLite integrity checks."""
 
 
+def _sqlite_type_affinity(declared_type: Any) -> str:
+    """Return SQLite's declared-type affinity using its documented precedence."""
+    value = str(declared_type or "").upper()
+    if "INT" in value:
+        return "INTEGER"
+    if any(token in value for token in ("CHAR", "CLOB", "TEXT")):
+        return "TEXT"
+    if value == "" or "BLOB" in value:
+        return "BLOB"
+    if any(token in value for token in ("REAL", "FLOA", "DOUB")):
+        return "REAL"
+    return "NUMERIC"
+
+
 def verify_workflow_backup(path: str | Path) -> dict[str, Any]:
     """Verify a backup without opening it for writes or creating missing files."""
     backup = Path(path).expanduser().resolve()
@@ -55,9 +69,10 @@ def verify_workflow_backup(path: str | Path) -> dict[str, Any]:
             row["name"] for row in connection.execute("PRAGMA table_info(workflow_events)").fetchall()
         }
         required_run_columns = {
-            "run_id", "status", "input_json", "result_json", "error_message",
-            "attempt", "max_attempts", "claimed_at", "synthetic_only_confirmed",
-            "result_integrity",
+            "run_id", "workflow_id", "task_type", "status", "input_json",
+            "result_json", "error_message", "attempt", "max_attempts",
+            "created_at", "updated_at", "claimed_at",
+            "synthetic_only_confirmed", "result_integrity",
         }
         if not required_run_columns.issubset(run_columns):
             raise BackupVerificationError(
@@ -73,6 +88,33 @@ def verify_workflow_backup(path: str | Path) -> dict[str, Any]:
         ):
             raise BackupVerificationError(
                 "workflow_runs run_id must remain a TEXT primary key"
+            )
+
+        run_affinities = {
+            "run_id": "TEXT", "workflow_id": "TEXT", "task_type": "TEXT",
+            "status": "TEXT", "input_json": "TEXT", "result_json": "TEXT",
+            "error_message": "TEXT", "attempt": "INTEGER", "max_attempts": "INTEGER",
+            "created_at": "TEXT", "updated_at": "TEXT", "claimed_at": "TEXT",
+            "synthetic_only_confirmed": "INTEGER", "result_integrity": "TEXT",
+        }
+        for column, expected_affinity in run_affinities.items():
+            if _sqlite_type_affinity(run_info[column]["type"]) != expected_affinity:
+                raise BackupVerificationError(
+                    f"workflow_runs column {column} has invalid SQLite affinity"
+                )
+        required_run_not_null = {
+            "workflow_id", "task_type", "status", "input_json", "attempt",
+            "max_attempts", "created_at", "updated_at",
+            "synthetic_only_confirmed", "result_integrity",
+        }
+        if any(run_info[column]["notnull"] != 1 for column in required_run_not_null):
+            raise BackupVerificationError(
+                "workflow_runs required columns must remain NOT NULL"
+            )
+        nullable_run_columns = {"result_json", "error_message", "claimed_at"}
+        if any(run_info[column]["notnull"] != 0 for column in nullable_run_columns):
+            raise BackupVerificationError(
+                "workflow_runs optional columns must remain nullable"
             )
 
         invalid_integrity_count = int(connection.execute(
@@ -102,7 +144,8 @@ def verify_workflow_backup(path: str | Path) -> dict[str, Any]:
         invalid_run_state_count = int(connection.execute(
             """
             SELECT COUNT(*) FROM workflow_runs
-            WHERE status NOT IN ('queued', 'running', 'succeeded', 'failed')
+            WHERE run_id IS NULL OR typeof(run_id) != 'text' OR TRIM(run_id) = ''
+               OR status NOT IN ('queued', 'running', 'succeeded', 'failed')
                OR input_json IS NULL
                OR typeof(attempt) != 'integer'
                OR typeof(max_attempts) != 'integer'
@@ -151,12 +194,21 @@ def verify_workflow_backup(path: str | Path) -> dict[str, Any]:
             raise BackupVerificationError(
                 "workflow_events sequence must be declared INTEGER"
             )
-        if (
-            event_info["event_id"]["notnull"] != 1
-            or event_info["idempotency_key"]["notnull"] != 1
-        ):
+        event_affinities = {
+            "sequence": "INTEGER", "event_id": "TEXT", "idempotency_key": "TEXT",
+            "workflow_id": "TEXT", "run_id": "TEXT", "event_type": "TEXT",
+            "stage": "TEXT", "status": "TEXT", "occurred_at": "TEXT",
+            "payload_digest": "TEXT", "event_json": "TEXT", "stored_at": "TEXT",
+        }
+        for column, expected_affinity in event_affinities.items():
+            if _sqlite_type_affinity(event_info[column]["type"]) != expected_affinity:
+                raise BackupVerificationError(
+                    f"workflow_events column {column} has invalid SQLite affinity"
+                )
+        required_event_not_null = required_event_columns - {"sequence"}
+        if any(event_info[column]["notnull"] != 1 for column in required_event_not_null):
             raise BackupVerificationError(
-                "workflow_events identity columns must be non-null"
+                "workflow_events required columns must remain NOT NULL"
             )
 
         unique_identity_columns: set[str] = set()
