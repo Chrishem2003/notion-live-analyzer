@@ -251,6 +251,36 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
         self.assertEqual(report["workflow_runs"], 3)
         self.assertEqual(report["workflow_events"], 2)
 
+    def test_cli_missing_backup_error_does_not_echo_absolute_path(self):
+        output = io.StringIO()
+        with patch.object(sys, "argv", ["verify_workflow_backup.py", str(self.backup)]):
+            with contextlib.redirect_stdout(output):
+                with contextlib.redirect_stderr(output):
+                    exit_code = verify_main()
+        rendered = output.getvalue()
+        report = json.loads(rendered)
+        self.assertEqual(exit_code, 2)
+        self.assertFalse(report["verified"])
+        self.assertIn("does not exist", report["error"])
+        self.assertNotIn(str(self.backup.resolve()), rendered)
+        self.assertFalse(self.backup.exists())
+
+    def test_cli_corrupt_backup_error_does_not_echo_path_or_modify_input(self):
+        self.backup.write_text("not a sqlite database", encoding="utf-8")
+        before = self.digest()
+        output = io.StringIO()
+        with patch.object(sys, "argv", ["verify_workflow_backup.py", str(self.backup)]):
+            with contextlib.redirect_stdout(output):
+                with contextlib.redirect_stderr(output):
+                    exit_code = verify_main()
+        rendered = output.getvalue()
+        report = json.loads(rendered)
+        self.assertEqual(exit_code, 2)
+        self.assertFalse(report["verified"])
+        self.assertEqual(report["error"], "backup could not be verified safely")
+        self.assertNotIn(str(self.backup.resolve()), rendered)
+        self.assertEqual(self.digest(), before, "failed CLI verification must not modify the input")
+
     def test_missing_backup_fails_without_creating_file(self):
         with self.assertRaisesRegex(BackupVerificationError, "does not exist"):
             verify_workflow_backup(self.backup)
