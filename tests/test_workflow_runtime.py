@@ -1,5 +1,9 @@
 """Tests for the persistent local workflow runtime."""
+import contextlib
+import io
+import os
 import sqlite3
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -11,6 +15,7 @@ from modules.workflow_contract import WorkflowContractError, canonical_payload_d
 from modules.workflow_store import list_run_events
 from modules.workflow_storage import WorkflowStorageError
 from modules.workflow_key_rotation import WorkflowKeyRotationError, rotate_workflow_encryption_key
+from tools.rotate_workflow_encryption_key import main as rotation_cli_main
 from cryptography.fernet import Fernet
 
 
@@ -609,6 +614,46 @@ class WorkflowRuntimeTests(unittest.TestCase):
         )
         self.assertEqual(backed_up.get_run(run_id)["input"], {"value": "rotation-fixture"})
         self.assertEqual(backed_up.get_run(run_id)["result_integrity"], "verified")
+
+    def test_key_rotation_cli_reports_backup_destination_without_printing_keys(self):
+        old_key = Fernet.generate_key()
+        new_key = Fernet.generate_key()
+        runtime = self.make_runtime(
+            self.database,
+            handlers={"echo": lambda data: {"echo": data["value"]}},
+            encryption_key=old_key,
+        )
+        run_id = runtime.submit(
+            workflow_id="demo-project",
+            task_type="echo",
+            payload={"value": "rotation-cli-fixture"},
+        )
+        runtime.execute_run(run_id)
+        backup = Path(self.tempdir.name) / "rotation cli backup.sqlite3"
+        output = io.StringIO()
+        environment = {
+            "WORKFLOW_RUNTIME_ENCRYPTION_KEY_OLD": old_key.decode("ascii"),
+            "WORKFLOW_RUNTIME_ENCRYPTION_KEY_NEW": new_key.decode("ascii"),
+        }
+        arguments = [
+            "rotate_workflow_encryption_key.py",
+            "--database",
+            str(self.database),
+            "--backup",
+            str(backup),
+        ]
+        with patch.dict(os.environ, environment):
+            with patch.object(sys, "argv", arguments):
+                with contextlib.redirect_stdout(output):
+                    exit_code = rotation_cli_main()
+
+        rendered = output.getvalue()
+        self.assertEqual(exit_code, 0)
+        self.assertTrue(backup.is_file())
+        self.assertIn(f"Backup created: {backup.resolve()}", rendered)
+        self.assertIn("Rows updated: 1", rendered)
+        self.assertNotIn(old_key.decode("ascii"), rendered)
+        self.assertNotIn(new_key.decode("ascii"), rendered)
 
     def test_key_rotation_preserves_legacy_unverified_result_marker(self):
         old_key = Fernet.generate_key()
