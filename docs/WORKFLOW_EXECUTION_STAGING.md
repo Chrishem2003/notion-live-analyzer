@@ -160,7 +160,7 @@ Before the manual staging run, execute:
 
     python tools/check_workflow_configuration.py
 
-The command checks that the operator password meets the configured policy and the workflow payload encryption key is a valid Fernet key. It prints only pass/fail diagnostics and never prints secret values. It also reports the configured runtime database path, but does not create the database or prove that the hosting filesystem is durable.
+The command checks that the operator password meets the configured policy and the workflow payload encryption key is a valid Fernet key. It prints only pass/fail diagnostics and never prints secret values. It also prints the configured runtime database path as a JSON-quoted string (control characters and non-ASCII characters are escaped) so a path cannot inject terminal/log lines. The path is still sensitive local filesystem metadata; keep preflight output in trusted operator channels. The command does not create the database or prove that the hosting filesystem is durable.
 
 - [ ] Run with both required secrets absent; expected non-zero exit and safe failure messages.
 - [ ] Run with valid staging-only secrets; expected zero exit and no secret values in output.
