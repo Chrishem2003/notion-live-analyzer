@@ -94,7 +94,7 @@ class WorkflowConfigurationPreflightTests(unittest.TestCase):
         self.assertEqual(json.loads(path_line[len(prefix):]), path)
         self.assertNotIn("\x1b", rendered)
         self.assertNotIn("\r", rendered)
-        self.assertIn(r"\\n[PASS] forged\\r\\u001b[2J\\u202e.sqlite3", path_line)
+        self.assertIn(r"\n[PASS] forged\r\u001b[2J\u202e.sqlite3", path_line)
         self.assertEqual(len(rendered.splitlines()), 4)
         self.assertEqual(
             rendered.count("[PASS] Operator password configured (value hidden)."),
