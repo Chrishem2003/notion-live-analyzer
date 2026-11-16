@@ -655,6 +655,74 @@ class WorkflowRuntimeTests(unittest.TestCase):
         self.assertNotIn(old_key.decode("ascii"), rendered)
         self.assertNotIn(new_key.decode("ascii"), rendered)
 
+    def test_key_rotation_cli_failure_does_not_disclose_keys_or_paths(self):
+        encryption_key = Fernet.generate_key()
+        runtime = self.make_runtime(
+            self.database,
+            handlers={"echo": lambda data: {"echo": data["value"]}},
+            encryption_key=encryption_key,
+        )
+        run_id = runtime.submit(
+            workflow_id="demo-project",
+            task_type="echo",
+            payload={"value": "rotation-cli-failure-fixture"},
+        )
+        runtime.execute_run(run_id)
+        with sqlite3.connect(self.database) as connection:
+            before_input = connection.execute(
+                "SELECT input_json FROM workflow_runs WHERE run_id = ?", (run_id,)
+            ).fetchone()[0]
+
+        valid_key = encryption_key.decode("ascii")
+        cases = (
+            ("invalid-old-key", "synthetic-invalid-old-key", Fernet.generate_key().decode("ascii")),
+            ("same-key", valid_key, valid_key),
+        )
+        for label, old_key, new_key in cases:
+            with self.subTest(case=label):
+                backup = Path(self.tempdir.name) / f"{label}-must-not-be-created.sqlite3"
+                output = io.StringIO()
+                error = io.StringIO()
+                environment = {
+                    "WORKFLOW_RUNTIME_ENCRYPTION_KEY_OLD": old_key,
+                    "WORKFLOW_RUNTIME_ENCRYPTION_KEY_NEW": new_key,
+                }
+                arguments = [
+                    "rotate_workflow_encryption_key.py",
+                    "--database",
+                    str(self.database),
+                    "--backup",
+                    str(backup),
+                ]
+                with patch.dict(os.environ, environment):
+                    with patch.object(sys, "argv", arguments):
+                        with contextlib.redirect_stdout(output):
+                            with contextlib.redirect_stderr(error):
+                                exit_code = rotation_cli_main()
+
+                rendered = output.getvalue() + error.getvalue()
+                self.assertEqual(exit_code, 2)
+                self.assertIn("Key rotation failed safely:", rendered)
+                self.assertNotIn(old_key, rendered)
+                self.assertNotIn(new_key, rendered)
+                self.assertNotIn(str(backup), rendered)
+                self.assertFalse(backup.exists())
+                with sqlite3.connect(self.database) as connection:
+                    after_input = connection.execute(
+                        "SELECT input_json FROM workflow_runs WHERE run_id = ?", (run_id,)
+                    ).fetchone()[0]
+                self.assertEqual(after_input, before_input)
+
+        reopened = self.make_runtime(
+            self.database,
+            handlers={"echo": lambda data: {"echo": data["value"]}},
+            encryption_key=encryption_key,
+        )
+        self.assertEqual(
+            reopened.get_run(run_id)["input"],
+            {"value": "rotation-cli-failure-fixture"},
+        )
+
     def test_key_rotation_preserves_legacy_unverified_result_marker(self):
         old_key = Fernet.generate_key()
         new_key = Fernet.generate_key()
