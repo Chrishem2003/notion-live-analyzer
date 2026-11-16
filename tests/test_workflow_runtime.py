@@ -676,6 +676,7 @@ class WorkflowRuntimeTests(unittest.TestCase):
         valid_key = encryption_key.decode("ascii")
         cases = (
             ("invalid-old-key", "synthetic-invalid-old-key", Fernet.generate_key().decode("ascii")),
+            ("invalid-new-key", valid_key, "synthetic-invalid-new-key"),
             ("same-key", valid_key, valid_key),
         )
         for label, old_key, new_key in cases:
