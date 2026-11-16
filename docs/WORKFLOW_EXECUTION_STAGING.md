@@ -188,7 +188,7 @@ After creating a SQLite-aware backup, run the structural verifier against that b
 
     python tools/verify_workflow_backup.py /secure/backups/workflow-before-rotation.sqlite3
 
-The verifier opens the existing file in SQLite read-only mode. It checks SQLite integrity, required workflow tables/columns, record counts, and counts of fields using the versioned `enc:v1:` encryption prefix. It does not create a missing file or change the backup.
+The verifier opens the existing file in SQLite read-only mode. It checks SQLite integrity, required workflow tables/columns, record counts, and counts of fields using the versioned `enc:v1:` encryption prefix. It does not create a missing file or change the backup. The CLI JSON report omits the absolute local path so copied reports do not disclose host filesystem layout. The Python helper retains `backup_path` for compatibility; trusted in-process callers must treat that value as sensitive and must not publish it in shared logs or reports.
 
 - [ ] Confirm the verifier returns exit code 0 and `"verified": true`.
 - [ ] Confirm reported run/event counts are plausible for the isolated backup snapshot.
