@@ -306,7 +306,9 @@ def main() -> int:
     except BackupVerificationError as exc:
         print(json.dumps({"verified": False, "error": str(exc)}, sort_keys=True), file=sys.stderr)
         return 2
-    print(json.dumps(result, sort_keys=True, indent=2))
+    # CLI reports may be copied into tickets or logs; do not disclose host paths.
+    cli_report = {key: value for key, value in result.items() if key != "backup_path"}
+    print(json.dumps(cli_report, sort_keys=True, indent=2))
     return 0
 
 
