@@ -150,6 +150,7 @@ A rotation helper is now available at tools/rotate_workflow_encryption_key.py. I
 6. Set WORKFLOW_RUNTIME_ENCRYPTION_KEY to the new key in the approved secret store, remove old-key variables according to the recovery policy, then restart the app.
 7. Verify readback with the new key and verify the protected backup can still be opened with the old key in isolated recovery staging.
 8. Retain or delete the backup only under the approved retention policy; do not leave unprotected copies in the repository or app filesystem.
+- [ ] In isolated synthetic tests, invalid old/new keys and identical old/new keys must fail without creating a backup or printing key values or the backup destination; the original encrypted payload must remain unchanged.
 
 Do not rotate keys against production data until the backup, rollback, key custody, and recovery tests have been approved. Key rotation does not encrypt metadata/event digests and is not a substitute for filesystem or whole-database controls.
 
