@@ -1,14 +1,22 @@
 """Tests for the read-only workflow SQLite backup verifier."""
 from __future__ import annotations
 
+import contextlib
 import hashlib
+import io
 import json
 import sqlite3
+import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
-from tools.verify_workflow_backup import BackupVerificationError, verify_workflow_backup
+from tools.verify_workflow_backup import (
+    BackupVerificationError,
+    main as verify_main,
+    verify_workflow_backup,
+)
 
 
 class WorkflowBackupVerificationTests(unittest.TestCase):
@@ -222,6 +230,26 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
             "run-1",
         ):
             self.assertNotIn(marker, rendered)
+
+    def test_python_api_retains_backup_path_for_compatibility(self):
+        self.make_valid_backup()
+        result = verify_workflow_backup(self.backup)
+        self.assertEqual(result["backup_path"], str(self.backup.resolve()))
+
+    def test_cli_report_omits_absolute_backup_path(self):
+        self.make_valid_backup()
+        output = io.StringIO()
+        with patch.object(sys, "argv", ["verify_workflow_backup.py", str(self.backup)]):
+            with contextlib.redirect_stdout(output):
+                exit_code = verify_main()
+        rendered = output.getvalue()
+        report = json.loads(rendered)
+        self.assertEqual(exit_code, 0)
+        self.assertTrue(report["verified"])
+        self.assertNotIn("backup_path", report)
+        self.assertNotIn(str(self.backup.resolve()), rendered)
+        self.assertEqual(report["workflow_runs"], 3)
+        self.assertEqual(report["workflow_events"], 2)
 
     def test_missing_backup_fails_without_creating_file(self):
         with self.assertRaisesRegex(BackupVerificationError, "does not exist"):
