@@ -1,6 +1,7 @@
 """Tests for the persistent local workflow runtime."""
 import contextlib
 import io
+import json
 import os
 import sqlite3
 import sys
@@ -652,6 +653,52 @@ class WorkflowRuntimeTests(unittest.TestCase):
         self.assertTrue(backup.is_file())
         self.assertIn(f"Backup created: {backup.resolve()}", rendered)
         self.assertIn("Rows updated: 1", rendered)
+        self.assertNotIn(old_key.decode("ascii"), rendered)
+        self.assertNotIn(new_key.decode("ascii"), rendered)
+
+    def test_key_rotation_cli_json_quotes_control_characters_in_backup_path(self):
+        old_key = Fernet.generate_key()
+        new_key = Fernet.generate_key()
+        runtime = self.make_runtime(
+            self.database,
+            handlers={"echo": lambda data: {"echo": data["value"]}},
+            encryption_key=old_key,
+        )
+        run_id = runtime.submit(
+            workflow_id="demo-project",
+            task_type="echo",
+            payload={"value": "rotation-cli-path-fixture"},
+        )
+        runtime.execute_run(run_id)
+        backup = Path(self.tempdir.name) / "rotation backup\n[PASS] forged\r\x1b\u202e café.sqlite3"
+        output = io.StringIO()
+        environment = {
+            "WORKFLOW_RUNTIME_ENCRYPTION_KEY_OLD": old_key.decode("ascii"),
+            "WORKFLOW_RUNTIME_ENCRYPTION_KEY_NEW": new_key.decode("ascii"),
+        }
+        arguments = [
+            "rotate_workflow_encryption_key.py",
+            "--database",
+            str(self.database),
+            "--backup",
+            str(backup),
+        ]
+        with patch.dict(os.environ, environment):
+            with patch.object(sys, "argv", arguments):
+                with contextlib.redirect_stdout(output):
+                    exit_code = rotation_cli_main()
+
+        rendered = output.getvalue()
+        prefix = "Backup created: "
+        backup_line = next(line for line in rendered.splitlines() if line.startswith(prefix))
+        self.assertEqual(exit_code, 0)
+        self.assertTrue(backup.is_file())
+        self.assertEqual(json.loads(backup_line[len(prefix):]), str(backup.resolve()))
+        self.assertEqual(len(rendered.splitlines()), 5)
+        self.assertNotIn("\\r", rendered)
+        self.assertNotIn("\\x1b", rendered)
+        self.assertNotIn("\\u202e", rendered)
+        self.assertIn(r"\\n[PASS] forged\\r\\u001b\\u202e caf\\u00e9.sqlite3", backup_line)
         self.assertNotIn(old_key.decode("ascii"), rendered)
         self.assertNotIn(new_key.decode("ascii"), rendered)
 
