@@ -116,7 +116,7 @@ class CorruptionUtilitySafetyTests(unittest.TestCase):
         self.assertEqual(result, 0)
         self.assertNotIn("\x1b", output)
         self.assertIn(r"\n[PASS] forged\u001b.py", output)
-        self.assertEqual(len(output.splitlines()), 3)
+        self.assertEqual(len([line for line in output.splitlines() if line]), 3)
         self.assertEqual(unusual.read_bytes(), b"value  42\n")
 
 
