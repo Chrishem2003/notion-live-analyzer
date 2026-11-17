@@ -146,7 +146,7 @@ A rotation helper is now available at tools/rotate_workflow_encryption_key.py. I
 
        python tools/rotate_workflow_encryption_key.py --database .streamlit/workflow_runtime.sqlite3 --backup /secure/backups/workflow-before-rotation.sqlite3
 
-5. Confirm the command reports success and the backup path. The rotation CLI intentionally prints the operator-supplied backup destination as confirmation; treat its console output as sensitive local filesystem metadata. The command never prints key values. This is distinct from the read-only verifier CLI, which omits its path from the JSON report.
+5. Confirm the command reports success and the backup path. The rotation CLI prints the operator-supplied backup destination as a JSON-quoted string (control characters and non-ASCII characters are escaped); still treat its console output as sensitive local filesystem metadata. The command never prints key values. This is distinct from the read-only verifier CLI, which omits its path from the JSON report.
 6. Set WORKFLOW_RUNTIME_ENCRYPTION_KEY to the new key in the approved secret store, remove old-key variables according to the recovery policy, then restart the app.
 7. Verify readback with the new key and verify the protected backup can still be opened with the old key in isolated recovery staging.
 8. Retain or delete the backup only under the approved retention policy; do not leave unprotected copies in the repository or app filesystem.
