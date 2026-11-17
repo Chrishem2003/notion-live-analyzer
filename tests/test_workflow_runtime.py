@@ -651,7 +651,9 @@ class WorkflowRuntimeTests(unittest.TestCase):
         rendered = output.getvalue()
         self.assertEqual(exit_code, 0)
         self.assertTrue(backup.is_file())
-        self.assertIn(f"Backup created: {backup.resolve()}", rendered)
+        prefix = "Backup created: "
+        backup_line = next(line for line in rendered.splitlines() if line.startswith(prefix))
+        self.assertEqual(json.loads(backup_line[len(prefix):]), str(backup.resolve()))
         self.assertIn("Rows updated: 1", rendered)
         self.assertNotIn(old_key.decode("ascii"), rendered)
         self.assertNotIn(new_key.decode("ascii"), rendered)
