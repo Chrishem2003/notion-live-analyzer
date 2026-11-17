@@ -18,6 +18,7 @@ on:
       - "tests/test_manifest_fingerprint.py"
       - "tests/test_fasta_validation.py"
       - "tools/check_workflow_configuration.py"
+      - "tools/fix_corruption.py"
       - "tools/verify_workflow_backup.py"
       - "pytest.ini"
       - ".github/workflows/notion-workflow-handoff.yml"
@@ -38,6 +39,7 @@ on:
       - "tests/test_manifest_fingerprint.py"
       - "tests/test_fasta_validation.py"
       - "tools/check_workflow_configuration.py"
+      - "tools/fix_corruption.py"
       - "tools/verify_workflow_backup.py"
       - "pytest.ini"
       - ".github/workflows/notion-workflow-handoff.yml"
@@ -71,6 +73,7 @@ jobs:
             tests/test_workflow_access.py \
             tests/test_workflow_backup_verification.py \
             tests/test_workflow_configuration_preflight.py \
+            tests/test_workflow_corruption_utility.py \
             tests/test_workflow_contract.py \
             tests/test_workflow_effects.py \
             tests/test_workflow_handlers.py \
@@ -100,4 +103,5 @@ jobs:
             modules/manifest_fingerprint.py \
             modules/fasta_validation.py \
             tools/check_workflow_configuration.py \
+            tools/fix_corruption.py \
             tools/verify_workflow_backup.py
