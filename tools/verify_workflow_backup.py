@@ -147,6 +147,8 @@ def verify_workflow_backup(path: str | Path) -> dict[str, Any]:
             WHERE run_id IS NULL OR typeof(run_id) != 'text' OR TRIM(run_id) = ''
                OR status NOT IN ('queued', 'running', 'succeeded', 'failed')
                OR input_json IS NULL
+               OR typeof(input_json) != 'text'
+               OR TRIM(input_json, char(9) || char(10) || char(11) || char(12) || char(13) || ' ') = ''
                OR typeof(attempt) != 'integer'
                OR typeof(max_attempts) != 'integer'
                OR max_attempts < 1 OR max_attempts > 10
@@ -159,11 +161,19 @@ def verify_workflow_backup(path: str | Path) -> dict[str, Any]:
                OR (status != 'running' AND claimed_at IS NOT NULL)
                OR (status = 'succeeded' AND (
                     (result_json IS NULL AND result_integrity != 'legacy_unverified')
-                    OR (result_json IS NOT NULL AND result_integrity = 'not_applicable')
+                    OR (result_json IS NOT NULL AND (
+                        typeof(result_json) != 'text'
+                        OR TRIM(result_json, char(9) || char(10) || char(11) || char(12) || char(13) || ' ') = ''
+                        OR result_integrity = 'not_applicable'
+                    ))
                     OR error_message IS NOT NULL
                ))
                OR (status != 'succeeded' AND (
                     result_json IS NOT NULL OR result_integrity = 'verified'
+               ))
+               OR (error_message IS NOT NULL AND (
+                    typeof(error_message) != 'text'
+                    OR TRIM(error_message, char(9) || char(10) || char(11) || char(12) || char(13) || ' ') = ''
                ))
                OR (status = 'failed' AND error_message IS NULL)
             """
@@ -275,7 +285,7 @@ def verify_workflow_backup(path: str | Path) -> dict[str, Any]:
             "verification_scope": [
                 "read-only SQLite integrity check",
                 "required workflow table and column checks",
-                "workflow run status, attempt, claim, attestation, and result-integrity consistency",
+                "workflow run status, payload storage classes, non-empty required fields, attempt, claim, attestation, and result-integrity consistency",
                 "workflow event contract, canonical JSON, and indexed-column consistency",
                 "event sequence primary key and unique idempotency constraints",
                 "record counts and versioned-encryption prefix counts",

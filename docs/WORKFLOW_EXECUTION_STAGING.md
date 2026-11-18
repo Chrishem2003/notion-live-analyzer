@@ -71,7 +71,8 @@ Never change QC to Pass or reproducibility to Passed merely because the runtime 
 
 - [ ] Confirm the configured runtime database path is writable and persists across app restarts.
 - [ ] Create a SQLite-aware backup while accounting for WAL state; restore into an isolated staging location.
-- [ ] Verify run records and event history after restore.
+- [ ] Run the read-only backup verifier against the isolated backup before restore and the restored copy after restore; require both reports to verify and compare aggregate run/event counts.
+- [ ] Verify run records and event history after restore using the approved application encryption key.
 - [ ] Verify any required encryption/decryption or secret-recovery procedure separately.
 - [ ] Confirm the actual hosting platform provides durable storage; local filesystem persistence alone is not sufficient evidence for ephemeral or multi-replica deployments.
 

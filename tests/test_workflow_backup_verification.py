@@ -374,6 +374,75 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
             verify_workflow_backup(self.backup)
 
 
+    def test_workflow_input_must_be_nonempty_text(self):
+        self.make_valid_backup()
+        with sqlite3.connect(self.backup) as connection:
+            connection.execute(
+                "UPDATE workflow_runs SET input_json=' \\t\\r\\n ' WHERE run_id='run-1'"
+            )
+        with self.assertRaisesRegex(
+            BackupVerificationError, "inconsistent workflow run state or result-integrity metadata"
+        ):
+            verify_workflow_backup(self.backup)
+
+    def test_workflow_input_must_be_text_not_blob(self):
+        self.make_valid_backup()
+        with sqlite3.connect(self.backup) as connection:
+            connection.execute(
+                "UPDATE workflow_runs SET input_json=? WHERE run_id='run-1'",
+                (sqlite3.Binary(b'{}'),),
+            )
+        with self.assertRaisesRegex(
+            BackupVerificationError, "inconsistent workflow run state or result-integrity metadata"
+        ):
+            verify_workflow_backup(self.backup)
+
+    def test_succeeded_result_must_be_nonempty_text(self):
+        self.make_valid_backup()
+        with sqlite3.connect(self.backup) as connection:
+            connection.execute(
+                "UPDATE workflow_runs SET result_json=' \\t\\r\\n ' WHERE run_id='run-1'"
+            )
+        with self.assertRaisesRegex(
+            BackupVerificationError, "inconsistent workflow run state or result-integrity metadata"
+        ):
+            verify_workflow_backup(self.backup)
+
+    def test_succeeded_result_must_be_text_not_blob(self):
+        self.make_valid_backup()
+        with sqlite3.connect(self.backup) as connection:
+            connection.execute(
+                "UPDATE workflow_runs SET result_json=? WHERE run_id='run-1'",
+                (sqlite3.Binary(b'{}'),),
+            )
+        with self.assertRaisesRegex(
+            BackupVerificationError, "inconsistent workflow run state or result-integrity metadata"
+        ):
+            verify_workflow_backup(self.backup)
+
+    def test_failed_run_requires_a_nonblank_error_message(self):
+        self.make_valid_backup()
+        with sqlite3.connect(self.backup) as connection:
+            connection.execute(
+                "UPDATE workflow_runs SET error_message=' \\t\\r\\n ' WHERE run_id='run-2'"
+            )
+        with self.assertRaisesRegex(
+            BackupVerificationError, "inconsistent workflow run state or result-integrity metadata"
+        ):
+            verify_workflow_backup(self.backup)
+
+    def test_error_message_must_be_text_not_blob(self):
+        self.make_valid_backup()
+        with sqlite3.connect(self.backup) as connection:
+            connection.execute(
+                "UPDATE workflow_runs SET error_message=? WHERE run_id='run-2'",
+                (sqlite3.Binary(b'failure'),),
+            )
+        with self.assertRaisesRegex(
+            BackupVerificationError, "inconsistent workflow run state or result-integrity metadata"
+        ):
+            verify_workflow_backup(self.backup)
+
     def test_succeeded_run_without_result_must_remain_legacy_unverified(self):
         self.make_valid_backup()
         with sqlite3.connect(self.backup) as connection:

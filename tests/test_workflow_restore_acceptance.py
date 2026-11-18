@@ -16,6 +16,7 @@ from cryptography.fernet import Fernet
 from modules.workflow_runtime import WorkflowRuntime
 from modules.workflow_storage import WorkflowStorageError
 from modules.workflow_store import list_run_events
+from tools.verify_workflow_backup import verify_workflow_backup
 
 
 class WorkflowRestoreAcceptanceTests(unittest.TestCase):
@@ -48,9 +49,25 @@ class WorkflowRestoreAcceptanceTests(unittest.TestCase):
             with sqlite3.connect(self.backup) as backup_connection:
                 source_connection.backup(backup_connection)
 
+        backup_report = verify_workflow_backup(self.backup)
+        self.assertTrue(backup_report["verified"])
+        self.assertEqual(backup_report["workflow_runs"], 1)
+        self.assertEqual(backup_report["workflow_events"], 3)
+        self.assertEqual(backup_report["encrypted_payload_field_counts"]["input_json"], 1)
+        self.assertEqual(backup_report["encrypted_payload_field_counts"]["result_json"], 1)
+
         with sqlite3.connect(self.backup) as backup_connection:
             with sqlite3.connect(self.restored) as restored_connection:
                 backup_connection.backup(restored_connection)
+
+        restored_report = verify_workflow_backup(self.restored)
+        self.assertTrue(restored_report["verified"])
+        self.assertEqual(restored_report["workflow_runs"], backup_report["workflow_runs"])
+        self.assertEqual(restored_report["workflow_events"], backup_report["workflow_events"])
+        self.assertEqual(
+            restored_report["encrypted_payload_field_counts"],
+            backup_report["encrypted_payload_field_counts"],
+        )
 
         restored_runtime = WorkflowRuntime(
             self.restored,
