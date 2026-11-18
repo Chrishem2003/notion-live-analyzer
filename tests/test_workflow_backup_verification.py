@@ -378,7 +378,8 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
         self.make_valid_backup()
         with sqlite3.connect(self.backup) as connection:
             connection.execute(
-                "UPDATE workflow_runs SET input_json=' \\t\\r\\n ' WHERE run_id='run-1'"
+                "UPDATE workflow_runs SET input_json=? WHERE run_id='run-1'",
+                (" " + chr(9) + chr(13) + chr(10) + " ",),
             )
         with self.assertRaisesRegex(
             BackupVerificationError, "inconsistent workflow run state or result-integrity metadata"
@@ -401,7 +402,8 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
         self.make_valid_backup()
         with sqlite3.connect(self.backup) as connection:
             connection.execute(
-                "UPDATE workflow_runs SET result_json=' \\t\\r\\n ' WHERE run_id='run-1'"
+                "UPDATE workflow_runs SET result_json=? WHERE run_id='run-1'",
+                (" " + chr(9) + chr(13) + chr(10) + " ",),
             )
         with self.assertRaisesRegex(
             BackupVerificationError, "inconsistent workflow run state or result-integrity metadata"
@@ -424,7 +426,8 @@ class WorkflowBackupVerificationTests(unittest.TestCase):
         self.make_valid_backup()
         with sqlite3.connect(self.backup) as connection:
             connection.execute(
-                "UPDATE workflow_runs SET error_message=' \\t\\r\\n ' WHERE run_id='run-2'"
+                "UPDATE workflow_runs SET error_message=? WHERE run_id='run-2'",
+                (" " + chr(9) + chr(13) + chr(10) + " ",),
             )
         with self.assertRaisesRegex(
             BackupVerificationError, "inconsistent workflow run state or result-integrity metadata"
