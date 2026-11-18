@@ -773,6 +773,132 @@ class WorkflowRuntimeTests(unittest.TestCase):
             {"value": "rotation-cli-failure-fixture"},
         )
 
+    def test_key_rotation_cli_handles_filesystem_and_database_open_failures_without_disclosure(self):
+        old_key = Fernet.generate_key()
+        new_key = Fernet.generate_key()
+        runtime = self.make_runtime(
+            self.database,
+            handlers={"echo": lambda data: {"echo": data["value"]}},
+            encryption_key=old_key,
+        )
+        run_id = runtime.submit(
+            workflow_id="demo-project",
+            task_type="echo",
+            payload={"value": "rotation-filesystem-failure-fixture"},
+        )
+        runtime.execute_run(run_id)
+        real_connect = sqlite3.connect
+        with real_connect(self.database) as connection:
+            before_input = connection.execute(
+                "SELECT input_json FROM workflow_runs WHERE run_id = ?", (run_id,)
+            ).fetchone()[0]
+
+        environment = {
+            "WORKFLOW_RUNTIME_ENCRYPTION_KEY_OLD": old_key.decode("ascii"),
+            "WORKFLOW_RUNTIME_ENCRYPTION_KEY_NEW": new_key.decode("ascii"),
+        }
+
+        cases = (
+            (
+                "directory",
+                Path(self.tempdir.name) / "blocked-parent" / "backup.sqlite3",
+                patch(
+                    "modules.workflow_key_rotation.Path.mkdir",
+                    side_effect=PermissionError("synthetic directory denial"),
+                ),
+            ),
+            (
+                "reservation",
+                Path(self.tempdir.name) / "reservation-failure.sqlite3",
+                patch(
+                    "modules.workflow_key_rotation.os.open",
+                    side_effect=PermissionError("synthetic reservation denial"),
+                ),
+            ),
+        )
+        for label, backup, failure_patch in cases:
+            with self.subTest(case=label):
+                output = io.StringIO()
+                error = io.StringIO()
+                arguments = [
+                    "rotate_workflow_encryption_key.py",
+                    "--database",
+                    str(self.database),
+                    "--backup",
+                    str(backup),
+                ]
+                with patch.dict(os.environ, environment):
+                    with patch.object(sys, "argv", arguments):
+                        with failure_patch:
+                            with contextlib.redirect_stdout(output):
+                                with contextlib.redirect_stderr(error):
+                                    exit_code = rotation_cli_main()
+                rendered = output.getvalue() + error.getvalue()
+                self.assertEqual(exit_code, 2)
+                self.assertIn("Key rotation failed safely:", rendered)
+                self.assertNotIn(str(backup), rendered)
+                self.assertNotIn(str(self.database), rendered)
+                self.assertNotIn(old_key.decode("ascii"), rendered)
+                self.assertNotIn(new_key.decode("ascii"), rendered)
+                self.assertFalse(backup.exists())
+                with real_connect(self.database) as connection:
+                    after_input = connection.execute(
+                        "SELECT input_json FROM workflow_runs WHERE run_id = ?", (run_id,)
+                    ).fetchone()[0]
+                self.assertEqual(after_input, before_input)
+
+        backup = Path(self.tempdir.name) / "database-open-failure.sqlite3"
+        output = io.StringIO()
+        error = io.StringIO()
+        arguments = [
+            "rotate_workflow_encryption_key.py",
+            "--database",
+            str(self.database),
+            "--backup",
+            str(backup),
+        ]
+        calls = 0
+
+        def fail_rotation_connection(database_path, *args, **kwargs):
+            nonlocal calls
+            calls += 1
+            if calls == 3:
+                raise sqlite3.OperationalError(f"synthetic open denial: {database_path}")
+            return real_connect(database_path, *args, **kwargs)
+
+        with patch.dict(os.environ, environment):
+            with patch.object(sys, "argv", arguments):
+                with patch(
+                    "modules.workflow_key_rotation.sqlite3.connect",
+                    side_effect=fail_rotation_connection,
+                ):
+                    with contextlib.redirect_stdout(output):
+                        with contextlib.redirect_stderr(error):
+                            exit_code = rotation_cli_main()
+
+        rendered = output.getvalue() + error.getvalue()
+        self.assertEqual(exit_code, 2)
+        self.assertIn("Key rotation failed safely:", rendered)
+        self.assertNotIn(str(backup), rendered)
+        self.assertNotIn(str(self.database), rendered)
+        self.assertNotIn(old_key.decode("ascii"), rendered)
+        self.assertNotIn(new_key.decode("ascii"), rendered)
+        self.assertTrue(backup.is_file(), "completed pre-rotation backup must be retained")
+        backed_up = self.make_runtime(
+            backup,
+            handlers={"echo": lambda data: {"echo": data["value"]}},
+            encryption_key=old_key,
+        )
+        self.assertEqual(
+            backed_up.get_run(run_id)["input"],
+            {"value": "rotation-filesystem-failure-fixture"},
+        )
+        with real_connect(self.database) as connection:
+            after_input = connection.execute(
+                "SELECT input_json FROM workflow_runs WHERE run_id = ?", (run_id,)
+            ).fetchone()[0]
+        self.assertEqual(after_input, before_input)
+
     def test_key_rotation_preserves_legacy_unverified_result_marker(self):
         old_key = Fernet.generate_key()
         new_key = Fernet.generate_key()

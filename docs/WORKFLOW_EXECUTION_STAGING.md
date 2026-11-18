@@ -138,7 +138,7 @@ The UI still requires synthetic/demo-only confirmation. This is an interim data-
 
 ## 10. Controlled key rotation
 
-A rotation helper is now available at tools/rotate_workflow_encryption_key.py. It refuses to overwrite an existing backup, creates a SQLite-aware backup first, then rotates the workflow_runs input/result/error fields in one transaction. If any ciphertext cannot be decrypted with the old key, the transaction rolls back and the backup is retained.
+A rotation helper is now available at tools/rotate_workflow_encryption_key.py. It refuses to overwrite an existing backup, creates a SQLite-aware backup first, then rotates the workflow_runs input/result/error fields in one transaction. If any ciphertext cannot be decrypted with the old key, the transaction rolls back and the backup is retained. Filesystem path-preparation, backup-reservation, and database-open failures are reported as generic fail-safe errors without echoing local paths or key values. If failure occurs after the pre-rotation backup has been created, retain that backup for investigation; do not assume the key rotation completed.
 
 1. Stop workflow submissions and ensure no worker is executing.
 2. In the trusted environment, set WORKFLOW_RUNTIME_ENCRYPTION_KEY_OLD and WORKFLOW_RUNTIME_ENCRYPTION_KEY_NEW. Do not pass keys as command-line arguments or paste them into Notion/chat.
