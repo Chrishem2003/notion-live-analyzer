@@ -564,5 +564,60 @@ class WorkflowBackupRestoreCliTests(unittest.TestCase):
                 wal_path.unlink()
 
 
+
+    def test_destination_parent_replacement_after_publish_cleans_both_owned_links(self):
+        parent = self.root / "restore-publish-parent"
+        parent.mkdir()
+        destination = parent / "restored.sqlite3"
+        moved_parent = self.root / "restore-publish-parent-original"
+        source_before_run = WorkflowRuntime(
+            self.source,
+            handlers={"echo": lambda payload: {"echo": payload["value"]}},
+            encryption_key=self.key,
+        ).get_run(self.run_id)
+        source_before_events = list_run_events(
+            self.source, "synthetic-restore-cli", self.run_id
+        )
+        real_verify = verify_workflow_backup
+        calls = 0
+
+        def replace_parent_after_published_verification(candidate):
+            nonlocal calls
+            report = real_verify(candidate)
+            calls += 1
+            if calls == 4:
+                parent.rename(moved_parent)
+                parent.mkdir()
+            return report
+
+        with patch(
+            "tools.restore_workflow_backup.verify_workflow_backup",
+            side_effect=replace_parent_after_published_verification,
+        ):
+            with self.assertRaisesRegex(
+                WorkflowBackupRestoreError,
+                "destination parent directory changed during restore",
+            ):
+                restore_workflow_backup(self.source, destination)
+
+        self.assertEqual(calls, 4)
+        self.assertFalse(destination.exists())
+        self.assertEqual(list(parent.iterdir()), [])
+        self.assertEqual(list(moved_parent.iterdir()), [])
+        parent.rmdir()
+        moved_parent.rename(parent)
+
+        source_after_run = WorkflowRuntime(
+            self.source,
+            handlers={"echo": lambda payload: {"echo": payload["value"]}},
+            encryption_key=self.key,
+        ).get_run(self.run_id)
+        source_after_events = list_run_events(
+            self.source, "synthetic-restore-cli", self.run_id
+        )
+        self.assertEqual(source_after_run, source_before_run)
+        self.assertEqual(source_after_events, source_before_events)
+
+
 if __name__ == "__main__":
     unittest.main()
