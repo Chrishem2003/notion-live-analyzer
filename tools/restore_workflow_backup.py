@@ -45,15 +45,20 @@ def _sqlite_file_signature(path: Path) -> tuple[Any, ...]:
     return tuple(signature)
 
 
-def _unlink_if_owned(path: Path, identity: tuple[int, int] | None) -> None:
-    """Remove only a regular file whose inode was created by this invocation."""
+def _is_owned_regular_file(path: Path, identity: tuple[int, int] | None) -> bool:
+    """Check that a path still names the regular-file inode created by this invocation."""
     if identity is None:
-        return
+        return False
     try:
         current = path.lstat()
     except FileNotFoundError:
-        return
-    if stat.S_ISREG(current.st_mode) and (current.st_dev, current.st_ino) == identity:
+        return False
+    return stat.S_ISREG(current.st_mode) and (current.st_dev, current.st_ino) == identity
+
+
+def _unlink_if_owned(path: Path, identity: tuple[int, int] | None) -> None:
+    """Remove only a regular file whose inode was created by this invocation."""
+    if _is_owned_regular_file(path, identity):
         path.unlink()
 
 
@@ -188,7 +193,22 @@ def restore_workflow_backup(
                 "published destination failed post-publication verification"
             )
 
-        temporary_path.unlink()
+        # Verification opens the destination by path. Recheck both links after
+        # that read so a concurrent path replacement cannot be accepted as the
+        # published copy or removed as though it were our temporary file.
+        if not _is_owned_regular_file(destination, temporary_identity):
+            raise WorkflowBackupRestoreError(
+                "published destination changed during post-publication verification"
+            )
+        if not _is_owned_regular_file(temporary_path, temporary_identity):
+            raise WorkflowBackupRestoreError(
+                "temporary restore file changed during post-publication verification"
+            )
+        _unlink_if_owned(temporary_path, temporary_identity)
+        if os.path.lexists(temporary_path):
+            raise WorkflowBackupRestoreError(
+                "temporary restore link could not be removed safely"
+            )
         temporary_path = None
         completed = True
         return {
