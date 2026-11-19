@@ -332,7 +332,7 @@ def restore_workflow_backup(
 
         if os.name == "posix":
             os.chmod(temporary_path, 0o600)
-        sync_fd = os.open(str(temporary_path), os.O_RDONLY)
+        sync_fd = os.open(str(temporary_path), os.O_RDWR)
         try:
             os.fsync(sync_fd)
         finally:
