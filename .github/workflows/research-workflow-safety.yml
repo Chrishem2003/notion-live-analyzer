@@ -21,6 +21,7 @@ on:
       - "tools/fix_corruption.py"
       - "tools/rotate_workflow_encryption_key.py"
       - "tools/verify_workflow_backup.py"
+      - "tools/restore_workflow_backup.py"
       - "pytest.ini"
       - ".github/workflows/notion-workflow-handoff.yml"
       - ".github/workflows/research-workflow-safety.yml"
@@ -43,6 +44,7 @@ on:
       - "tools/fix_corruption.py"
       - "tools/rotate_workflow_encryption_key.py"
       - "tools/verify_workflow_backup.py"
+      - "tools/restore_workflow_backup.py"
       - "pytest.ini"
       - ".github/workflows/notion-workflow-handoff.yml"
       - ".github/workflows/research-workflow-safety.yml"
@@ -80,6 +82,7 @@ jobs:
             tests/test_workflow_effects.py \
             tests/test_workflow_handlers.py \
             tests/test_workflow_restore_acceptance.py \
+            tests/test_workflow_restore_cli.py \
             tests/test_workflow_runtime.py \
             tests/test_workflow_scheduler.py \
             tests/test_workflow_storage.py \
@@ -107,4 +110,5 @@ jobs:
             tools/check_workflow_configuration.py \
             tools/rotate_workflow_encryption_key.py \
             tools/fix_corruption.py \
-            tools/verify_workflow_backup.py
+            tools/verify_workflow_backup.py \
+            tools/restore_workflow_backup.py
