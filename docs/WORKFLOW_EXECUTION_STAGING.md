@@ -69,12 +69,18 @@ Never change QC to Pass or reproducibility to Passed merely because the runtime 
 
 ## 5. Persistence, backup, and recovery
 
-- [ ] Confirm the configured runtime database path is writable and persists across app restarts.
-- [ ] Create a SQLite-aware backup while accounting for WAL state; restore into an isolated staging location.
-- [ ] Run the read-only backup verifier against the isolated backup before restore and the restored copy after restore; require both reports to verify and compare aggregate run/event counts.
-- [ ] Verify run records and event history after restore using the approved application encryption key.
-- [ ] Verify any required encryption/decryption or secret-recovery procedure separately.
+- [ ] Stop workflow submissions and workers before taking a recovery copy; use an isolated staging directory with approved filesystem access controls.
+- [ ] Create a SQLite-aware backup while accounting for WAL state.
+- [ ] Run the read-only backup verifier against the source backup and require a successful report.
+- [ ] Restore only to a new, non-existing destination file in an already-existing isolated directory:
+
+      python tools/restore_workflow_backup.py /secure/backups/workflow.sqlite3 /secure/staging/workflow-restored.sqlite3
+
+  The restore CLI verifies the source read-only, copies through SQLite's online backup API (including committed WAL state), verifies the temporary copy, compares aggregate run/event/result-integrity/encrypted-field counts, and publishes through an atomic same-directory hard link that cannot overwrite an existing destination. It does not create destination directories, decrypt payloads, or print source/destination paths. If hard-link publication is unsupported or the destination appears concurrently, it fails closed; do not substitute an overwrite-based copy.
+- [ ] Require the restore CLI JSON report to confirm source and destination verification. The command verifies structure and counts only; it does not prove encryption-key custody or payload decryption.
+- [ ] Initialize the restored copy with the approved application encryption key in isolated staging and verify representative input/result/error readback plus event ordering.
 - [ ] Confirm the actual hosting platform provides durable storage; local filesystem persistence alone is not sufficient evidence for ephemeral or multi-replica deployments.
+- [ ] Verify Windows/managed-host hard-link behavior and effective filesystem ACLs separately before relying on this CLI there.
 
 ## 6. Evidence record requirements
 
