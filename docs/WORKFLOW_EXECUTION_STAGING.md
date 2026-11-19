@@ -261,3 +261,8 @@ On POSIX, the destination directory is opened with directory/no-follow flags and
 Additional synthetic tests move/replace the source parent immediately after the initial read-only backup verification and inject a WAL symlink after the initial sidecar preflight. The source-parent replacement is rejected before temporary restore creation; the WAL replacement is rejected by the verifier or subsequent sidecar identity check, leaves the external target unchanged, and publishes no destination.
 
 This is detection and fail-closed behavior, not an atomic guarantee that SQLite can never momentarily open a sidecar replaced in the interval between lstat and SQLite's path-based open. Keep source backup directories and their WAL/SHM namespace owner-controlled and non-writable by untrusted principals; stop writers before restore. Do not treat path checks as a substitute for trusted filesystem ownership, ACLs, mount policy, or platform-specific acceptance.
+
+
+### Batch 147 follow-up — cleanup after post-publication parent replacement (2026-11-19)
+
+A further synthetic race test replaces the destination parent after the published destination has passed its read-only verification but before the restore returns. The operation detects the changed parent identity and fails closed. The retained directory descriptor is used to remove both hard links belonging to this invocation (the published destination and temporary name) from the original moved directory; the replacement directory and source run/event state remain unchanged. This is Linux/POSIX CI evidence only; repeat on the actual managed host and Windows before relying on the behavior there.
