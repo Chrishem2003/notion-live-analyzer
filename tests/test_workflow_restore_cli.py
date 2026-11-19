@@ -468,5 +468,101 @@ class WorkflowBackupRestoreCliTests(unittest.TestCase):
         self.assertEqual(source_after_events, source_before_events)
 
 
+
+    def test_source_parent_replacement_after_verification_fails_closed(self):
+        source_parent = self.root / "source-parent-race"
+        source_parent.mkdir()
+        source_copy = source_parent / "source.sqlite3"
+        with sqlite3.connect(self.source) as source_connection, sqlite3.connect(source_copy) as copy_connection:
+            source_connection.backup(copy_connection)
+        moved_parent = self.root / "source-parent-original"
+        source_before_run = WorkflowRuntime(
+            source_copy,
+            handlers={"echo": lambda payload: {"echo": payload["value"]}},
+            encryption_key=self.key,
+        ).get_run(self.run_id)
+        source_before_events = list_run_events(
+            source_copy, "synthetic-restore-cli", self.run_id
+        )
+        real_verify = verify_workflow_backup
+        calls = 0
+
+        def replace_source_parent_after_initial_verification(candidate):
+            nonlocal calls
+            report = real_verify(candidate)
+            calls += 1
+            if calls == 1:
+                source_parent.rename(moved_parent)
+                source_parent.mkdir()
+            return report
+
+        try:
+            with patch(
+                "tools.restore_workflow_backup.verify_workflow_backup",
+                side_effect=replace_source_parent_after_initial_verification,
+            ):
+                with self.assertRaisesRegex(
+                    WorkflowBackupRestoreError,
+                    "source parent directory changed during restore",
+                ):
+                    restore_workflow_backup(source_copy, self.destination)
+            self.assertEqual(calls, 1)
+            self.assertFalse(self.destination.exists())
+            self.assertEqual(list(self.root.glob(".workflow-restore-*.sqlite3.tmp")), [])
+            self.assertEqual(list(source_parent.iterdir()), [])
+        finally:
+            if source_parent.exists():
+                source_parent.rmdir()
+            moved_parent.rename(source_parent)
+
+        source_after_run = WorkflowRuntime(
+            source_copy,
+            handlers={"echo": lambda payload: {"echo": payload["value"]}},
+            encryption_key=self.key,
+        ).get_run(self.run_id)
+        source_after_events = list_run_events(
+            source_copy, "synthetic-restore-cli", self.run_id
+        )
+        self.assertEqual(source_after_run, source_before_run)
+        self.assertEqual(source_after_events, source_before_events)
+
+    def test_wal_symlink_replacement_after_preflight_fails_without_destination(self):
+        source_parent = self.root / "sidecar-race"
+        source_parent.mkdir()
+        source_copy = source_parent / "source.sqlite3"
+        with sqlite3.connect(self.source) as source_connection, sqlite3.connect(source_copy) as copy_connection:
+            source_connection.backup(copy_connection)
+        wal_path = Path(f"{source_copy}-wal")
+        if wal_path.exists() or wal_path.is_symlink():
+            wal_path.unlink()
+        target = self.root / "external-wal-race-target"
+        target.write_bytes(b"synthetic-wal-race-target")
+        target_before = target.read_bytes()
+        real_verify = verify_workflow_backup
+        calls = 0
+
+        def replace_wal_after_preflight(candidate):
+            nonlocal calls
+            calls += 1
+            if calls == 1:
+                wal_path.symlink_to(target)
+            return real_verify(candidate)
+
+        try:
+            with patch(
+                "tools.restore_workflow_backup.verify_workflow_backup",
+                side_effect=replace_wal_after_preflight,
+            ):
+                with self.assertRaises(WorkflowBackupRestoreError):
+                    restore_workflow_backup(source_copy, self.destination)
+            self.assertEqual(calls, 1)
+            self.assertTrue(wal_path.is_symlink())
+            self.assertEqual(target.read_bytes(), target_before)
+            self.assertFalse(self.destination.exists())
+        finally:
+            if wal_path.is_symlink():
+                wal_path.unlink()
+
+
 if __name__ == "__main__":
     unittest.main()
