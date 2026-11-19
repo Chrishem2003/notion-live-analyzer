@@ -266,3 +266,13 @@ This is detection and fail-closed behavior, not an atomic guarantee that SQLite 
 ### Batch 147 follow-up — cleanup after post-publication parent replacement (2026-11-19)
 
 A further synthetic race test replaces the destination parent after the published destination has passed its read-only verification but before the restore returns. The operation detects the changed parent identity and fails closed. The retained directory descriptor is used to remove both hard links belonging to this invocation (the published destination and temporary name) from the original moved directory; the replacement directory and source run/event state remain unchanged. This is Linux/POSIX CI evidence only; repeat on the actual managed host and Windows before relying on the behavior there.
+
+
+### Batch 147 — restore-owned SQLite sidecar cleanup (2026-11-19)
+
+The restore CLI now captures the inode identities of WAL/SHM sidecars created for its unique temporary restore path and newly published destination. It removes only those single-link regular sidecar inodes after verification, using the retained destination-directory descriptor on POSIX when available. On failure, it attempts the same identity-checked cleanup before removing the main temporary/published links. Pre-existing destination WAL/SHM paths are rejected; source sidecars are never removed.
+
+- [ ] Verify a successful WAL-aware restore leaves no operation-owned temporary or destination WAL/SHM sidecars.
+- [ ] Replace the destination parent after post-publication verification and confirm descriptor-anchored cleanup removes both owned main-file links and their WAL/SHM sidecars from the moved original directory.
+- [ ] If a sidecar path changes identity or is not a single-link regular file, fail closed and preserve the unowned object.
+- [ ] Repeat on Windows/managed hosting; POSIX directory descriptors and effective ACL behavior remain unverified there.
