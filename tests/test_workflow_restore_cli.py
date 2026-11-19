@@ -182,6 +182,73 @@ class WorkflowBackupRestoreCliTests(unittest.TestCase):
         self.assertEqual(self.destination.read_bytes(), concurrent_bytes)
         self.assertEqual(list(self.root.glob(".workflow-restore-*.sqlite3.tmp")), [])
 
+    def test_destination_replaced_during_post_publish_verification_is_preserved(self):
+        real_verify = verify_workflow_backup
+        calls = 0
+        replacement = b"unowned-destination-replacement"
+
+        def replace_after_destination_verification(candidate):
+            nonlocal calls
+            calls += 1
+            report = real_verify(candidate)
+            if calls == 4:
+                self.destination.unlink()
+                self.destination.write_bytes(replacement)
+            return report
+
+        with patch(
+            "tools.restore_workflow_backup.verify_workflow_backup",
+            side_effect=replace_after_destination_verification,
+        ):
+            with self.assertRaisesRegex(
+                WorkflowBackupRestoreError,
+                "published destination changed during post-publication verification",
+            ):
+                restore_workflow_backup(self.source, self.destination)
+
+        self.assertEqual(calls, 4)
+        self.assertEqual(self.destination.read_bytes(), replacement)
+        self.assertEqual(list(self.root.glob(".workflow-restore-*.sqlite3.tmp")), [])
+
+    def test_temporary_restore_path_replacement_is_not_deleted_as_owned(self):
+        real_verify = verify_workflow_backup
+        original_link = os.link
+        calls = 0
+        captured = {}
+        replacement = b"unowned-temporary-path-replacement"
+
+        def capture_temporary_link(source, destination):
+            captured["temporary_path"] = Path(source)
+            return original_link(source, destination)
+
+        def replace_temporary_after_destination_verification(candidate):
+            nonlocal calls
+            calls += 1
+            report = real_verify(candidate)
+            if calls == 4:
+                temporary_path = captured["temporary_path"]
+                temporary_path.unlink()
+                temporary_path.write_bytes(replacement)
+            return report
+
+        with (
+            patch("tools.restore_workflow_backup.os.link", side_effect=capture_temporary_link),
+            patch(
+                "tools.restore_workflow_backup.verify_workflow_backup",
+                side_effect=replace_temporary_after_destination_verification,
+            ),
+        ):
+            with self.assertRaisesRegex(
+                WorkflowBackupRestoreError,
+                "temporary restore file changed during post-publication verification",
+            ):
+                restore_workflow_backup(self.source, self.destination)
+
+        self.assertEqual(calls, 4)
+        self.assertFalse(self.destination.exists())
+        temporary_path = captured["temporary_path"]
+        self.assertEqual(temporary_path.read_bytes(), replacement)
+
     def test_source_and_destination_must_be_different(self):
         before = self._source_digest()
         with self.assertRaises(WorkflowBackupRestoreError):
