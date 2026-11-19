@@ -422,7 +422,14 @@ class WorkflowBackupRestoreCliTests(unittest.TestCase):
         parent.mkdir()
         destination = parent / "restored.sqlite3"
         moved_parent = self.root / "restore-parent-original"
-        source_before = self._source_digest()
+        source_before_run = WorkflowRuntime(
+            self.source,
+            handlers={"echo": lambda payload: {"echo": payload["value"]}},
+            encryption_key=self.key,
+        ).get_run(self.run_id)
+        source_before_events = list_run_events(
+            self.source, "synthetic-restore-cli", self.run_id
+        )
         real_verify = verify_workflow_backup
         calls = 0
 
@@ -449,7 +456,16 @@ class WorkflowBackupRestoreCliTests(unittest.TestCase):
         self.assertFalse(destination.exists())
         self.assertEqual(list(parent.glob(".workflow-restore-*.sqlite3.tmp")), [])
         self.assertEqual(list(moved_parent.glob(".workflow-restore-*.sqlite3.tmp")), [])
-        self.assertEqual(self._source_digest(), source_before)
+        source_after_run = WorkflowRuntime(
+            self.source,
+            handlers={"echo": lambda payload: {"echo": payload["value"]}},
+            encryption_key=self.key,
+        ).get_run(self.run_id)
+        source_after_events = list_run_events(
+            self.source, "synthetic-restore-cli", self.run_id
+        )
+        self.assertEqual(source_after_run, source_before_run)
+        self.assertEqual(source_after_events, source_before_events)
 
 
 if __name__ == "__main__":
