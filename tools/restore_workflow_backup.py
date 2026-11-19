@@ -33,15 +33,25 @@ def _report_signature(report: dict[str, Any]) -> tuple[Any, ...]:
 
 
 def _sqlite_file_signature(path: Path) -> tuple[Any, ...]:
-    """Capture the main database and WAL identity without exposing their paths."""
+    """Capture main/WAL/SHM identity and reject unsafe SQLite sidecar aliases."""
     signature: list[Any] = []
-    for candidate in (path, Path(f"{path}-wal")):
+    candidates = (path, Path(f"{path}-wal"), Path(f"{path}-shm"))
+    for index, candidate in enumerate(candidates):
         try:
-            info = candidate.stat()
+            info = candidate.lstat()
         except FileNotFoundError:
             signature.append(None)
-        else:
-            signature.append((info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns))
+            continue
+        if not stat.S_ISREG(info.st_mode):
+            kind = "database" if index == 0 else "sidecar"
+            raise WorkflowBackupRestoreError(
+                f"SQLite source {kind} must be a regular file, not a symbolic link or special file"
+            )
+        if index > 0 and info.st_nlink != 1:
+            raise WorkflowBackupRestoreError(
+                "SQLite source sidecar must not be hard-linked to another path"
+            )
+        signature.append((info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns))
     return tuple(signature)
 
 
@@ -101,6 +111,17 @@ def restore_workflow_backup(
     except (OSError, RuntimeError, TypeError, ValueError, UnicodeError) as exc:
         raise WorkflowBackupRestoreError("source or destination path could not be resolved safely") from exc
 
+    # Inspect SQLite sidecars before opening the source through SQLite so a
+    # symlinked or hard-linked WAL/SHM file is rejected before it is followed.
+    try:
+        _sqlite_file_signature(source)
+    except WorkflowBackupRestoreError:
+        raise
+    except OSError as exc:
+        raise WorkflowBackupRestoreError(
+            "SQLite source files could not be inspected safely"
+        ) from exc
+
     try:
         source_report = verify_workflow_backup(source)
     except BackupVerificationError as exc:
@@ -109,7 +130,14 @@ def restore_workflow_backup(
         ) from exc
 
     source_signature = _report_signature(source_report)
-    source_files_before = _sqlite_file_signature(source)
+    try:
+        source_files_before = _sqlite_file_signature(source)
+    except WorkflowBackupRestoreError:
+        raise
+    except OSError as exc:
+        raise WorkflowBackupRestoreError(
+            "SQLite source files could not be inspected safely"
+        ) from exc
     source_identity_before = (source_info.st_dev, source_info.st_ino)
 
     temporary_path: Path | None = None
