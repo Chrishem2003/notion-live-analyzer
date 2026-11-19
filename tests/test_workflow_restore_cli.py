@@ -206,5 +206,58 @@ class WorkflowBackupRestoreCliTests(unittest.TestCase):
         self.assertNotIn(str(destination), rendered)
 
 
+    def test_source_change_during_restore_fails_closed_and_cleans_temporary_copy(self):
+        real_verify = verify_workflow_backup
+        calls = 0
+
+        def mutate_source_before_postcheck(candidate):
+            nonlocal calls
+            calls += 1
+            if calls == 3:
+                with sqlite3.connect(self.source) as connection:
+                    connection.execute(
+                        "CREATE TABLE restore_source_change_probe (value TEXT NOT NULL)"
+                    )
+                    connection.execute(
+                        "INSERT INTO restore_source_change_probe (value) VALUES ('synthetic-change')"
+                    )
+            return real_verify(candidate)
+
+        with patch(
+            "tools.restore_workflow_backup.verify_workflow_backup",
+            side_effect=mutate_source_before_postcheck,
+        ):
+            with self.assertRaisesRegex(WorkflowBackupRestoreError, "source changed during restore"):
+                restore_workflow_backup(self.source, self.destination)
+        self.assertFalse(self.destination.exists())
+        self.assertEqual(list(self.root.glob(".workflow-restore-*.sqlite3.tmp")), [])
+        with sqlite3.connect(self.source) as connection:
+            probe = connection.execute(
+                "SELECT value FROM restore_source_change_probe"
+            ).fetchone()
+        self.assertEqual(probe[0], "synthetic-change")
+
+    def test_cli_error_json_does_not_disclose_paths_or_terminal_controls(self):
+        missing_source = self.root / "missing\\nsource\\x1b\\u202e.sqlite3"
+        destination = self.root / "restore\\npath\\x1b\\u202e.sqlite3"
+        output = io.StringIO()
+        with patch.object(
+            sys,
+            "argv",
+            ["restore_workflow_backup.py", str(missing_source), str(destination)],
+        ):
+            with contextlib.redirect_stderr(output):
+                exit_code = restore_main()
+        rendered = output.getvalue()
+        report = json.loads(rendered)
+        self.assertEqual(exit_code, 2)
+        self.assertFalse(report["restored"])
+        self.assertNotIn(str(missing_source), rendered)
+        self.assertNotIn(str(destination), rendered)
+        self.assertNotIn("\\x1b", rendered)
+        self.assertNotIn("\\u202e", rendered)
+        self.assertEqual(len(rendered.strip().splitlines()), 1)
+
+
 if __name__ == "__main__":
     unittest.main()
