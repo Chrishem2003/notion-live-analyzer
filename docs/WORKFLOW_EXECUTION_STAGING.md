@@ -276,3 +276,10 @@ The restore CLI now captures the inode identities of WAL/SHM sidecars created fo
 - [ ] Replace the destination parent after post-publication verification and confirm descriptor-anchored cleanup removes both owned main-file links and their WAL/SHM sidecars from the moved original directory.
 - [ ] If a sidecar path changes identity or is not a single-link regular file, fail closed and preserve the unowned object.
 - [ ] Repeat on Windows/managed hosting; POSIX directory descriptors and effective ACL behavior remain unverified there.
+
+
+### Batch 148 — Windows restore acceptance job (2026-11-19)
+
+The research-workflow-safety workflow now runs a Windows Server restore acceptance job on pull-request events. It executes the restore CLI and restore acceptance suites and compiles the restore/verifier tools. The two parent-directory replacement cleanup tests that require POSIX directory-descriptor-relative unlink are explicitly skipped on non-POSIX hosts; those protections remain covered by Ubuntu CI.
+
+This Windows job is evidence for the supported path-based restore flow and its functional readback on the GitHub-hosted Windows runner. It is not evidence for the user's managed host, effective ACLs, enterprise endpoint controls, directory ownership, or production backup durability. The POSIX dirfd cleanup guarantee must not be assumed on Windows; keep the restore parent owner-controlled and non-writable by untrusted principals.
