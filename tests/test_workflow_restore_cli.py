@@ -422,6 +422,8 @@ class WorkflowBackupRestoreCliTests(unittest.TestCase):
         self.assertFalse(self.destination.exists())
 
     def test_destination_parent_replacement_fails_closed_and_cleans_via_open_directory(self):
+        if os.name != "posix":
+            self.skipTest("requires POSIX directory-descriptor cleanup")
         parent = self.root / "restore-parent"
         parent.mkdir()
         destination = parent / "restored.sqlite3"
@@ -570,6 +572,8 @@ class WorkflowBackupRestoreCliTests(unittest.TestCase):
 
 
     def test_destination_parent_replacement_after_publish_cleans_both_owned_links(self):
+        if os.name != "posix":
+            self.skipTest("requires POSIX directory-descriptor cleanup")
         parent = self.root / "restore-publish-parent"
         parent.mkdir()
         destination = parent / "restored.sqlite3"
