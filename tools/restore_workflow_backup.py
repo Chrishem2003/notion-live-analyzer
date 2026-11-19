@@ -123,6 +123,66 @@ def _unlink_if_owned(
         path.unlink()
 
 
+def _sidecar_names(path: Path) -> tuple[str, str]:
+    return (f"{path.name}-wal", f"{path.name}-shm")
+
+
+def _sidecar_info(
+    path: Path,
+    name: str,
+    directory_fd: int | None = None,
+) -> os.stat_result | None:
+    try:
+        if directory_fd is not None and os.name == "posix":
+            return os.stat(name, dir_fd=directory_fd, follow_symlinks=False)
+        return (path.parent / name).lstat()
+    except FileNotFoundError:
+        return None
+    except OSError as exc:
+        raise WorkflowBackupRestoreError(
+            "SQLite restore sidecars could not be inspected safely"
+        ) from exc
+
+
+def _assert_sidecars_absent(
+    path: Path,
+    label: str,
+    directory_fd: int | None = None,
+) -> None:
+    for name in _sidecar_names(path):
+        if _sidecar_info(path, name, directory_fd) is not None:
+            raise WorkflowBackupRestoreError(
+                f"{label} SQLite sidecar path already exists or appeared unexpectedly"
+            )
+
+
+def _capture_owned_sidecars(
+    path: Path,
+    directory_fd: int | None = None,
+) -> dict[str, tuple[int, int]]:
+    """Capture only regular, single-link WAL/SHM inodes at an operation-owned path."""
+    captured: dict[str, tuple[int, int]] = {}
+    for name in _sidecar_names(path):
+        info = _sidecar_info(path, name, directory_fd)
+        if info is None:
+            continue
+        if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+            raise WorkflowBackupRestoreError(
+                "SQLite restore sidecar must be a single-link regular file"
+            )
+        captured[name] = (info.st_dev, info.st_ino)
+    return captured
+
+
+def _remove_owned_sidecars(
+    path: Path,
+    identities: dict[str, tuple[int, int]],
+    directory_fd: int | None = None,
+) -> None:
+    for name, identity in identities.items():
+        _unlink_if_owned(path.parent / name, identity, directory_fd)
+
+
 def restore_workflow_backup(
     source_path: str | Path,
     destination_path: str | Path,
@@ -167,6 +227,7 @@ def restore_workflow_backup(
                 "destination parent directory changed during path resolution"
             )
         destination = destination_parent / destination_candidate.name
+        _assert_sidecars_absent(destination, "destination")
         if source == destination:
             raise WorkflowBackupRestoreError("source and destination must be different files")
         if os.path.lexists(destination):
@@ -213,6 +274,8 @@ def restore_workflow_backup(
     temporary_identity: tuple[int, int] | None = None
     destination_published = False
     temporary_fd: int | None = None
+    temporary_sidecars: dict[str, tuple[int, int]] = {}
+    destination_sidecars: dict[str, tuple[int, int]] = {}
     source_connection: sqlite3.Connection | None = None
     destination_connection: sqlite3.Connection | None = None
     completed = False
@@ -245,6 +308,7 @@ def restore_workflow_backup(
         temporary_fd = None
         _assert_directory_identity(destination_parent, destination_parent_identity, "destination")
         _assert_directory_identity(source.parent, source_parent_identity, "source")
+        _assert_sidecars_absent(temporary_path, "temporary restore", destination_directory_fd)
 
         # Read-only source connection sees committed WAL state. The operator must
         # stop submissions/workers so the pre/post source signatures remain stable.
@@ -275,6 +339,9 @@ def restore_workflow_backup(
             os.close(sync_fd)
 
         restored_report = verify_workflow_backup(temporary_path)
+        temporary_sidecars.update(
+            _capture_owned_sidecars(temporary_path, destination_directory_fd)
+        )
         _assert_directory_identity(destination_parent, destination_parent_identity, "destination")
         _assert_directory_identity(source.parent, source_parent_identity, "source")
         if _report_signature(restored_report) != source_signature:
@@ -299,6 +366,7 @@ def restore_workflow_backup(
         # Recheck immediately before publication. The opened directory descriptor
         # is retained for identity-safe cleanup if the pathname is replaced mid-run.
         _assert_directory_identity(destination_parent, destination_parent_identity, "destination")
+        _assert_sidecars_absent(destination, "destination", destination_directory_fd)
         # link() is atomic and fails if destination appeared after the earlier check.
         # It never replaces an existing file or follows a destination symlink.
         os.link(str(temporary_path), str(destination))
@@ -315,6 +383,9 @@ def restore_workflow_backup(
 
         _assert_directory_identity(destination_parent, destination_parent_identity, "destination")
         destination_report = verify_workflow_backup(destination)
+        destination_sidecars.update(
+            _capture_owned_sidecars(destination, destination_directory_fd)
+        )
         _assert_directory_identity(destination_parent, destination_parent_identity, "destination")
         if _report_signature(destination_report) != source_signature:
             raise WorkflowBackupRestoreError(
@@ -333,6 +404,10 @@ def restore_workflow_backup(
                 "temporary restore file changed during post-publication verification"
             )
         _assert_directory_identity(destination_parent, destination_parent_identity, "destination")
+        _remove_owned_sidecars(destination, destination_sidecars, destination_directory_fd)
+        _remove_owned_sidecars(temporary_path, temporary_sidecars, destination_directory_fd)
+        _assert_sidecars_absent(destination, "destination", destination_directory_fd)
+        _assert_sidecars_absent(temporary_path, "temporary restore", destination_directory_fd)
         _unlink_if_owned(temporary_path, temporary_identity, destination_directory_fd)
         if os.path.lexists(temporary_path):
             raise WorkflowBackupRestoreError(
@@ -376,13 +451,21 @@ def restore_workflow_backup(
         if not completed:
             try:
                 if destination_published:
+                    destination_sidecars.update(
+                        _capture_owned_sidecars(destination, destination_directory_fd)
+                    )
+                    _remove_owned_sidecars(destination, destination_sidecars, destination_directory_fd)
                     _unlink_if_owned(destination, temporary_identity, destination_directory_fd)
-            except OSError:
+            except (OSError, WorkflowBackupRestoreError):
                 pass
             try:
                 if temporary_path is not None:
+                    temporary_sidecars.update(
+                        _capture_owned_sidecars(temporary_path, destination_directory_fd)
+                    )
+                    _remove_owned_sidecars(temporary_path, temporary_sidecars, destination_directory_fd)
                     _unlink_if_owned(temporary_path, temporary_identity, destination_directory_fd)
-            except OSError:
+            except (OSError, WorkflowBackupRestoreError):
                 pass
         if destination_directory_fd is not None:
             try:
