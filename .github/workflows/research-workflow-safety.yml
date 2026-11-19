@@ -112,3 +112,29 @@ jobs:
             tools/fix_corruption.py \
             tools/verify_workflow_backup.py \
             tools/restore_workflow_backup.py
+
+  restore-platform-windows:
+    if: github.event_name == 'pull_request'
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install focused restore dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest requests cryptography "numpy>=1.26" "pandas>=2.2,<3" "streamlit>=1.38,<2"
+
+      - name: Run restore CLI and acceptance tests
+        run: |
+          python -m pytest -q --confcutdir=tests tests/test_workflow_restore_cli.py tests/test_workflow_restore_acceptance.py
+
+      - name: Compile restore tools
+        run: |
+          python -m compileall -q tools/restore_workflow_backup.py tools/verify_workflow_backup.py
