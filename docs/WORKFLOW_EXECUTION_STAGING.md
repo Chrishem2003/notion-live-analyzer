@@ -254,3 +254,10 @@ On POSIX, the destination directory is opened with directory/no-follow flags and
 - [ ] Verify a source-parent replacement is detected before source readback or destination publication.
 - [ ] Repeat on Windows and the actual managed host; POSIX directory descriptors, hard-link semantics and ACL behavior are not assumed portable.
 - [ ] Keep the destination directory owner-controlled and non-writable by untrusted principals. Inode checks are defense in depth, not a substitute for filesystem ownership, ACLs, mount policy or a trusted parent directory.
+
+
+### Batch 146 follow-up — source-parent and sidecar replacement race limits (2026-11-19)
+
+Additional synthetic tests move/replace the source parent immediately after the initial read-only backup verification and inject a WAL symlink after the initial sidecar preflight. The source-parent replacement is rejected before temporary restore creation; the WAL replacement is rejected by the verifier or subsequent sidecar identity check, leaves the external target unchanged, and publishes no destination.
+
+This is detection and fail-closed behavior, not an atomic guarantee that SQLite can never momentarily open a sidecar replaced in the interval between lstat and SQLite's path-based open. Keep source backup directories and their WAL/SHM namespace owner-controlled and non-writable by untrusted principals; stop writers before restore. Do not treat path checks as a substitute for trusted filesystem ownership, ACLs, mount policy, or platform-specific acceptance.
