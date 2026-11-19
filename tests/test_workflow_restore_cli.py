@@ -422,6 +422,7 @@ class WorkflowBackupRestoreCliTests(unittest.TestCase):
         parent.mkdir()
         destination = parent / "restored.sqlite3"
         moved_parent = self.root / "restore-parent-original"
+        source_before = self._source_digest()
         real_verify = verify_workflow_backup
         calls = 0
 
@@ -448,7 +449,7 @@ class WorkflowBackupRestoreCliTests(unittest.TestCase):
         self.assertFalse(destination.exists())
         self.assertEqual(list(parent.glob(".workflow-restore-*.sqlite3.tmp")), [])
         self.assertEqual(list(moved_parent.glob(".workflow-restore-*.sqlite3.tmp")), [])
-        self.assertEqual(self._source_digest(), self._source_digest())
+        self.assertEqual(self._source_digest(), source_before)
 
 
 if __name__ == "__main__":
