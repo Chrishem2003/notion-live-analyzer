@@ -51,7 +51,12 @@ def _sqlite_file_signature(path: Path) -> tuple[Any, ...]:
             raise WorkflowBackupRestoreError(
                 "SQLite source sidecar must not be hard-linked to another path"
             )
-        signature.append((info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns))
+        if index == 2:
+            # SQLite may legitimately update the WAL-index shared-memory contents
+            # while readers coordinate; track its identity, not mutable metadata.
+            signature.append((info.st_dev, info.st_ino))
+        else:
+            signature.append((info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns))
     return tuple(signature)
 
 
