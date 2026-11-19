@@ -241,3 +241,16 @@ A new mocked-HTTP regression models the remote Notion page being committed while
 - [ ] In isolated staging, use a disposable run and verify the same recovery path against the real Notion API.
 - [ ] Record the fetched page ID and manifest hash as evidence; do not record integration tokens.
 - [ ] Remember that this reconciliation depends on the manifest hash being queryable and the target page being visible to the integration. It is recovery logic, not an atomic remote uniqueness constraint.
+
+
+## 17. Restore parent-directory trust and replacement races (added 2026-11-19)
+
+The restore operator now rejects a source or destination whose immediate parent path is a symlink or special file. It records the resolved source and destination parent directory identities and rechecks them across source verification, temporary-copy creation, SQLite open/copy, restore verification, publication, and post-publication verification. A parent replacement fails closed.
+
+On POSIX, the destination directory is opened with directory/no-follow flags and retained during the operation. Failure cleanup first checks file identity relative to that opened directory descriptor, so a parent pathname that is renamed/replaced does not redirect cleanup into a different directory. Path-based cleanup remains limited to the exact regular-file inode created by the invocation. The restore still refuses overwrite and never changes the source backup.
+
+- [ ] In isolated Linux staging, verify immediate source/destination parent symlinks are rejected before SQLite verification.
+- [ ] Verify a destination-parent replacement during restore fails closed, publishes no destination, and removes only the operation-owned temporary inode through the opened directory descriptor.
+- [ ] Verify a source-parent replacement is detected before source readback or destination publication.
+- [ ] Repeat on Windows and the actual managed host; POSIX directory descriptors, hard-link semantics and ACL behavior are not assumed portable.
+- [ ] Keep the destination directory owner-controlled and non-writable by untrusted principals. Inode checks are defense in depth, not a substitute for filesystem ownership, ACLs, mount policy or a trusted parent directory.
