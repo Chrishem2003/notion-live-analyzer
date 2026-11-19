@@ -63,6 +63,15 @@ class WorkflowBackupRestoreCliTests(unittest.TestCase):
         return digest.hexdigest()
 
     def test_restore_creates_verified_wal_aware_copy_and_runtime_readback(self):
+        self.anchor.execute("PRAGMA journal_mode=WAL")
+        self.anchor.execute("PRAGMA wal_autocheckpoint=0")
+        self.anchor.execute("CREATE TABLE IF NOT EXISTS restore_wal_probe (value TEXT NOT NULL)")
+        self.anchor.execute("INSERT INTO restore_wal_probe (value) VALUES ('wal-fixture-only')")
+        self.anchor.commit()
+        self.assertEqual(
+            self.anchor.execute("PRAGMA journal_mode").fetchone()[0].lower(),
+            "wal",
+        )
         self.assertTrue(Path(f"{self.source}-wal").exists(), "fixture should retain committed WAL state")
         source_before = self._source_digest()
         report = restore_workflow_backup(self.source, self.destination)
