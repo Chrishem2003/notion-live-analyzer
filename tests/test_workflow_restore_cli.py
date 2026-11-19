@@ -134,6 +134,64 @@ class WorkflowBackupRestoreCliTests(unittest.TestCase):
             restore_workflow_backup(source_link, self.destination)
         self.assertFalse(self.destination.exists())
 
+    def test_source_wal_symlink_is_rejected_before_sqlite_verification(self):
+        self.anchor.close()
+        wal_path = Path(f"{self.source}-wal")
+        if wal_path.exists() or wal_path.is_symlink():
+            wal_path.unlink()
+        target = self.root / "external-wal-target"
+        target.write_bytes(b"synthetic-wal-target")
+        try:
+            wal_path.symlink_to(target)
+        except (OSError, NotImplementedError) as exc:
+            self.skipTest(f"symlink creation unavailable: {type(exc).__name__}")
+
+        with patch("tools.restore_workflow_backup.verify_workflow_backup") as verifier:
+            with self.assertRaisesRegex(WorkflowBackupRestoreError, "regular file"):
+                restore_workflow_backup(self.source, self.destination)
+            verifier.assert_not_called()
+        self.assertEqual(target.read_bytes(), b"synthetic-wal-target")
+        self.assertFalse(self.destination.exists())
+
+    def test_source_shm_symlink_is_rejected_before_sqlite_verification(self):
+        self.anchor.close()
+        shm_path = Path(f"{self.source}-shm")
+        if shm_path.exists() or shm_path.is_symlink():
+            shm_path.unlink()
+        target = self.root / "external-shm-target"
+        target.write_bytes(b"synthetic-shm-target")
+        try:
+            shm_path.symlink_to(target)
+        except (OSError, NotImplementedError) as exc:
+            self.skipTest(f"symlink creation unavailable: {type(exc).__name__}")
+
+        with patch("tools.restore_workflow_backup.verify_workflow_backup") as verifier:
+            with self.assertRaisesRegex(WorkflowBackupRestoreError, "regular file"):
+                restore_workflow_backup(self.source, self.destination)
+            verifier.assert_not_called()
+        self.assertEqual(target.read_bytes(), b"synthetic-shm-target")
+        self.assertFalse(self.destination.exists())
+
+    def test_source_wal_hardlink_is_rejected_before_sqlite_verification(self):
+        self.anchor.close()
+        wal_path = Path(f"{self.source}-wal")
+        if wal_path.exists() or wal_path.is_symlink():
+            wal_path.unlink()
+        target = self.root / "external-wal-hardlink-target"
+        target.write_bytes(b"synthetic-wal-hardlink-target")
+        try:
+            os.link(target, wal_path)
+        except (OSError, NotImplementedError) as exc:
+            self.skipTest(f"hard-link creation unavailable: {type(exc).__name__}")
+
+        self.assertEqual(target.stat().st_nlink, 2)
+        with patch("tools.restore_workflow_backup.verify_workflow_backup") as verifier:
+            with self.assertRaisesRegex(WorkflowBackupRestoreError, "must not be hard-linked"):
+                restore_workflow_backup(self.source, self.destination)
+            verifier.assert_not_called()
+        self.assertEqual(target.read_bytes(), b"synthetic-wal-hardlink-target")
+        self.assertFalse(self.destination.exists())
+
     def test_missing_destination_parent_is_not_created(self):
         parent = self.root / "missing-parent"
         destination = parent / "restore.sqlite3"
