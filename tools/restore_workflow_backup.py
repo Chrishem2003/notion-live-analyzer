@@ -60,6 +60,33 @@ def _sqlite_file_signature(path: Path) -> tuple[Any, ...]:
     return tuple(signature)
 
 
+def _directory_identity(path: Path, label: str) -> tuple[int, int]:
+    """Return the identity of a real directory, rejecting a symlink at this path."""
+    try:
+        info = path.lstat()
+    except OSError as exc:
+        raise WorkflowBackupRestoreError(
+            f"{label} parent directory could not be inspected safely"
+        ) from exc
+    if not stat.S_ISDIR(info.st_mode):
+        raise WorkflowBackupRestoreError(
+            f"{label} parent must be a real directory, not a symbolic link or special path"
+        )
+    return (info.st_dev, info.st_ino)
+
+
+def _assert_directory_identity(
+    path: Path,
+    expected: tuple[int, int],
+    label: str,
+) -> None:
+    """Fail closed if a source or destination parent was replaced during restore."""
+    if _directory_identity(path, label) != expected:
+        raise WorkflowBackupRestoreError(
+            f"{label} parent directory changed during restore"
+        )
+
+
 def _is_owned_regular_file(path: Path, identity: tuple[int, int] | None) -> bool:
     """Check that a path still names the regular-file inode created by this invocation."""
     if identity is None:
@@ -71,8 +98,27 @@ def _is_owned_regular_file(path: Path, identity: tuple[int, int] | None) -> bool
     return stat.S_ISREG(current.st_mode) and (current.st_dev, current.st_ino) == identity
 
 
-def _unlink_if_owned(path: Path, identity: tuple[int, int] | None) -> None:
-    """Remove only a regular file whose inode was created by this invocation."""
+def _unlink_if_owned(
+    path: Path,
+    identity: tuple[int, int] | None,
+    directory_fd: int | None = None,
+) -> None:
+    """Remove only this invocation's file, using the opened parent directory when possible."""
+    if identity is None:
+        return
+    if directory_fd is not None and os.name == "posix":
+        try:
+            current = os.stat(path.name, dir_fd=directory_fd, follow_symlinks=False)
+            if (
+                stat.S_ISREG(current.st_mode)
+                and (current.st_dev, current.st_ino) == identity
+            ):
+                os.unlink(path.name, dir_fd=directory_fd)
+                return
+        except FileNotFoundError:
+            pass
+        except (OSError, TypeError, NotImplementedError):
+            pass
     if _is_owned_regular_file(path, identity):
         path.unlink()
 
@@ -90,10 +136,17 @@ def restore_workflow_backup(
     """
     try:
         source_candidate = Path(source_path).expanduser()
-        source_lstat = source_candidate.lstat()
+        source_parent_candidate = source_candidate.parent
+        source_parent_initial = _directory_identity(source_parent_candidate, "source")
+        source_parent = source_parent_candidate.resolve(strict=True)
+        source_parent_identity = _directory_identity(source_parent, "source")
+        if source_parent_identity != source_parent_initial:
+            raise WorkflowBackupRestoreError("source parent directory changed during path resolution")
+        source = source_parent / source_candidate.name
+        source_lstat = source.lstat()
         if stat.S_ISLNK(source_lstat.st_mode):
             raise WorkflowBackupRestoreError("source backup must not be a symbolic link")
-        source = source_candidate.resolve(strict=True)
+        source = source.resolve(strict=True)
         source_info = source.stat()
         if not stat.S_ISREG(source_info.st_mode):
             raise WorkflowBackupRestoreError("source backup must be an existing regular file")
@@ -101,9 +154,18 @@ def restore_workflow_backup(
         destination_candidate = Path(destination_path).expanduser()
         if destination_candidate.name in {"", ".", ".."}:
             raise WorkflowBackupRestoreError("destination must name a new file")
-        destination_parent = destination_candidate.parent.resolve(strict=True)
-        if not destination_parent.is_dir():
-            raise WorkflowBackupRestoreError("destination directory must already exist")
+        destination_parent_candidate = destination_candidate.parent
+        destination_parent_initial = _directory_identity(
+            destination_parent_candidate, "destination"
+        )
+        destination_parent = destination_parent_candidate.resolve(strict=True)
+        destination_parent_identity = _directory_identity(
+            destination_parent, "destination"
+        )
+        if destination_parent_identity != destination_parent_initial:
+            raise WorkflowBackupRestoreError(
+                "destination parent directory changed during path resolution"
+            )
         destination = destination_parent / destination_candidate.name
         if source == destination:
             raise WorkflowBackupRestoreError("source and destination must be different files")
@@ -135,6 +197,8 @@ def restore_workflow_backup(
         ) from exc
 
     source_signature = _report_signature(source_report)
+    _assert_directory_identity(source.parent, source_parent_identity, "source")
+    _assert_directory_identity(destination_parent, destination_parent_identity, "destination")
     try:
         source_files_before = _sqlite_file_signature(source)
     except WorkflowBackupRestoreError:
@@ -152,8 +216,23 @@ def restore_workflow_backup(
     source_connection: sqlite3.Connection | None = None
     destination_connection: sqlite3.Connection | None = None
     completed = False
+    destination_directory_fd: int | None = None
 
     try:
+        _assert_directory_identity(source.parent, source_parent_identity, "source")
+        _assert_directory_identity(destination_parent, destination_parent_identity, "destination")
+        if os.name == "posix" and hasattr(os, "O_DIRECTORY"):
+            directory_flags = os.O_RDONLY | os.O_DIRECTORY | getattr(os, "O_NOFOLLOW", 0)
+            destination_directory_fd = os.open(str(destination_parent), directory_flags)
+            directory_info = os.fstat(destination_directory_fd)
+            if (
+                not stat.S_ISDIR(directory_info.st_mode)
+                or (directory_info.st_dev, directory_info.st_ino) != destination_parent_identity
+            ):
+                raise WorkflowBackupRestoreError(
+                    "destination parent directory changed while it was opened"
+                )
+
         temporary_fd, temporary_name = tempfile.mkstemp(
             prefix=".workflow-restore-",
             suffix=".sqlite3.tmp",
@@ -164,6 +243,8 @@ def restore_workflow_backup(
         temporary_identity = (temporary_stat.st_dev, temporary_stat.st_ino)
         os.close(temporary_fd)
         temporary_fd = None
+        _assert_directory_identity(destination_parent, destination_parent_identity, "destination")
+        _assert_directory_identity(source.parent, source_parent_identity, "source")
 
         # Read-only source connection sees committed WAL state. The operator must
         # stop submissions/workers so the pre/post source signatures remain stable.
@@ -173,6 +254,8 @@ def restore_workflow_backup(
             timeout=10,
         )
         source_connection.execute("PRAGMA query_only = ON")
+        _assert_directory_identity(source.parent, source_parent_identity, "source")
+        _assert_directory_identity(destination_parent, destination_parent_identity, "destination")
         destination_connection = sqlite3.connect(str(temporary_path), timeout=10)
         source_connection.backup(destination_connection)
         destination_connection.commit()
@@ -180,6 +263,8 @@ def restore_workflow_backup(
         destination_connection = None
         source_connection.close()
         source_connection = None
+        _assert_directory_identity(source.parent, source_parent_identity, "source")
+        _assert_directory_identity(destination_parent, destination_parent_identity, "destination")
 
         if os.name == "posix":
             os.chmod(temporary_path, 0o600)
@@ -190,12 +275,16 @@ def restore_workflow_backup(
             os.close(sync_fd)
 
         restored_report = verify_workflow_backup(temporary_path)
+        _assert_directory_identity(destination_parent, destination_parent_identity, "destination")
+        _assert_directory_identity(source.parent, source_parent_identity, "source")
         if _report_signature(restored_report) != source_signature:
             raise WorkflowBackupRestoreError(
                 "restored copy does not match the verified source snapshot"
             )
 
         source_after_report = verify_workflow_backup(source)
+        _assert_directory_identity(source.parent, source_parent_identity, "source")
+        _assert_directory_identity(destination_parent, destination_parent_identity, "destination")
         source_info_after = source.stat()
         source_identity_after = (source_info_after.st_dev, source_info_after.st_ino)
         if (
@@ -207,10 +296,14 @@ def restore_workflow_backup(
                 "source changed during restore; stop writers and retry with a stable snapshot"
             )
 
+        # Recheck immediately before publication. The opened directory descriptor
+        # is retained for identity-safe cleanup if the pathname is replaced mid-run.
+        _assert_directory_identity(destination_parent, destination_parent_identity, "destination")
         # link() is atomic and fails if destination appeared after the earlier check.
         # It never replaces an existing file or follows a destination symlink.
         os.link(str(temporary_path), str(destination))
         destination_published = True
+        _assert_directory_identity(destination_parent, destination_parent_identity, "destination")
         destination_info = destination.lstat()
         if (
             not stat.S_ISREG(destination_info.st_mode)
@@ -220,7 +313,9 @@ def restore_workflow_backup(
                 "published destination identity could not be verified"
             )
 
+        _assert_directory_identity(destination_parent, destination_parent_identity, "destination")
         destination_report = verify_workflow_backup(destination)
+        _assert_directory_identity(destination_parent, destination_parent_identity, "destination")
         if _report_signature(destination_report) != source_signature:
             raise WorkflowBackupRestoreError(
                 "published destination failed post-publication verification"
@@ -237,7 +332,8 @@ def restore_workflow_backup(
             raise WorkflowBackupRestoreError(
                 "temporary restore file changed during post-publication verification"
             )
-        _unlink_if_owned(temporary_path, temporary_identity)
+        _assert_directory_identity(destination_parent, destination_parent_identity, "destination")
+        _unlink_if_owned(temporary_path, temporary_identity, destination_directory_fd)
         if os.path.lexists(temporary_path):
             raise WorkflowBackupRestoreError(
                 "temporary restore link could not be removed safely"
@@ -280,12 +376,17 @@ def restore_workflow_backup(
         if not completed:
             try:
                 if destination_published:
-                    _unlink_if_owned(destination, temporary_identity)
+                    _unlink_if_owned(destination, temporary_identity, destination_directory_fd)
             except OSError:
                 pass
             try:
                 if temporary_path is not None:
-                    _unlink_if_owned(temporary_path, temporary_identity)
+                    _unlink_if_owned(temporary_path, temporary_identity, destination_directory_fd)
+            except OSError:
+                pass
+        if destination_directory_fd is not None:
+            try:
+                os.close(destination_directory_fd)
             except OSError:
                 pass
 
