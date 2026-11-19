@@ -384,5 +384,72 @@ class WorkflowBackupRestoreCliTests(unittest.TestCase):
         self.assertEqual(len(rendered.strip().splitlines()), 1)
 
 
+
+    def test_symlink_destination_parent_is_rejected_before_verification(self):
+        parent_link = self.root / "destination-parent-link"
+        try:
+            parent_link.symlink_to(self.root, target_is_directory=True)
+        except (OSError, NotImplementedError) as exc:
+            self.skipTest(f"symlink creation unavailable: {type(exc).__name__}")
+        destination = parent_link / "restore-through-link.sqlite3"
+        with patch("tools.restore_workflow_backup.verify_workflow_backup") as verifier:
+            with self.assertRaisesRegex(
+                WorkflowBackupRestoreError,
+                "parent must be a real directory",
+            ):
+                restore_workflow_backup(self.source, destination)
+            verifier.assert_not_called()
+        self.assertFalse((self.root / destination.name).exists())
+
+    def test_symlink_source_parent_is_rejected_before_verification(self):
+        parent_link = self.root / "source-parent-link"
+        try:
+            parent_link.symlink_to(self.root, target_is_directory=True)
+        except (OSError, NotImplementedError) as exc:
+            self.skipTest(f"symlink creation unavailable: {type(exc).__name__}")
+        linked_source = parent_link / self.source.name
+        with patch("tools.restore_workflow_backup.verify_workflow_backup") as verifier:
+            with self.assertRaisesRegex(
+                WorkflowBackupRestoreError,
+                "parent must be a real directory",
+            ):
+                restore_workflow_backup(linked_source, self.destination)
+            verifier.assert_not_called()
+        self.assertFalse(self.destination.exists())
+
+    def test_destination_parent_replacement_fails_closed_and_cleans_via_open_directory(self):
+        parent = self.root / "restore-parent"
+        parent.mkdir()
+        destination = parent / "restored.sqlite3"
+        moved_parent = self.root / "restore-parent-original"
+        real_verify = verify_workflow_backup
+        calls = 0
+
+        def replace_parent_after_temporary_verification(candidate):
+            nonlocal calls
+            report = real_verify(candidate)
+            calls += 1
+            if calls == 2:
+                parent.rename(moved_parent)
+                parent.mkdir()
+            return report
+
+        with patch(
+            "tools.restore_workflow_backup.verify_workflow_backup",
+            side_effect=replace_parent_after_temporary_verification,
+        ):
+            with self.assertRaisesRegex(
+                WorkflowBackupRestoreError,
+                "destination parent directory changed during restore",
+            ):
+                restore_workflow_backup(self.source, destination)
+
+        self.assertEqual(calls, 2)
+        self.assertFalse(destination.exists())
+        self.assertEqual(list(parent.glob(".workflow-restore-*.sqlite3.tmp")), [])
+        self.assertEqual(list(moved_parent.glob(".workflow-restore-*.sqlite3.tmp")), [])
+        self.assertEqual(self._source_digest(), self._source_digest())
+
+
 if __name__ == "__main__":
     unittest.main()
