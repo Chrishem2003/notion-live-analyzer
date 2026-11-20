@@ -26,6 +26,20 @@ from tools.restore_workflow_backup import (
 from tools.verify_workflow_backup import BackupVerificationError, verify_workflow_backup
 
 
+@contextlib.contextmanager
+def _closed_sqlite_connection(path):
+    """Commit successful fixture work and always close the handle (including on Windows)."""
+    connection = sqlite3.connect(path)
+    try:
+        yield connection
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+    finally:
+        connection.close()
+
+
 class WorkflowBackupRestoreCliTests(unittest.TestCase):
     def setUp(self):
         self.tempdir = tempfile.TemporaryDirectory()
@@ -100,7 +114,7 @@ class WorkflowBackupRestoreCliTests(unittest.TestCase):
         self.assertEqual(restored_run["result"], {"echo": "restore-cli-fixture-only"})
         events = list_run_events(self.destination, "synthetic-restore-cli", self.run_id)
         self.assertEqual([event["status"] for event in events], ["queued", "running", "succeeded"])
-        with sqlite3.connect(self.destination) as connection:
+        with _closed_sqlite_connection(self.destination) as connection:
             stored = connection.execute(
                 "SELECT input_json FROM workflow_runs WHERE run_id = ?", (self.run_id,)
             ).fetchone()[0]
@@ -343,7 +357,7 @@ class WorkflowBackupRestoreCliTests(unittest.TestCase):
             nonlocal calls
             calls += 1
             if calls == 3:
-                with sqlite3.connect(self.source) as connection:
+                with _closed_sqlite_connection(self.source) as connection:
                     connection.execute(
                         "CREATE TABLE restore_source_change_probe (value TEXT NOT NULL)"
                     )
@@ -360,7 +374,7 @@ class WorkflowBackupRestoreCliTests(unittest.TestCase):
                 restore_workflow_backup(self.source, self.destination)
         self.assertFalse(self.destination.exists())
         self.assertEqual(list(self.root.glob(".workflow-restore-*.sqlite3.tmp")), [])
-        with sqlite3.connect(self.source) as connection:
+        with _closed_sqlite_connection(self.source) as connection:
             probe = connection.execute(
                 "SELECT value FROM restore_source_change_probe"
             ).fetchone()
@@ -479,7 +493,7 @@ class WorkflowBackupRestoreCliTests(unittest.TestCase):
         source_parent = self.root / "source-parent-race"
         source_parent.mkdir()
         source_copy = source_parent / "source.sqlite3"
-        with sqlite3.connect(self.source) as source_connection, sqlite3.connect(source_copy) as copy_connection:
+        with _closed_sqlite_connection(self.source) as source_connection, _closed_sqlite_connection(source_copy) as copy_connection:
             source_connection.backup(copy_connection)
         moved_parent = self.root / "source-parent-original"
         source_before_run = WorkflowRuntime(
@@ -536,7 +550,7 @@ class WorkflowBackupRestoreCliTests(unittest.TestCase):
         source_parent = self.root / "sidecar-race"
         source_parent.mkdir()
         source_copy = source_parent / "source.sqlite3"
-        with sqlite3.connect(self.source) as source_connection, sqlite3.connect(source_copy) as copy_connection:
+        with _closed_sqlite_connection(self.source) as source_connection, _closed_sqlite_connection(source_copy) as copy_connection:
             source_connection.backup(copy_connection)
         wal_path = Path(f"{source_copy}-wal")
         if wal_path.exists() or wal_path.is_symlink():
