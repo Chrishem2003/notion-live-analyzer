@@ -5,6 +5,7 @@ replace authenticated staging verification of host storage, secrets, or Notion.
 """
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import sqlite3
 import tempfile
@@ -17,6 +18,20 @@ from modules.workflow_runtime import WorkflowRuntime
 from modules.workflow_storage import WorkflowStorageError
 from modules.workflow_store import list_run_events
 from tools.verify_workflow_backup import verify_workflow_backup
+
+
+@contextlib.contextmanager
+def _closed_sqlite_connection(path):
+    """Commit successful fixture work and always close the handle (including on Windows)."""
+    connection = sqlite3.connect(path)
+    try:
+        yield connection
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+    finally:
+        connection.close()
 
 
 class WorkflowRestoreAcceptanceTests(unittest.TestCase):
@@ -45,8 +60,8 @@ class WorkflowRestoreAcceptanceTests(unittest.TestCase):
         completed = runtime.execute_run(run_id)
         self.assertEqual(completed["status"], "succeeded")
 
-        with sqlite3.connect(self.source) as source_connection:
-            with sqlite3.connect(self.backup) as backup_connection:
+        with _closed_sqlite_connection(self.source) as source_connection:
+            with _closed_sqlite_connection(self.backup) as backup_connection:
                 source_connection.backup(backup_connection)
 
         backup_report = verify_workflow_backup(self.backup)
@@ -56,8 +71,8 @@ class WorkflowRestoreAcceptanceTests(unittest.TestCase):
         self.assertEqual(backup_report["encrypted_payload_field_counts"]["input_json"], 1)
         self.assertEqual(backup_report["encrypted_payload_field_counts"]["result_json"], 1)
 
-        with sqlite3.connect(self.backup) as backup_connection:
-            with sqlite3.connect(self.restored) as restored_connection:
+        with _closed_sqlite_connection(self.backup) as backup_connection:
+            with _closed_sqlite_connection(self.restored) as restored_connection:
                 backup_connection.backup(restored_connection)
 
         restored_report = verify_workflow_backup(self.restored)
@@ -86,7 +101,7 @@ class WorkflowRestoreAcceptanceTests(unittest.TestCase):
         )
 
         # Confirm stored payloads are encrypted at rest, not merely decrypted on read.
-        with sqlite3.connect(self.restored) as connection:
+        with _closed_sqlite_connection(self.restored) as connection:
             stored_input = connection.execute(
                 "SELECT input_json FROM workflow_runs WHERE run_id = ?", (run_id,)
             ).fetchone()[0]
@@ -104,8 +119,8 @@ class WorkflowRestoreAcceptanceTests(unittest.TestCase):
             task_type="echo",
             payload={"value": "restore-fixture-only"},
         )
-        with sqlite3.connect(self.source) as source_connection:
-            with sqlite3.connect(self.restored) as restored_connection:
+        with _closed_sqlite_connection(self.source) as source_connection:
+            with _closed_sqlite_connection(self.restored) as restored_connection:
                 source_connection.backup(restored_connection)
 
         before = hashlib.sha256(self.restored.read_bytes()).hexdigest()
