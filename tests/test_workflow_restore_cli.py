@@ -684,6 +684,7 @@ class WorkflowBackupRestoreCliTests(unittest.TestCase):
             original_parent,
             os.O_RDONLY | getattr(os, "O_DIRECTORY", 0),
         )
+        replacement_alias: Path | None = None
         try:
             original_parent.rename(moved_parent)
             replacement_parent.rename(original_parent)
@@ -714,8 +715,7 @@ class WorkflowBackupRestoreCliTests(unittest.TestCase):
             )
         finally:
             os.close(directory_fd)
-            replacement_alias = original_parent / owned_path.name
-            if replacement_alias.exists():
+            if replacement_alias is not None and replacement_alias.exists():
                 replacement_alias.unlink()
             moved_owned = moved_parent / owned_path.name
             if moved_owned.exists():
