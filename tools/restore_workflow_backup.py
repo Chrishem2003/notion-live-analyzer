@@ -103,24 +103,70 @@ def _unlink_if_owned(
     identity: tuple[int, int] | None,
     directory_fd: int | None = None,
 ) -> None:
-    """Remove only this invocation's file, using the opened parent directory when possible."""
+    """Remove only this invocation's file without escaping an available directory anchor."""
     if identity is None:
         return
     if directory_fd is not None and os.name == "posix":
+        # Once an anchored directory is available, never fall back to a pathname
+        # that may now resolve through a replaced parent directory.
         try:
             current = os.stat(path.name, dir_fd=directory_fd, follow_symlinks=False)
-            if (
-                stat.S_ISREG(current.st_mode)
-                and (current.st_dev, current.st_ino) == identity
-            ):
-                os.unlink(path.name, dir_fd=directory_fd)
-                return
         except FileNotFoundError:
-            pass
+            return
         except (OSError, TypeError, NotImplementedError):
-            pass
+            return
+        if (
+            not stat.S_ISREG(current.st_mode)
+            or (current.st_dev, current.st_ino) != identity
+        ):
+            return
+        try:
+            os.unlink(path.name, dir_fd=directory_fd)
+        except (OSError, TypeError, NotImplementedError):
+            # Cleanup remains unconfirmed; the caller reports any owned inode
+            # that remains instead of trying a less-safe path-based unlink.
+            return
+        return
     if _is_owned_regular_file(path, identity):
         path.unlink()
+
+
+def _owned_artifacts_remain(
+    path: Path,
+    identity: tuple[int, int] | None,
+    sidecars: dict[str, tuple[int, int]],
+    directory_fd: int | None = None,
+) -> bool:
+    """Check whether any inode created by this restore still exists at its owned name."""
+    if identity is not None:
+        if directory_fd is not None and os.name == "posix":
+            try:
+                current = os.stat(path.name, dir_fd=directory_fd, follow_symlinks=False)
+            except FileNotFoundError:
+                current = None
+            except (OSError, TypeError, NotImplementedError):
+                return True
+            if (
+                current is not None
+                and stat.S_ISREG(current.st_mode)
+                and (current.st_dev, current.st_ino) == identity
+            ):
+                return True
+        elif _is_owned_regular_file(path, identity):
+            return True
+
+    for name, sidecar_identity in sidecars.items():
+        try:
+            current = _sidecar_info(path, name, directory_fd)
+        except WorkflowBackupRestoreError:
+            return True
+        if (
+            current is not None
+            and stat.S_ISREG(current.st_mode)
+            and (current.st_dev, current.st_ino) == sidecar_identity
+        ):
+            return True
+    return False
 
 
 def _sidecar_names(path: Path) -> tuple[str, str]:
@@ -448,30 +494,68 @@ def restore_workflow_backup(
                 os.close(temporary_fd)
             except OSError:
                 pass
+        cleanup_incomplete = False
         if not completed:
-            try:
-                if destination_published:
-                    destination_sidecars.update(
-                        _capture_owned_sidecars(destination, destination_directory_fd)
+            path_cleanup_safe = True
+            # Without a retained directory handle, do not attempt pathname
+            # cleanup after the destination parent has been replaced.
+            if os.name != "posix" or destination_directory_fd is None:
+                try:
+                    _assert_directory_identity(
+                        destination_parent, destination_parent_identity, "destination"
                     )
-                    _remove_owned_sidecars(destination, destination_sidecars, destination_directory_fd)
-                    _unlink_if_owned(destination, temporary_identity, destination_directory_fd)
-            except (OSError, WorkflowBackupRestoreError):
-                pass
+                except WorkflowBackupRestoreError:
+                    cleanup_incomplete = True
+                    path_cleanup_safe = False
+
+            if path_cleanup_safe:
+                try:
+                    if destination_published:
+                        destination_sidecars.update(
+                            _capture_owned_sidecars(destination, destination_directory_fd)
+                        )
+                        _remove_owned_sidecars(destination, destination_sidecars, destination_directory_fd)
+                        _unlink_if_owned(destination, temporary_identity, destination_directory_fd)
+                except (OSError, WorkflowBackupRestoreError):
+                    cleanup_incomplete = True
+                try:
+                    if temporary_path is not None:
+                        temporary_sidecars.update(
+                            _capture_owned_sidecars(temporary_path, destination_directory_fd)
+                        )
+                        _remove_owned_sidecars(temporary_path, temporary_sidecars, destination_directory_fd)
+                        _unlink_if_owned(temporary_path, temporary_identity, destination_directory_fd)
+                except (OSError, WorkflowBackupRestoreError):
+                    cleanup_incomplete = True
+
             try:
-                if temporary_path is not None:
-                    temporary_sidecars.update(
-                        _capture_owned_sidecars(temporary_path, destination_directory_fd)
-                    )
-                    _remove_owned_sidecars(temporary_path, temporary_sidecars, destination_directory_fd)
-                    _unlink_if_owned(temporary_path, temporary_identity, destination_directory_fd)
+                if destination_published and _owned_artifacts_remain(
+                    destination,
+                    temporary_identity,
+                    destination_sidecars,
+                    destination_directory_fd,
+                ):
+                    cleanup_incomplete = True
+                if temporary_path is not None and _owned_artifacts_remain(
+                    temporary_path,
+                    temporary_identity,
+                    temporary_sidecars,
+                    destination_directory_fd,
+                ):
+                    cleanup_incomplete = True
             except (OSError, WorkflowBackupRestoreError):
-                pass
+                cleanup_incomplete = True
+
         if destination_directory_fd is not None:
             try:
                 os.close(destination_directory_fd)
             except OSError:
                 pass
+        if cleanup_incomplete:
+            raise WorkflowBackupRestoreError(
+                "restore failed and operation-owned artifacts could not be confirmed clean; "
+                "inspect the owner-controlled destination directory before retrying"
+            )
 
 
 def main() -> int:
