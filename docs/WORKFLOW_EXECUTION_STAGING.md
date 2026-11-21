@@ -283,3 +283,15 @@ The restore CLI now captures the inode identities of WAL/SHM sidecars created fo
 The research-workflow-safety workflow now runs a Windows Server restore acceptance job on pull-request events. It executes the restore CLI and restore acceptance suites and compiles the restore/verifier tools. The two parent-directory replacement cleanup tests that require POSIX directory-descriptor-relative unlink are explicitly skipped on non-POSIX hosts; those protections remain covered by Ubuntu CI.
 
 This Windows job is evidence for the supported path-based restore flow and its functional readback on the GitHub-hosted Windows runner. It is not evidence for the user's managed host, effective ACLs, enterprise endpoint controls, directory ownership, or production backup durability. The POSIX dirfd cleanup guarantee must not be assumed on Windows; keep the restore parent owner-controlled and non-writable by untrusted principals.
+
+### Batch 150 — fail-closed cleanup and operator-visible recovery status (2026-11-21)
+
+The restore finalizer now treats cleanup as a separately verified outcome. If a POSIX directory descriptor is available, the cleanup helper never falls back to a pathname after descriptor-relative inspection or unlink fails. This prevents a replaced parent path from redirecting cleanup into a different directory. The finalizer checks whether any operation-owned main-file or captured WAL/SHM inode remains after cleanup. If cleanup cannot be confirmed, the CLI returns a generic path-free failure instructing the operator to inspect the owner-controlled destination directory before retrying.
+
+On hosts without a retained directory handle (including Windows), the finalizer revalidates the destination-parent identity before any path-based cleanup. If the parent changed, it skips path-based cleanup and reports cleanup as unconfirmed; an artifact in the moved original directory may require controlled operator cleanup. This is intentionally fail-closed and does not claim Windows or managed-host directory-handle safety.
+
+Functional regression coverage:
+- POSIX: inject a descriptor-relative unlink permission failure after moving the original parent and creating a same-inode alias under the replacement pathname. The helper must not fall back and unlink through the replacement pathname.
+- Cross-platform: inject a restore verification failure and prevent cleanup; the CLI must report that operation-owned artifacts could not be confirmed clean, preserve the leftover temporary file for operator inspection, and publish no destination.
+
+Acceptance limits: these are synthetic CI filesystem tests. They do not replace effective Windows/managed-host ACL, endpoint-security, mount/ownership or deployed-storage acceptance. No live research data, production backup, credential, key or deployment is touched.
