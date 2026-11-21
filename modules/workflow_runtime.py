@@ -48,7 +48,11 @@ CREATE TABLE IF NOT EXISTS workflow_runs (
     max_attempts INTEGER NOT NULL DEFAULT 3,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
-    claimed_at TEXT
+    claimed_at TEXT,
+    synthetic_only_confirmed INTEGER NOT NULL DEFAULT 0
+        CHECK (synthetic_only_confirmed IN (0, 1)),
+    result_integrity TEXT NOT NULL DEFAULT 'legacy_unverified'
+        CHECK (result_integrity IN ('not_applicable', 'verified', 'legacy_unverified'))
 );
 CREATE INDEX IF NOT EXISTS idx_workflow_runs_queue
     ON workflow_runs(status, created_at);
@@ -77,6 +81,35 @@ def _initialize(database: str | Path) -> None:
     initialize_store(database)
     with closing(_connect(database)) as connection:
         connection.executescript(_RUN_SCHEMA)
+        connection.execute("BEGIN IMMEDIATE")
+        try:
+            columns = {
+                row["name"]
+                for row in connection.execute("PRAGMA table_info(workflow_runs)")
+            }
+            if "synthetic_only_confirmed" not in columns:
+                connection.execute(
+                    """
+                    ALTER TABLE workflow_runs
+                    ADD COLUMN synthetic_only_confirmed INTEGER NOT NULL DEFAULT 0
+                    CHECK (synthetic_only_confirmed IN (0, 1))
+                    """
+                )
+            if "result_integrity" not in columns:
+                # Existing succeeded rows without a result remain explicitly legacy-unverified.
+                # No historical input, output, or status value is rewritten.
+                connection.execute(
+                    """
+                    ALTER TABLE workflow_runs
+                    ADD COLUMN result_integrity TEXT NOT NULL DEFAULT 'legacy_unverified'
+                    CHECK (result_integrity IN ('not_applicable', 'verified', 'legacy_unverified'))
+                    """
+                )
+            connection.execute("COMMIT")
+        except Exception:
+            if connection.in_transaction:
+                connection.execute("ROLLBACK")
+            raise
 
 
 def _event_payload(*, workflow_id: str, run_id: str, task_type: str, stage: str,
@@ -161,18 +194,36 @@ class WorkflowRuntime:
     def register_handler(self, task_type: str, handler: TaskHandler) -> None:
         if not isinstance(task_type, str) or not task_type.strip():
             raise ValueError("task_type must be a non-empty string")
+        try:
+            task_type.encode("utf-8")
+        except UnicodeEncodeError as exc:
+            raise ValueError("task_type must contain valid Unicode scalar values") from exc
         if not callable(handler):
             raise TypeError("handler must be callable")
         self.handlers[task_type.strip()] = handler
 
     def submit(self, *, workflow_id: str, task_type: str,
-               payload: Mapping[str, Any], max_attempts: int = 3) -> str:
+               payload: Mapping[str, Any], max_attempts: int = 3,
+               synthetic_only_confirmed: bool = False) -> str:
         if not isinstance(workflow_id, str) or not workflow_id.strip():
             raise ValueError("workflow_id must be a non-empty string")
+        try:
+            workflow_id.encode("utf-8")
+        except UnicodeEncodeError as exc:
+            raise ValueError("workflow_id must contain valid Unicode scalar values") from exc
+        if not isinstance(task_type, str) or not task_type.strip():
+            raise ValueError("task_type must be a non-empty string")
+        try:
+            task_type.encode("utf-8")
+        except UnicodeEncodeError as exc:
+            raise ValueError("task_type must contain valid Unicode scalar values") from exc
+        task_type = task_type.strip()
         if task_type not in self.handlers:
             raise HandlerNotRegistered(f"no trusted handler registered for task type {task_type!r}")
         if not isinstance(payload, Mapping):
             raise ValueError("payload must be a mapping")
+        if not isinstance(synthetic_only_confirmed, bool):
+            raise ValueError("synthetic_only_confirmed must be a boolean")
         if isinstance(max_attempts, bool) or not isinstance(max_attempts, int) or max_attempts < 1 or max_attempts > 10:
             raise ValueError("max_attempts must be an integer between 1 and 10")
         try:
@@ -181,7 +232,11 @@ class WorkflowRuntime:
             )
         except (TypeError, ValueError) as exc:
             raise ValueError("payload must contain finite JSON-compatible values") from exc
-        if len(encoded_plain.encode("utf-8")) > MAX_INPUT_BYTES:
+        try:
+            encoded_length = len(encoded_plain.encode("utf-8"))
+        except UnicodeEncodeError as exc:
+            raise ValueError("payload must contain valid Unicode scalar values") from exc
+        if encoded_length > MAX_INPUT_BYTES:
             raise ValueError(f"payload exceeds the {MAX_INPUT_BYTES}-byte runtime limit")
         encoded = encrypt_storage_text(encoded_plain, self.encryption_key)
         run_id = str(uuid.uuid4())
@@ -192,16 +247,24 @@ class WorkflowRuntime:
                 connection.execute(
                     """INSERT INTO workflow_runs
                     (run_id, workflow_id, task_type, status, input_json, attempt,
-                     max_attempts, created_at, updated_at)
-                    VALUES (?, ?, ?, 'queued', ?, 0, ?, ?, ?)""",
-                    (run_id, workflow_id.strip(), task_type, encoded, max_attempts, now, now),
+                     max_attempts, created_at, updated_at, synthetic_only_confirmed,
+                     result_integrity)
+                    VALUES (?, ?, ?, 'queued', ?, 0, ?, ?, ?, ?, 'not_applicable')""",
+                    (
+                        run_id, workflow_id.strip(), task_type, encoded,
+                        max_attempts, now, now, int(synthetic_only_confirmed),
+                    ),
                 )
                 append_event_in_transaction(
                     connection,
                     _event_payload(
                         workflow_id=workflow_id.strip(), run_id=run_id,
                         task_type=task_type, stage="problem_solving", status="queued",
-                        payload={"input": json.loads(encoded_plain), "attempt": 0},
+                        payload={
+                            "input": json.loads(encoded_plain),
+                            "attempt": 0,
+                            "synthetic_only_confirmed": synthetic_only_confirmed,
+                        },
                     ),
                 )
                 connection.execute("COMMIT")
@@ -217,12 +280,77 @@ class WorkflowRuntime:
         if row is None:
             return None
         result = dict(row)
-        result["input"] = decode_storage_json(result.pop("input_json"), self.encryption_key)
+
+        status = result.get("status")
+        if status not in {"queued", "running", "succeeded", "failed"}:
+            raise WorkflowStorageError("Stored workflow run has an invalid status.")
+        synthetic_flag = result.get("synthetic_only_confirmed")
+        if type(synthetic_flag) is not int or synthetic_flag not in (0, 1):
+            raise WorkflowStorageError("Stored workflow run has an invalid synthetic-attestation flag.")
+        attempt = result.get("attempt")
+        max_attempts = result.get("max_attempts")
+        if (
+            type(attempt) is not int
+            or type(max_attempts) is not int
+            or max_attempts < 1
+            or max_attempts > 10
+            or attempt < 0
+            or attempt > max_attempts
+        ):
+            raise WorkflowStorageError("Stored workflow run has invalid attempt counters.")
+
+        claimed_at = result.get("claimed_at")
+        if status == "running":
+            if not isinstance(claimed_at, str) or not claimed_at.strip():
+                raise WorkflowStorageError("Running workflow run is missing its claim timestamp.")
+        elif claimed_at is not None:
+            raise WorkflowStorageError("Non-running workflow run unexpectedly has a claim timestamp.")
+
+        decoded_input = decode_storage_json(result.pop("input_json"), self.encryption_key)
+        if not isinstance(decoded_input, Mapping):
+            raise WorkflowStorageError("Stored workflow input must be a JSON object.")
+
         raw_result = result.pop("result_json")
-        result["result"] = decode_storage_json(raw_result, self.encryption_key) if raw_result else None
         raw_error = result.get("error_message")
+        integrity = result.get("result_integrity")
+        if integrity not in {"not_applicable", "verified", "legacy_unverified"}:
+            raise WorkflowStorageError("Stored workflow run has an invalid result-integrity marker.")
+
+        if status == "succeeded":
+            if raw_result is None:
+                if integrity != "legacy_unverified":
+                    raise WorkflowStorageError("Succeeded workflow run is missing its verified result.")
+                decoded_result = None
+                result["result_integrity"] = "legacy_unverified"
+            else:
+                if integrity == "not_applicable":
+                    raise WorkflowStorageError("Succeeded workflow run has a result marked not applicable.")
+                decoded_result = decode_storage_json(raw_result, self.encryption_key)
+                if not isinstance(decoded_result, Mapping):
+                    raise WorkflowStorageError("Stored workflow result must be a JSON object.")
+                # Legacy results become verified for this read after successful contract decoding.
+                result["result_integrity"] = "verified"
+            if raw_error is not None:
+                raise WorkflowStorageError("Succeeded workflow run unexpectedly contains an error.")
+        else:
+            if raw_result is not None:
+                raise WorkflowStorageError("Non-succeeded workflow run unexpectedly contains a result.")
+            if integrity == "verified":
+                raise WorkflowStorageError("Non-succeeded workflow run has a verified result marker.")
+            decoded_result = None
+            result["result_integrity"] = "not_applicable"
+
         if raw_error is not None:
-            result["error_message"] = decrypt_storage_text(raw_error, self.encryption_key)
+            decoded_error = decrypt_storage_text(raw_error, self.encryption_key)
+            if not decoded_error.strip():
+                raise WorkflowStorageError("Stored workflow error message is empty.")
+            result["error_message"] = decoded_error
+        elif status == "failed":
+            raise WorkflowStorageError("Failed workflow run is missing its error message.")
+
+        result["synthetic_only_confirmed"] = synthetic_flag == 1
+        result["input"] = decoded_input
+        result["result"] = decoded_result
         return result
 
     def list_runs(self, *, limit: int = 100) -> list[dict[str, Any]]:
@@ -310,8 +438,12 @@ class WorkflowRuntime:
             connection.execute("BEGIN IMMEDIATE")
             try:
                 finalized = connection.execute(
-                    "UPDATE workflow_runs SET status=?, result_json=?, error_message=?, updated_at=?, claimed_at=NULL WHERE run_id=? AND status='running'",
-                    (outcome, encoded_result, stored_error_message, now, run_id),
+                    "UPDATE workflow_runs SET status=?, result_json=?, error_message=?, result_integrity=?, updated_at=?, claimed_at=NULL WHERE run_id=? AND status='running' AND attempt=?",
+                    (
+                        outcome, encoded_result, stored_error_message,
+                        "verified" if outcome == "succeeded" else "not_applicable",
+                        now, run_id, attempt,
+                    ),
                 )
                 if finalized.rowcount != 1:
                     raise WorkflowContractError(
@@ -319,7 +451,7 @@ class WorkflowRuntime:
                         "outcome was not appended to the event ledger"
                     )
                 outcome_payload = (
-                    {"result": json.loads(encoded_result_plain)} if encoded_result_plain else
+                    {"attempt": attempt, "result": json.loads(encoded_result_plain)} if encoded_result_plain else
                     {"attempt": attempt, "error": error_message, "retry_scheduled": outcome == "queued"}
                 )
                 append_event_in_transaction(
@@ -368,7 +500,7 @@ class WorkflowRuntime:
                     updated = now_dt.isoformat(timespec="seconds")
                     stored_error = encrypt_storage_text(error, self.encryption_key)
                     connection.execute(
-                        "UPDATE workflow_runs SET status=?, error_message=?, updated_at=?, claimed_at=NULL WHERE run_id=? AND status='running'",
+                        "UPDATE workflow_runs SET status=?, error_message=?, result_integrity='not_applicable', updated_at=?, claimed_at=NULL WHERE run_id=? AND status='running'",
                         (outcome, stored_error, updated, row["run_id"]),
                     )
                     append_event_in_transaction(

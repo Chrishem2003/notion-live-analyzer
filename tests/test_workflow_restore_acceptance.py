@@ -5,6 +5,7 @@ replace authenticated staging verification of host storage, secrets, or Notion.
 """
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import sqlite3
 import tempfile
@@ -16,6 +17,21 @@ from cryptography.fernet import Fernet
 from modules.workflow_runtime import WorkflowRuntime
 from modules.workflow_storage import WorkflowStorageError
 from modules.workflow_store import list_run_events
+from tools.verify_workflow_backup import verify_workflow_backup
+
+
+@contextlib.contextmanager
+def _closed_sqlite_connection(path):
+    """Commit successful fixture work and always close the handle (including on Windows)."""
+    connection = sqlite3.connect(path)
+    try:
+        yield connection
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+    finally:
+        connection.close()
 
 
 class WorkflowRestoreAcceptanceTests(unittest.TestCase):
@@ -44,13 +60,29 @@ class WorkflowRestoreAcceptanceTests(unittest.TestCase):
         completed = runtime.execute_run(run_id)
         self.assertEqual(completed["status"], "succeeded")
 
-        with sqlite3.connect(self.source) as source_connection:
-            with sqlite3.connect(self.backup) as backup_connection:
+        with _closed_sqlite_connection(self.source) as source_connection:
+            with _closed_sqlite_connection(self.backup) as backup_connection:
                 source_connection.backup(backup_connection)
 
-        with sqlite3.connect(self.backup) as backup_connection:
-            with sqlite3.connect(self.restored) as restored_connection:
+        backup_report = verify_workflow_backup(self.backup)
+        self.assertTrue(backup_report["verified"])
+        self.assertEqual(backup_report["workflow_runs"], 1)
+        self.assertEqual(backup_report["workflow_events"], 3)
+        self.assertEqual(backup_report["encrypted_payload_field_counts"]["input_json"], 1)
+        self.assertEqual(backup_report["encrypted_payload_field_counts"]["result_json"], 1)
+
+        with _closed_sqlite_connection(self.backup) as backup_connection:
+            with _closed_sqlite_connection(self.restored) as restored_connection:
                 backup_connection.backup(restored_connection)
+
+        restored_report = verify_workflow_backup(self.restored)
+        self.assertTrue(restored_report["verified"])
+        self.assertEqual(restored_report["workflow_runs"], backup_report["workflow_runs"])
+        self.assertEqual(restored_report["workflow_events"], backup_report["workflow_events"])
+        self.assertEqual(
+            restored_report["encrypted_payload_field_counts"],
+            backup_report["encrypted_payload_field_counts"],
+        )
 
         restored_runtime = WorkflowRuntime(
             self.restored,
@@ -61,6 +93,7 @@ class WorkflowRestoreAcceptanceTests(unittest.TestCase):
         self.assertEqual(restored_run["status"], "succeeded")
         self.assertEqual(restored_run["input"], {"value": "restore-fixture-only"})
         self.assertEqual(restored_run["result"], {"echo": "restore-fixture-only"})
+        self.assertEqual(restored_run["result_integrity"], "verified")
         events = list_run_events(self.restored, "synthetic-restore-acceptance", run_id)
         self.assertEqual(
             [event["status"] for event in events],
@@ -68,7 +101,7 @@ class WorkflowRestoreAcceptanceTests(unittest.TestCase):
         )
 
         # Confirm stored payloads are encrypted at rest, not merely decrypted on read.
-        with sqlite3.connect(self.restored) as connection:
+        with _closed_sqlite_connection(self.restored) as connection:
             stored_input = connection.execute(
                 "SELECT input_json FROM workflow_runs WHERE run_id = ?", (run_id,)
             ).fetchone()[0]
@@ -86,8 +119,8 @@ class WorkflowRestoreAcceptanceTests(unittest.TestCase):
             task_type="echo",
             payload={"value": "restore-fixture-only"},
         )
-        with sqlite3.connect(self.source) as source_connection:
-            with sqlite3.connect(self.restored) as restored_connection:
+        with _closed_sqlite_connection(self.source) as source_connection:
+            with _closed_sqlite_connection(self.restored) as restored_connection:
                 source_connection.backup(restored_connection)
 
         before = hashlib.sha256(self.restored.read_bytes()).hexdigest()

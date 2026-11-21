@@ -6,6 +6,7 @@ in the trusted shell environment. Never pass secrets as command-line arguments.
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import sys
 
@@ -50,7 +51,7 @@ def main() -> int:
     print("Workflow encryption key rotation completed.")
     print(f"Rows updated: {result['rows_updated']}")
     print(f"Payload fields updated: {result['fields_updated']}")
-    print(f"Backup created: {result['backup_path']}")
+    print(f"Backup created: {json.dumps(result['backup_path'], ensure_ascii=True)}")
     print("Update WORKFLOW_RUNTIME_ENCRYPTION_KEY to the new key before restarting the app.")
     return 0
 
