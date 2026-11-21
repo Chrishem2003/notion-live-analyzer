@@ -22,6 +22,7 @@ from tools.restore_workflow_backup import (
     WorkflowBackupRestoreError,
     main as restore_main,
     restore_workflow_backup,
+    _unlink_if_owned,
 )
 from tools.verify_workflow_backup import BackupVerificationError, verify_workflow_backup
 
@@ -639,6 +640,86 @@ class WorkflowBackupRestoreCliTests(unittest.TestCase):
         )
         self.assertEqual(source_after_run, source_before_run)
         self.assertEqual(source_after_events, source_before_events)
+
+
+    def test_failed_restore_reports_operation_owned_temp_file_when_cleanup_cannot_remove_it(self):
+        real_verify = verify_workflow_backup
+        calls = 0
+
+        def fail_temporary_verification(candidate):
+            nonlocal calls
+            calls += 1
+            if calls == 2:
+                raise BackupVerificationError("synthetic temporary verification failure")
+            return real_verify(candidate)
+
+        with patch(
+            "tools.restore_workflow_backup.verify_workflow_backup",
+            side_effect=fail_temporary_verification,
+        ), patch("tools.restore_workflow_backup._unlink_if_owned"):
+            with self.assertRaisesRegex(
+                WorkflowBackupRestoreError,
+                "operation-owned artifacts could not be confirmed clean",
+            ):
+                restore_workflow_backup(self.source, self.destination)
+
+        leftovers = list(self.root.glob(".workflow-restore-*.sqlite3.tmp"))
+        self.assertEqual(len(leftovers), 1, "the injected cleanup failure should leave one owned temp file")
+        self.assertFalse(self.destination.exists())
+        leftovers[0].unlink()
+
+
+    @unittest.skipUnless(os.name == "posix", "requires POSIX directory-descriptor cleanup")
+    def test_dirfd_unlink_failure_never_falls_back_to_replaced_parent_path(self):
+        original_parent = self.root / "dirfd-original"
+        replacement_parent = self.root / "dirfd-replacement"
+        moved_parent = self.root / "dirfd-original-moved"
+        original_parent.mkdir()
+        replacement_parent.mkdir()
+        owned_path = original_parent / "owned.tmp"
+        owned_path.write_bytes(b"synthetic-owned-artifact")
+        owned_stat = owned_path.stat()
+        identity = (owned_stat.st_dev, owned_stat.st_ino)
+        directory_fd = os.open(
+            original_parent,
+            os.O_RDONLY | getattr(os, "O_DIRECTORY", 0),
+        )
+        try:
+            original_parent.rename(moved_parent)
+            replacement_parent.rename(original_parent)
+            replacement_alias = original_parent / owned_path.name
+            os.link(moved_parent / owned_path.name, replacement_alias)
+
+            real_unlink = os.unlink
+
+            def fail_anchored_unlink(path, *, dir_fd=None):
+                if dir_fd == directory_fd:
+                    raise PermissionError("synthetic anchored unlink failure")
+                return real_unlink(path, dir_fd=dir_fd)
+
+            with patch(
+                "tools.restore_workflow_backup.os.unlink",
+                side_effect=fail_anchored_unlink,
+            ):
+                _unlink_if_owned(replacement_alias, identity, directory_fd)
+
+            self.assertTrue((moved_parent / owned_path.name).exists())
+            self.assertTrue(
+                replacement_alias.exists(),
+                "failed dirfd cleanup must not fall back and unlink a same-inode alias via the replaced path",
+            )
+            self.assertEqual(
+                (replacement_alias.stat().st_dev, replacement_alias.stat().st_ino),
+                identity,
+            )
+        finally:
+            os.close(directory_fd)
+            replacement_alias = original_parent / owned_path.name
+            if replacement_alias.exists():
+                replacement_alias.unlink()
+            moved_owned = moved_parent / owned_path.name
+            if moved_owned.exists():
+                moved_owned.unlink()
 
 
 if __name__ == "__main__":
