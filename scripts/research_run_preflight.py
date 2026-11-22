@@ -7,6 +7,7 @@ updates research records. Run it before starting the API service.
 from __future__ import annotations
 
 import os
+import stat
 import sys
 from pathlib import Path
 from typing import Any, Dict, Mapping, Optional
@@ -140,6 +141,66 @@ def validate_relation_graph(schemas: Mapping[str, Mapping[str, Any]], env: Mappi
             )
 
 
+def _validate_ledger_path(db_path: Path) -> None:
+    """Reject symlinked/special parent components and aliased existing ledger files.
+
+    These checks are fail-closed preflight defenses. The destination parent must
+    still be owner-controlled; lstat checks are not an atomic substitute for ACLs
+    or protection against a concurrent namespace change.
+    """
+    parent = db_path.parent
+    current = Path(parent.anchor)
+    try:
+        anchor_info = current.lstat()
+    except OSError as exc:
+        raise PreflightError(
+            "Idempotency database parent path could not be inspected safely."
+        ) from exc
+    if not stat.S_ISDIR(anchor_info.st_mode):
+        raise PreflightError(
+            "Idempotency database parent path must begin at a real directory."
+        )
+
+    for component in parent.parts[1:]:
+        current = current / component
+        try:
+            info = current.lstat()
+        except FileNotFoundError as exc:
+            raise PreflightError(
+                "Idempotency database parent directory does not exist; verify the persistent disk mount."
+            ) from exc
+        except OSError as exc:
+            raise PreflightError(
+                "Idempotency database parent path could not be inspected safely."
+            ) from exc
+        if not stat.S_ISDIR(info.st_mode):
+            raise PreflightError(
+                "Idempotency database parent path must contain only real directories; "
+                "symlinks and special paths are not allowed."
+            )
+
+    if not os.access(str(parent), os.W_OK):
+        raise PreflightError("Idempotency database parent directory is not writable.")
+
+    try:
+        database_info = db_path.lstat()
+    except FileNotFoundError:
+        return
+    except OSError as exc:
+        raise PreflightError(
+            "Idempotency database file could not be inspected safely."
+        ) from exc
+
+    if not stat.S_ISREG(database_info.st_mode):
+        raise PreflightError(
+            "Idempotency database path must be a regular file, not a symlink or special path."
+        )
+    if database_info.st_nlink != 1:
+        raise PreflightError(
+            "Idempotency database file must not be hard-linked to another path."
+        )
+
+
 def run_preflight(
     environ: Optional[Mapping[str, str]] = None,
     session: Optional[requests.Session] = None,
@@ -152,6 +213,9 @@ def run_preflight(
     db_path = Path(str(env["RESEARCH_RUN_IDEMPOTENCY_DB"]).strip()).expanduser()
     if not db_path.is_absolute():
         raise PreflightError("RESEARCH_RUN_IDEMPOTENCY_DB must be an absolute path on persistent storage.")
+    # Normalize dot-segments before classifying the storage root so an alias
+    # such as /tmp/../tmp/ledger.sqlite3 cannot bypass the ephemeral-path gate.
+    db_path = Path(os.path.normpath(str(db_path)))
     ephemeral_roots = (Path("/tmp"), Path("/var/tmp"))
     is_ephemeral = any(db_path == root or root in db_path.parents for root in ephemeral_roots)
     allow_ephemeral = str(env.get("RESEARCH_RUN_ALLOW_EPHEMERAL_LEDGER", "")).strip().lower() == "true"
@@ -160,10 +224,7 @@ def run_preflight(
             "The configured idempotency path is ephemeral. Set RESEARCH_RUN_ALLOW_EPHEMERAL_LEDGER=true "
             "only for synthetic staging; real research requires persistent storage."
         )
-    if not db_path.parent.is_dir():
-        raise PreflightError("Idempotency database parent directory does not exist; verify the persistent disk mount.")
-    if not os.access(str(db_path.parent), os.W_OK):
-        raise PreflightError("Idempotency database parent directory is not writable.")
+    _validate_ledger_path(db_path)
 
     client = session or requests.Session()
     headers = {
