@@ -9,6 +9,7 @@ on:
       - "modules/research_run_idempotency.py"
       - "tests/test_research_run_preflight.py"
       - "tests/test_research_run_idempotency.py"
+      - "docs/research-run-writeback.md"
       - ".github/workflows/research-run-preflight-safety.yml"
   pull_request:
     branches:
@@ -18,6 +19,7 @@ on:
       - "modules/research_run_idempotency.py"
       - "tests/test_research_run_preflight.py"
       - "tests/test_research_run_idempotency.py"
+      - "docs/research-run-writeback.md"
       - ".github/workflows/research-run-preflight-safety.yml"
   workflow_dispatch:
 
