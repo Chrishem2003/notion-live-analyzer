@@ -163,3 +163,8 @@ These `lstat` checks are defense in depth, not an atomic guarantee against a con
 ### Current Free-tier configuration correction
 
 This note supersedes the older free-tier paragraph above that says the blueprint opts into an ephemeral `/tmp` ledger. At the currently inspected staging-branch revision, `render.yaml` configures `RESEARCH_RUN_IDEMPOTENCY_DB=/var/data/research_run_idempotency.sqlite3`, `RESEARCH_RUN_ALLOW_EPHEMERAL_LEDGER=false`, and `RESEARCH_RUN_WRITEBACK_ENABLED=false`. The API startup script runs the read-only preflight only when write-back is explicitly enabled; otherwise it starts with research-run write-back disabled. The Render service metadata reports the staging API as Free, and the blueprint comments that Free does not provide the required persistent disk. Do not infer that the configured `/var/data` path is mounted or durable. Real research write-back remains disabled until a suitable persistent store and restore acceptance are independently verified.
+
+
+### Parent directory access requirement
+
+The preflight requires the existing ledger parent directory to be both writable and searchable (os.W_OK | os.X_OK) before any Notion schema request. Regression tests cover a symlink in an ancestor component and a parent that fails the combined access check; both must fail before HTTP calls or ledger creation.
