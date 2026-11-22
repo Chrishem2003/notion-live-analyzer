@@ -145,3 +145,21 @@ After a timeout, reuse the same run ID. Do not mint a new ID until the prior att
 The adapter compares the submitted Run Manifest Hash with an existing Analysis Run before returning it as an idempotent retry. This check applies to direct existing-record lookup, timeout recovery, ambiguous-write recovery, and completed-ledger read-back. A reused External Run ID with a missing or different manifest is rejected for manual reconciliation rather than silently returning a record for different inputs. This protects against a reset or lost local ledger but does not replace persistent storage or live acceptance testing.
 
 The automated tests cover the adapter, ledger, API authentication/configuration, relation validation, client behavior, manifest fingerprinting and UI syntax. These tests use mocks and do not prove that the deployed service can authenticate to Notion. PRs #25 and #32–#36 are merged; the PR-head CI runs for #33, #34, #35 and #36 passed. The retry path now verifies manifests on direct lookup, timeout recovery, ambiguous recovery and completed-ledger read-back, with an API test asserting HTTP 409 on mismatch. The Render Blueprint no longer includes a billable keepalive cron. No Render Blueprint sync, authenticated live Notion write, or deployment acceptance test has been completed.
+
+
+## Ledger path preflight hardening — 2026-11-22
+
+Before any Notion schema request or SQLite ledger initialization, the preflight now normalizes the configured absolute path and classifies ephemeral roots using the normalized path. It inspects every parent path component with `lstat` and rejects symlinks or special paths. If the ledger file already exists, it must be a regular single-link file; symlinks, special files, and hard-linked aliases fail closed. The checks do not write to a rejected target and do not create the ledger until the later explicit initialization step.
+
+Regression coverage uses only temporary synthetic paths and mocked Notion HTTP:
+- symlinked parent/ancestor is rejected before any Notion request;
+- symlinked ledger file is rejected and its target bytes remain unchanged;
+- hard-linked ledger file is rejected and the original target remains unchanged;
+- dot-segment normalization prevents an ephemeral path from bypassing the storage-root gate;
+- a directory at the ledger filename is rejected as non-regular.
+
+These `lstat` checks are defense in depth, not an atomic guarantee against a concurrent path replacement. Keep the ledger parent owner-controlled and non-writable by untrusted principals. They do not prove persistent-disk durability, cross-host SQLite locking, backup/restore, or managed-host ACL correctness.
+
+### Current Free-tier configuration correction
+
+This note supersedes the older free-tier paragraph above that says the blueprint opts into an ephemeral `/tmp` ledger. At the currently inspected staging-branch revision, `render.yaml` configures `RESEARCH_RUN_IDEMPOTENCY_DB=/var/data/research_run_idempotency.sqlite3`, `RESEARCH_RUN_ALLOW_EPHEMERAL_LEDGER=false`, and `RESEARCH_RUN_WRITEBACK_ENABLED=false`. The API startup script runs the read-only preflight only when write-back is explicitly enabled; otherwise it starts with research-run write-back disabled. The Render service metadata reports the staging API as Free, and the blueprint comments that Free does not provide the required persistent disk. Do not infer that the configured `/var/data` path is mounted or durable. Real research write-back remains disabled until a suitable persistent store and restore acceptance are independently verified.
