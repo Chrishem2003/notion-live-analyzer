@@ -1,4 +1,5 @@
 """Tests for deployment preflight; all Notion HTTP calls are mocked."""
+import os
 from pathlib import Path
 
 import pytest
@@ -173,3 +174,84 @@ def test_preflight_rejects_ephemeral_ledger_without_staging_override(tmp_path):
     env["RESEARCH_RUN_ALLOW_EPHEMERAL_LEDGER"] = "false"
     with pytest.raises(PreflightError, match="ephemeral"):
         run_preflight(env, Session(valid_schemas()))
+
+
+@pytest.mark.skipif(os.name != "posix", reason="requires POSIX symlink support")
+def test_preflight_rejects_symlinked_ledger_parent_before_notion_requests(tmp_path):
+    real_parent = tmp_path / "real-parent"
+    real_parent.mkdir()
+    parent_alias = tmp_path / "parent-alias"
+    parent_alias.symlink_to(real_parent, target_is_directory=True)
+    env = env_for(tmp_path)
+    env["RESEARCH_RUN_IDEMPOTENCY_DB"] = str(parent_alias / "runs.sqlite3")
+    session = Session(valid_schemas())
+
+    with pytest.raises(PreflightError, match="symlinks and special paths"):
+        run_preflight(env, session)
+
+    assert session.calls == []
+    assert not (real_parent / "runs.sqlite3").exists()
+
+
+@pytest.mark.skipif(os.name != "posix", reason="requires POSIX symlink support")
+def test_preflight_rejects_symlinked_ledger_file_without_touching_target(tmp_path):
+    parent = tmp_path / "persistent"
+    parent.mkdir()
+    protected_target = tmp_path / "protected-ledger.sqlite3"
+    protected_target.write_bytes(b"synthetic-target-must-remain-unchanged")
+    ledger_alias = parent / "runs.sqlite3"
+    ledger_alias.symlink_to(protected_target)
+    env = env_for(tmp_path)
+    env["RESEARCH_RUN_IDEMPOTENCY_DB"] = str(ledger_alias)
+    session = Session(valid_schemas())
+
+    with pytest.raises(PreflightError, match="regular file"):
+        run_preflight(env, session)
+
+    assert session.calls == []
+    assert protected_target.read_bytes() == b"synthetic-target-must-remain-unchanged"
+
+
+@pytest.mark.skipif(os.name != "posix", reason="requires POSIX hard-link support")
+def test_preflight_rejects_hardlinked_ledger_file_without_touching_target(tmp_path):
+    parent = tmp_path / "persistent"
+    parent.mkdir()
+    protected_target = tmp_path / "protected-ledger.sqlite3"
+    protected_target.write_bytes(b"synthetic-hardlink-target-must-remain-unchanged")
+    ledger_alias = parent / "runs.sqlite3"
+    os.link(protected_target, ledger_alias)
+    env = env_for(tmp_path)
+    env["RESEARCH_RUN_IDEMPOTENCY_DB"] = str(ledger_alias)
+    session = Session(valid_schemas())
+
+    with pytest.raises(PreflightError, match="must not be hard-linked"):
+        run_preflight(env, session)
+
+    assert session.calls == []
+    assert protected_target.read_bytes() == b"synthetic-hardlink-target-must-remain-unchanged"
+    assert protected_target.stat().st_ino == ledger_alias.stat().st_ino
+
+
+def test_preflight_normalizes_path_before_ephemeral_storage_check(tmp_path):
+    env = env_for(tmp_path)
+    env["RESEARCH_RUN_IDEMPOTENCY_DB"] = "/tmp/../tmp/research-run-ledger.sqlite3"
+    env["RESEARCH_RUN_ALLOW_EPHEMERAL_LEDGER"] = "false"
+    session = Session(valid_schemas())
+
+    with pytest.raises(PreflightError, match="ephemeral"):
+        run_preflight(env, session)
+
+    assert session.calls == []
+
+
+def test_preflight_rejects_directory_at_ledger_file_path(tmp_path):
+    env = env_for(tmp_path)
+    ledger_path = Path(env["RESEARCH_RUN_IDEMPOTENCY_DB"])
+    ledger_path.parent.mkdir(parents=True)
+    ledger_path.mkdir()
+    session = Session(valid_schemas())
+
+    with pytest.raises(PreflightError, match="regular file"):
+        run_preflight(env, session)
+
+    assert session.calls == []
