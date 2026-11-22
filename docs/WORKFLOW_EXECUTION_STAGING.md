@@ -295,3 +295,13 @@ Functional regression coverage:
 - Cross-platform: inject a restore verification failure and prevent cleanup; the CLI must report that operation-owned artifacts could not be confirmed clean, preserve the leftover temporary file for operator inspection, and publish no destination.
 
 Acceptance limits: these are synthetic CI filesystem tests. They do not replace effective Windows/managed-host ACL, endpoint-security, mount/ownership or deployed-storage acceptance. No live research data, production backup, credential, key or deployment is touched.
+
+
+### Batch 151 — Windows path-based cleanup after destination-parent replacement (2026-11-22)
+
+Two Windows-only synthetic restore tests exercise the non-dirfd cleanup branch on the GitHub-hosted Windows runner:
+
+- Replace the destination parent after temporary-copy verification. The restore must fail closed, skip pathname cleanup after the parent identity changes, leave the operation-owned temporary file only in the moved original directory for controlled operator inspection, and leave the replacement directory untouched.
+- Replace the destination parent after publication verification. The restore must fail closed, preserve the two operation-owned hard links only in the moved original directory for controlled operator inspection, and leave the replacement directory untouched.
+
+These tests verify the documented Windows recovery behavior; they do not add a Windows directory-handle guarantee or make cleanup atomic. They use only temporary synthetic SQLite fixtures and remove their own artifacts during test teardown. The actual managed host's ACLs, endpoint policy, parent ownership, mount semantics, hosted persistence, and deployed restore remain separate acceptance gates.
