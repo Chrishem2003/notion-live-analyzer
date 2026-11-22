@@ -255,3 +255,44 @@ def test_preflight_rejects_directory_at_ledger_file_path(tmp_path):
         run_preflight(env, session)
 
     assert session.calls == []
+
+
+@pytest.mark.skipif(os.name != "posix", reason="requires POSIX symlink support")
+def test_preflight_rejects_symlinked_ancestor_before_notion_requests(tmp_path):
+    real_parent = tmp_path / "real-ancestor"
+    nested_parent = real_parent / "persistent"
+    nested_parent.mkdir(parents=True)
+    ancestor_alias = tmp_path / "ancestor-alias"
+    ancestor_alias.symlink_to(real_parent, target_is_directory=True)
+    env = env_for(tmp_path)
+    env["RESEARCH_RUN_IDEMPOTENCY_DB"] = str(ancestor_alias / "persistent" / "runs.sqlite3")
+    session = Session(valid_schemas())
+
+    with pytest.raises(PreflightError, match="symlinks and special paths"):
+        run_preflight(env, session)
+
+    assert session.calls == []
+    assert not (nested_parent / "runs.sqlite3").exists()
+
+
+def test_preflight_requires_writable_and_searchable_parent_before_notion_requests(
+    tmp_path, monkeypatch
+):
+    env = env_for(tmp_path)
+    database_path = Path(env["RESEARCH_RUN_IDEMPOTENCY_DB"])
+    database_path.parent.mkdir(parents=True)
+    session = Session(valid_schemas())
+    observed = []
+
+    def deny_directory_search(path, mode):
+        observed.append((str(path), mode))
+        return False
+
+    monkeypatch.setattr("scripts.research_run_preflight.os.access", deny_directory_search)
+
+    with pytest.raises(PreflightError, match="writable and searchable"):
+        run_preflight(env, session)
+
+    assert observed == [(str(database_path.parent), os.W_OK | os.X_OK)]
+    assert session.calls == []
+    assert not database_path.exists()
