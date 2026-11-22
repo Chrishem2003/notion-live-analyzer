@@ -730,12 +730,16 @@ class WorkflowBackupRestoreCliTests(unittest.TestCase):
         replacement_parent.mkdir()
         destination = original_parent / "restored.sqlite3"
         real_verify = verify_workflow_backup
+        calls = 0
         replaced = False
 
         def verify_then_replace(candidate):
-            nonlocal replaced
+            nonlocal calls, replaced
             report = real_verify(candidate)
-            if not replaced and Path(candidate) == destination:
+            calls += 1
+            # Restore verifies source, temporary copy, source again, then the
+            # published destination. Trigger only after that fourth readback.
+            if not replaced and calls == 4:
                 original_parent.rename(moved_parent)
                 replacement_parent.rename(original_parent)
                 replaced = True
@@ -752,6 +756,7 @@ class WorkflowBackupRestoreCliTests(unittest.TestCase):
                 ):
                     restore_workflow_backup(self.source, destination)
 
+            self.assertEqual(calls, 4, "the replacement must occur after published-copy verification")
             self.assertTrue(replaced, "the published-destination verification hook must run")
             temporary_links = list(moved_parent.glob(".workflow-restore-*.sqlite3.tmp"))
             self.assertEqual(len(temporary_links), 1)
