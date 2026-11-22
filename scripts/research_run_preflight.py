@@ -179,8 +179,11 @@ def _validate_ledger_path(db_path: Path) -> None:
                 "symlinks and special paths are not allowed."
             )
 
-    if not os.access(str(parent), os.W_OK):
-        raise PreflightError("Idempotency database parent directory is not writable.")
+    required_access = os.W_OK | os.X_OK
+    if not os.access(str(parent), required_access):
+        raise PreflightError(
+            "Idempotency database parent directory must be writable and searchable."
+        )
 
     try:
         database_info = db_path.lstat()
