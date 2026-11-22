@@ -669,6 +669,113 @@ class WorkflowBackupRestoreCliTests(unittest.TestCase):
         leftovers[0].unlink()
 
 
+    @unittest.skipUnless(os.name == "nt", "requires Windows path-based cleanup")
+    def test_windows_parent_replacement_after_temp_verification_preserves_owned_temp(self):
+        original_parent = self.root / "windows-temp-original"
+        replacement_parent = self.root / "windows-temp-replacement"
+        moved_parent = self.root / "windows-temp-original-moved"
+        original_parent.mkdir()
+        replacement_parent.mkdir()
+        destination = original_parent / "restored.sqlite3"
+        real_verify = verify_workflow_backup
+        replaced = False
+
+        def verify_then_replace(candidate):
+            nonlocal replaced
+            report = real_verify(candidate)
+            candidate_path = Path(candidate)
+            if not replaced and candidate_path.name.startswith(".workflow-restore-"):
+                original_parent.rename(moved_parent)
+                replacement_parent.rename(original_parent)
+                replaced = True
+            return report
+
+        try:
+            with patch(
+                "tools.restore_workflow_backup.verify_workflow_backup",
+                side_effect=verify_then_replace,
+            ):
+                with self.assertRaisesRegex(
+                    WorkflowBackupRestoreError,
+                    "operation-owned artifacts could not be confirmed clean",
+                ):
+                    restore_workflow_backup(self.source, destination)
+
+            self.assertTrue(replaced, "the temporary restore verification hook must run")
+            leftovers = list(moved_parent.glob(".workflow-restore-*.sqlite3.tmp"))
+            self.assertEqual(
+                len(leftovers),
+                1,
+                "path-based cleanup must be skipped after the destination parent changes",
+            )
+            self.assertFalse(destination.exists(), "the replacement parent must not receive a destination")
+            self.assertEqual(
+                list(original_parent.iterdir()),
+                [],
+                "the replacement directory must remain untouched",
+            )
+        finally:
+            if moved_parent.exists():
+                for artifact in list(moved_parent.iterdir()):
+                    if artifact.is_file() or artifact.is_symlink():
+                        artifact.unlink()
+                moved_parent.rmdir()
+
+    @unittest.skipUnless(os.name == "nt", "requires Windows path-based cleanup")
+    def test_windows_parent_replacement_after_publish_preserves_owned_links(self):
+        original_parent = self.root / "windows-published-original"
+        replacement_parent = self.root / "windows-published-replacement"
+        moved_parent = self.root / "windows-published-original-moved"
+        original_parent.mkdir()
+        replacement_parent.mkdir()
+        destination = original_parent / "restored.sqlite3"
+        real_verify = verify_workflow_backup
+        replaced = False
+
+        def verify_then_replace(candidate):
+            nonlocal replaced
+            report = real_verify(candidate)
+            if not replaced and Path(candidate) == destination:
+                original_parent.rename(moved_parent)
+                replacement_parent.rename(original_parent)
+                replaced = True
+            return report
+
+        try:
+            with patch(
+                "tools.restore_workflow_backup.verify_workflow_backup",
+                side_effect=verify_then_replace,
+            ):
+                with self.assertRaisesRegex(
+                    WorkflowBackupRestoreError,
+                    "operation-owned artifacts could not be confirmed clean",
+                ):
+                    restore_workflow_backup(self.source, destination)
+
+            self.assertTrue(replaced, "the published-destination verification hook must run")
+            temporary_links = list(moved_parent.glob(".workflow-restore-*.sqlite3.tmp"))
+            self.assertEqual(len(temporary_links), 1)
+            published = moved_parent / destination.name
+            self.assertTrue(published.is_file())
+            temporary_info = temporary_links[0].stat()
+            published_info = published.stat()
+            self.assertEqual(
+                (temporary_info.st_dev, temporary_info.st_ino),
+                (published_info.st_dev, published_info.st_ino),
+                "the moved original directory must retain only the two owned hard links",
+            )
+            self.assertEqual(
+                list(original_parent.iterdir()),
+                [],
+                "the replacement directory must remain untouched",
+            )
+        finally:
+            if moved_parent.exists():
+                for artifact in list(moved_parent.iterdir()):
+                    if artifact.is_file() or artifact.is_symlink():
+                        artifact.unlink()
+                moved_parent.rmdir()
+
     @unittest.skipUnless(os.name == "posix", "requires POSIX directory-descriptor cleanup")
     def test_dirfd_unlink_failure_never_falls_back_to_replaced_parent_path(self):
         original_parent = self.root / "dirfd-original"
