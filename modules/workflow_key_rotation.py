@@ -30,8 +30,16 @@ def rotate_workflow_encryption_key(
     must not already exist. If any encrypted field cannot be read with the old key,
     the database transaction rolls back and the backup is retained for investigation.
     """
-    database = Path(database_path).expanduser().resolve()
-    backup = Path(backup_path).expanduser().resolve()
+    try:
+        database = Path(database_path).expanduser().resolve()
+        backup_candidate = Path(backup_path).expanduser()
+        # Resolve the parent but preserve the final path component so lexists can
+        # detect a dangling symlink instead of following it to its missing target.
+        backup = backup_candidate.parent.resolve() / backup_candidate.name
+    except (OSError, RuntimeError, TypeError, ValueError) as exc:
+        raise WorkflowKeyRotationError(
+            "workflow database or backup path could not be resolved safely"
+        ) from exc
     if database == backup:
         raise WorkflowKeyRotationError("backup path must be different from the source database")
     if not database.is_file():
@@ -50,19 +58,36 @@ def rotate_workflow_encryption_key(
     if old == new:
         raise WorkflowKeyRotationError("old and new workflow encryption keys must be different")
 
-    backup.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        backup.parent.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        raise WorkflowKeyRotationError(
+            "backup directory could not be prepared safely; no key rotation was attempted"
+        ) from exc
     # O_EXCL prevents a time-of-check/time-of-use race from overwriting a file or
     # following a symlink created after the initial check. Mode 0600 restricts the
     # backup to the current user on POSIX systems; Windows ACLs still need review.
+    fd: int | None = None
     try:
         fd = os.open(str(backup), os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+        reserved_stat = os.fstat(fd)
+        os.close(fd)
+        fd = None
     except FileExistsError as exc:
+        if fd is not None:
+            os.close(fd)
         raise WorkflowKeyRotationError(
             "backup path already exists; refusing to overwrite a backup"
         ) from exc
-    else:
-        os.close(fd)
-    reserved_stat = backup.stat()
+    except OSError as exc:
+        if fd is not None:
+            try:
+                os.close(fd)
+            except OSError:
+                pass
+        raise WorkflowKeyRotationError(
+            "backup file could not be reserved safely; no key rotation was attempted"
+        ) from exc
     source = None
     destination = None
     try:
@@ -98,8 +123,9 @@ def rotate_workflow_encryption_key(
 
     fields_updated = 0
     rows_updated = 0
-    connection = sqlite3.connect(str(database), timeout=30, isolation_level=None)
+    connection: sqlite3.Connection | None = None
     try:
+        connection = sqlite3.connect(str(database), timeout=30, isolation_level=None)
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA busy_timeout = 30000")
         connection.execute("BEGIN IMMEDIATE")
@@ -132,7 +158,7 @@ def rotate_workflow_encryption_key(
                 fields_updated += len(updates)
         connection.execute("COMMIT")
     except Exception as exc:
-        if connection.in_transaction:
+        if connection is not None and connection.in_transaction:
             connection.execute("ROLLBACK")
         if isinstance(exc, (WorkflowKeyRotationError, WorkflowStorageConfigurationError)):
             raise
@@ -140,7 +166,8 @@ def rotate_workflow_encryption_key(
             "key rotation failed; the database transaction was rolled back and the backup was retained"
         ) from exc
     finally:
-        connection.close()
+        if connection is not None:
+            connection.close()
 
     return {
         "rows_updated": rows_updated,

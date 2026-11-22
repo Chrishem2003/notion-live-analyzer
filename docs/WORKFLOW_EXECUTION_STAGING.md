@@ -69,11 +69,18 @@ Never change QC to Pass or reproducibility to Passed merely because the runtime 
 
 ## 5. Persistence, backup, and recovery
 
-- [ ] Confirm the configured runtime database path is writable and persists across app restarts.
-- [ ] Create a SQLite-aware backup while accounting for WAL state; restore into an isolated staging location.
-- [ ] Verify run records and event history after restore.
-- [ ] Verify any required encryption/decryption or secret-recovery procedure separately.
+- [ ] Stop workflow submissions and workers before taking a recovery copy; use an isolated staging directory with approved filesystem access controls.
+- [ ] Create a SQLite-aware backup while accounting for WAL state.
+- [ ] Run the read-only backup verifier against the source backup and require a successful report.
+- [ ] Restore only to a new, non-existing destination file in an already-existing isolated directory:
+
+      python tools/restore_workflow_backup.py /secure/backups/workflow.sqlite3 /secure/staging/workflow-restored.sqlite3
+
+  Before opening the source through SQLite, the restore CLI uses lstat checks on the main database, WAL and SHM paths; symbolic links, special files, and hard-linked sidecars are rejected. The main/WAL/SHM identities are included in the source-stability check. The CLI then verifies the source read-only, copies through SQLite's online backup API (including committed WAL state), verifies the temporary copy, compares aggregate run/event/result-integrity/encrypted-field counts, and publishes through an atomic same-directory hard link that cannot overwrite an existing destination. After post-publication verification, it rechecks that both the destination and temporary path still identify the operation-owned inode. If either path changes during verification/cleanup, it fails closed, removes only links still proven to be operation-owned, and preserves any unowned replacement for inspection. It does not create destination directories, decrypt payloads, or print source/destination paths. If hard-link publication is unsupported or the destination appears concurrently, it fails closed; do not substitute an overwrite-based copy.
+- [ ] Require the restore CLI JSON report to confirm source and destination verification. The command verifies structure and counts only; it does not prove encryption-key custody or payload decryption.
+- [ ] Initialize the restored copy with the approved application encryption key in isolated staging and verify representative input/result/error readback plus event ordering.
 - [ ] Confirm the actual hosting platform provides durable storage; local filesystem persistence alone is not sufficient evidence for ephemeral or multi-replica deployments.
+- [ ] Verify Windows/managed-host hard-link behavior and effective filesystem ACLs separately before relying on this CLI there.
 
 ## 6. Evidence record requirements
 
@@ -137,7 +144,7 @@ The UI still requires synthetic/demo-only confirmation. This is an interim data-
 
 ## 10. Controlled key rotation
 
-A rotation helper is now available at tools/rotate_workflow_encryption_key.py. It refuses to overwrite an existing backup, creates a SQLite-aware backup first, then rotates the workflow_runs input/result/error fields in one transaction. If any ciphertext cannot be decrypted with the old key, the transaction rolls back and the backup is retained.
+A rotation helper is now available at tools/rotate_workflow_encryption_key.py. It refuses to overwrite an existing backup, creates a SQLite-aware backup first, then rotates the workflow_runs input/result/error fields in one transaction. If any ciphertext cannot be decrypted with the old key, the transaction rolls back and the backup is retained. Filesystem path-preparation, backup-reservation, and database-open failures are reported as generic fail-safe errors without echoing local paths or key values. If failure occurs after the pre-rotation backup has been created, retain that backup for investigation; do not assume the key rotation completed.
 
 1. Stop workflow submissions and ensure no worker is executing.
 2. In the trusted environment, set WORKFLOW_RUNTIME_ENCRYPTION_KEY_OLD and WORKFLOW_RUNTIME_ENCRYPTION_KEY_NEW. Do not pass keys as command-line arguments or paste them into Notion/chat.
@@ -146,10 +153,11 @@ A rotation helper is now available at tools/rotate_workflow_encryption_key.py. I
 
        python tools/rotate_workflow_encryption_key.py --database .streamlit/workflow_runtime.sqlite3 --backup /secure/backups/workflow-before-rotation.sqlite3
 
-5. Confirm the command reports success and the backup path. The command never prints key values.
+5. Confirm the command reports success and the backup path. The rotation CLI prints the operator-supplied backup destination as a JSON-quoted string (control characters and non-ASCII characters are escaped); still treat its console output as sensitive local filesystem metadata. The command never prints key values. This is distinct from the read-only verifier CLI, which omits its path from the JSON report.
 6. Set WORKFLOW_RUNTIME_ENCRYPTION_KEY to the new key in the approved secret store, remove old-key variables according to the recovery policy, then restart the app.
 7. Verify readback with the new key and verify the protected backup can still be opened with the old key in isolated recovery staging.
 8. Retain or delete the backup only under the approved retention policy; do not leave unprotected copies in the repository or app filesystem.
+- [ ] In isolated synthetic tests, invalid old/new keys and identical old/new keys must fail without creating a backup or printing key values or the backup destination; the original encrypted payload must remain unchanged.
 
 Do not rotate keys against production data until the backup, rollback, key custody, and recovery tests have been approved. Key rotation does not encrypt metadata/event digests and is not a substitute for filesystem or whole-database controls.
 
@@ -160,7 +168,7 @@ Before the manual staging run, execute:
 
     python tools/check_workflow_configuration.py
 
-The command checks that the operator password meets the configured policy and the workflow payload encryption key is a valid Fernet key. It prints only pass/fail diagnostics and never prints secret values. It also reports the configured runtime database path, but does not create the database or prove that the hosting filesystem is durable.
+The command checks that the operator password meets the configured policy and the workflow payload encryption key is a valid Fernet key. It prints only pass/fail diagnostics and never prints secret values. It also prints the configured runtime database path as a JSON-quoted string (control characters and non-ASCII characters are escaped) so a path cannot inject terminal/log lines. The path is still sensitive local filesystem metadata; keep preflight output in trusted operator channels. The command does not create the database or prove that the hosting filesystem is durable.
 
 - [ ] Run with both required secrets absent; expected non-zero exit and safe failure messages.
 - [ ] Run with valid staging-only secrets; expected zero exit and no secret values in output.
@@ -188,7 +196,7 @@ After creating a SQLite-aware backup, run the structural verifier against that b
 
     python tools/verify_workflow_backup.py /secure/backups/workflow-before-rotation.sqlite3
 
-The verifier opens the existing file in SQLite read-only mode. It checks SQLite integrity, required workflow tables/columns, record counts, and counts of fields using the versioned `enc:v1:` encryption prefix. It does not create a missing file or change the backup.
+The verifier opens the existing file in SQLite read-only mode. It checks SQLite integrity, required workflow tables/columns, record counts, and counts of fields using the versioned `enc:v1:` encryption prefix. It does not create a missing file or change the backup. The CLI JSON report omits the absolute local path so copied reports do not disclose host filesystem layout. The Python helper retains `backup_path` for compatibility; trusted in-process callers must treat that value as sensitive and must not publish it in shared logs or reports.
 
 - [ ] Confirm the verifier returns exit code 0 and `"verified": true`.
 - [ ] Confirm reported run/event counts are plausible for the isolated backup snapshot.
@@ -233,3 +241,67 @@ A new mocked-HTTP regression models the remote Notion page being committed while
 - [ ] In isolated staging, use a disposable run and verify the same recovery path against the real Notion API.
 - [ ] Record the fetched page ID and manifest hash as evidence; do not record integration tokens.
 - [ ] Remember that this reconciliation depends on the manifest hash being queryable and the target page being visible to the integration. It is recovery logic, not an atomic remote uniqueness constraint.
+
+
+## 17. Restore parent-directory trust and replacement races (added 2026-11-19)
+
+The restore operator now rejects a source or destination whose immediate parent path is a symlink or special file. It records the resolved source and destination parent directory identities and rechecks them across source verification, temporary-copy creation, SQLite open/copy, restore verification, publication, and post-publication verification. A parent replacement fails closed.
+
+On POSIX, the destination directory is opened with directory/no-follow flags and retained during the operation. Failure cleanup first checks file identity relative to that opened directory descriptor, so a parent pathname that is renamed/replaced does not redirect cleanup into a different directory. Path-based cleanup remains limited to the exact regular-file inode created by the invocation. The restore still refuses overwrite and never changes the source backup.
+
+- [ ] In isolated Linux staging, verify immediate source/destination parent symlinks are rejected before SQLite verification.
+- [ ] Verify a destination-parent replacement during restore fails closed, publishes no destination, and removes only the operation-owned temporary inode through the opened directory descriptor.
+- [ ] Verify a source-parent replacement is detected before source readback or destination publication.
+- [ ] Repeat on Windows and the actual managed host; POSIX directory descriptors, hard-link semantics and ACL behavior are not assumed portable.
+- [ ] Keep the destination directory owner-controlled and non-writable by untrusted principals. Inode checks are defense in depth, not a substitute for filesystem ownership, ACLs, mount policy or a trusted parent directory.
+
+
+### Batch 146 follow-up — source-parent and sidecar replacement race limits (2026-11-19)
+
+Additional synthetic tests move/replace the source parent immediately after the initial read-only backup verification and inject a WAL symlink after the initial sidecar preflight. The source-parent replacement is rejected before temporary restore creation; the WAL replacement is rejected by the verifier or subsequent sidecar identity check, leaves the external target unchanged, and publishes no destination.
+
+This is detection and fail-closed behavior, not an atomic guarantee that SQLite can never momentarily open a sidecar replaced in the interval between lstat and SQLite's path-based open. Keep source backup directories and their WAL/SHM namespace owner-controlled and non-writable by untrusted principals; stop writers before restore. Do not treat path checks as a substitute for trusted filesystem ownership, ACLs, mount policy, or platform-specific acceptance.
+
+
+### Batch 147 follow-up — cleanup after post-publication parent replacement (2026-11-19)
+
+A further synthetic race test replaces the destination parent after the published destination has passed its read-only verification but before the restore returns. The operation detects the changed parent identity and fails closed. The retained directory descriptor is used to remove both hard links belonging to this invocation (the published destination and temporary name) from the original moved directory; the replacement directory and source run/event state remain unchanged. This is Linux/POSIX CI evidence only; repeat on the actual managed host and Windows before relying on the behavior there.
+
+
+### Batch 147 — restore-owned SQLite sidecar cleanup (2026-11-19)
+
+The restore CLI now captures the inode identities of WAL/SHM sidecars created for its unique temporary restore path and newly published destination. It removes only those single-link regular sidecar inodes after verification, using the retained destination-directory descriptor on POSIX when available. On failure, it attempts the same identity-checked cleanup before removing the main temporary/published links. Pre-existing destination WAL/SHM paths are rejected; source sidecars are never removed.
+
+- [ ] Verify a successful WAL-aware restore leaves no operation-owned temporary or destination WAL/SHM sidecars.
+- [ ] Replace the destination parent after post-publication verification and confirm descriptor-anchored cleanup removes both owned main-file links and their WAL/SHM sidecars from the moved original directory.
+- [ ] If a sidecar path changes identity or is not a single-link regular file, fail closed and preserve the unowned object.
+- [ ] Repeat on Windows/managed hosting; POSIX directory descriptors and effective ACL behavior remain unverified there.
+
+
+### Batch 148 — Windows restore acceptance job (2026-11-19)
+
+The research-workflow-safety workflow now runs a Windows Server restore acceptance job on pull-request events. It executes the restore CLI and restore acceptance suites and compiles the restore/verifier tools. The two parent-directory replacement cleanup tests that require POSIX directory-descriptor-relative unlink are explicitly skipped on non-POSIX hosts; those protections remain covered by Ubuntu CI.
+
+This Windows job is evidence for the supported path-based restore flow and its functional readback on the GitHub-hosted Windows runner. It is not evidence for the user's managed host, effective ACLs, enterprise endpoint controls, directory ownership, or production backup durability. The POSIX dirfd cleanup guarantee must not be assumed on Windows; keep the restore parent owner-controlled and non-writable by untrusted principals.
+
+### Batch 150 — fail-closed cleanup and operator-visible recovery status (2026-11-21)
+
+The restore finalizer now treats cleanup as a separately verified outcome. If a POSIX directory descriptor is available, the cleanup helper never falls back to a pathname after descriptor-relative inspection or unlink fails. This prevents a replaced parent path from redirecting cleanup into a different directory. The finalizer checks whether any operation-owned main-file or captured WAL/SHM inode remains after cleanup. If cleanup cannot be confirmed, the CLI returns a generic path-free failure instructing the operator to inspect the owner-controlled destination directory before retrying.
+
+On hosts without a retained directory handle (including Windows), the finalizer revalidates the destination-parent identity before any path-based cleanup. If the parent changed, it skips path-based cleanup and reports cleanup as unconfirmed; an artifact in the moved original directory may require controlled operator cleanup. This is intentionally fail-closed and does not claim Windows or managed-host directory-handle safety.
+
+Functional regression coverage:
+- POSIX: inject a descriptor-relative unlink permission failure after moving the original parent and creating a same-inode alias under the replacement pathname. The helper must not fall back and unlink through the replacement pathname.
+- Cross-platform: inject a restore verification failure and prevent cleanup; the CLI must report that operation-owned artifacts could not be confirmed clean, preserve the leftover temporary file for operator inspection, and publish no destination.
+
+Acceptance limits: these are synthetic CI filesystem tests. They do not replace effective Windows/managed-host ACL, endpoint-security, mount/ownership or deployed-storage acceptance. No live research data, production backup, credential, key or deployment is touched.
+
+
+### Batch 151 — Windows path-based cleanup after destination-parent replacement (2026-11-22)
+
+Two Windows-only synthetic restore tests exercise the non-dirfd cleanup branch on the GitHub-hosted Windows runner:
+
+- Replace the destination parent after temporary-copy verification. The restore must fail closed, skip pathname cleanup after the parent identity changes, leave the operation-owned temporary file only in the moved original directory for controlled operator inspection, and leave the replacement directory untouched.
+- Replace the destination parent after publication verification. The restore must fail closed, preserve the two operation-owned hard links only in the moved original directory for controlled operator inspection, and leave the replacement directory untouched.
+
+These tests verify the documented Windows recovery behavior; they do not add a Windows directory-handle guarantee or make cleanup atomic. They use only temporary synthetic SQLite fixtures and remove their own artifacts during test teardown. The actual managed host's ACLs, endpoint policy, parent ownership, mount semantics, hosted persistence, and deployed restore remain separate acceptance gates.

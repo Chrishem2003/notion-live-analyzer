@@ -34,14 +34,62 @@ class EffectPreparation:
     state: str
     newly_prepared: bool
     result: Mapping[str, Any] | None = None
+    attempt: int = 1
 
 
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
+def _validate_attempt(attempt: int) -> int:
+    if isinstance(attempt, bool) or not isinstance(attempt, int) or attempt < 1:
+        raise ValueError("attempt must be a positive integer")
+    return attempt
+
+
+def _require_text(value: Any, field: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{field} must be a non-empty string")
+    try:
+        value.encode("utf-8")
+    except UnicodeEncodeError as exc:
+        raise ValueError(
+            f"{field} must contain valid Unicode scalar values"
+        ) from exc
+    return value
+
+
 def _canonical(value: Any) -> str:
-    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False)
+    """Serialize finite JSON only when it is valid UTF-8."""
+    try:
+        encoded = json.dumps(
+            value, sort_keys=True, separators=(",", ":"), ensure_ascii=False,
+            allow_nan=False,
+        ).encode("utf-8")
+    except (TypeError, ValueError, UnicodeError) as exc:
+        raise ValueError(
+            "effect journal values must be finite JSON with valid Unicode scalar values"
+        ) from exc
+    return encoded.decode("utf-8")
+
+
+def _decode_result_json(
+    stored_result: str | None, *, confirmed: bool
+) -> dict[str, Any] | None:
+    """Validate that persisted result data agrees with the effect state."""
+    if stored_result is None:
+        if confirmed:
+            raise EffectJournalError("confirmed effect is missing its recorded result")
+        return None
+    try:
+        decoded = json.loads(stored_result)
+    except (TypeError, ValueError) as exc:
+        raise EffectJournalError("stored effect result JSON is invalid") from exc
+    if not isinstance(decoded, dict):
+        raise EffectJournalError("stored effect result must be a JSON object")
+    if not confirmed:
+        raise EffectJournalError("unconfirmed effect unexpectedly contains a result")
+    return decoded
 
 
 def _connect(database: str | Path) -> sqlite3.Connection:
@@ -57,8 +105,9 @@ def _connect(database: str | Path) -> sqlite3.Connection:
 class EffectJournal:
     """Append-aware state journal for external actions, stored in SQLite.
 
-    States: pending -> confirmed, or pending -> uncertain. Uncertain/pending
-    records are never silently replayed. Reconciliation is an explicit operation.
+    States: pending -> confirmed, or pending -> uncertain. An explicit downstream
+    reconciliation that confirms absence grants one retry permit; prepare consumes
+    that permit atomically. Uncertain/pending records otherwise fail closed.
     """
 
     def __init__(self, database: str | Path):
@@ -75,10 +124,25 @@ class EffectJournal:
                     state TEXT NOT NULL CHECK(state IN ('pending', 'confirmed', 'uncertain')),
                     result_json TEXT,
                     created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL
+                    updated_at TEXT NOT NULL,
+                    reconciled INTEGER NOT NULL DEFAULT 0,
+                    attempt INTEGER NOT NULL DEFAULT 1
                 )
                 """
             )
+            columns = {
+                row["name"] for row in connection.execute("PRAGMA table_info(workflow_effects)").fetchall()
+            }
+            if "reconciled" not in columns:
+                # Additive migration: legacy rows receive reconciled=0 and remain fail-closed.
+                connection.execute(
+                    "ALTER TABLE workflow_effects ADD COLUMN reconciled INTEGER NOT NULL DEFAULT 0"
+                )
+            if "attempt" not in columns:
+                # Additive migration: legacy rows receive attempt=1 and remain fenced.
+                connection.execute(
+                    "ALTER TABLE workflow_effects ADD COLUMN attempt INTEGER NOT NULL DEFAULT 1"
+                )
             connection.execute(
                 "CREATE INDEX IF NOT EXISTS idx_workflow_effects_run ON workflow_effects(workflow_id, run_id)"
             )
@@ -89,8 +153,7 @@ class EffectJournal:
     ) -> EffectPreparation:
         for name, value in (("effect_key", effect_key), ("workflow_id", workflow_id),
                             ("run_id", run_id), ("effect_name", effect_name)):
-            if not isinstance(value, str) or not value.strip():
-                raise ValueError(f"{name} must be a non-empty string")
+            _require_text(value, name)
         if not isinstance(request, Mapping):
             raise ValueError("request must be a mapping")
         encoded = _canonical(request)
@@ -111,7 +174,7 @@ class EffectJournal:
                         (effect_key, workflow_id, run_id, effect_name, digest, now, now),
                     )
                     connection.execute("COMMIT")
-                    return EffectPreparation(effect_key, "pending", True)
+                    return EffectPreparation(effect_key, "pending", True, attempt=1)
                 identity_matches = (
                     existing["workflow_id"] == workflow_id
                     and existing["run_id"] == run_id
@@ -120,10 +183,34 @@ class EffectJournal:
                 )
                 if not identity_matches:
                     raise EffectIdentityConflict("effect key already exists for a different request identity")
-                result = json.loads(existing["result_json"]) if existing["result_json"] else None
+                result = _decode_result_json(
+                    existing["result_json"],
+                    confirmed=existing["state"] == "confirmed",
+                )
                 if existing["state"] == "confirmed":
                     connection.execute("COMMIT")
-                    return EffectPreparation(effect_key, "confirmed", False, result)
+                    return EffectPreparation(
+                        effect_key, "confirmed", False, result, attempt=int(existing["attempt"])
+                    )
+                if existing["state"] == "pending" and bool(existing["reconciled"]):
+                    # Consume the one-time permit granted by reconcile(confirmed=False).
+                    cursor = connection.execute(
+                        """UPDATE workflow_effects
+                        SET reconciled=0, attempt=attempt+1, updated_at=?
+                        WHERE effect_key=? AND state='pending' AND reconciled=1""",
+                        (now, effect_key),
+                    )
+                    if cursor.rowcount != 1:
+                        raise EffectOutcomeUnknown(
+                            f"effect {effect_key!r} retry permit was already consumed"
+                        )
+                    retry_row = connection.execute(
+                        "SELECT attempt FROM workflow_effects WHERE effect_key=?", (effect_key,)
+                    ).fetchone()
+                    connection.execute("COMMIT")
+                    return EffectPreparation(
+                        effect_key, "pending", True, attempt=int(retry_row["attempt"])
+                    )
                 connection.execute("COMMIT")
                 raise EffectOutcomeUnknown(
                     f"effect {effect_key!r} is {existing['state']}; reconcile with the downstream system before retrying"
@@ -133,60 +220,90 @@ class EffectJournal:
                     connection.execute("ROLLBACK")
                 raise
 
-    def confirm(self, effect_key: str, result: Mapping[str, Any]) -> None:
+    def confirm(self, effect_key: str, result: Mapping[str, Any], *, attempt: int) -> None:
+        """Confirm only the exact attempt that performed the external action."""
+        attempt = _validate_attempt(attempt)
+        if not isinstance(result, Mapping):
+            raise ValueError("effect result must be a mapping")
         encoded = _canonical(result)
         now = _now()
         with closing(_connect(self.database)) as connection:
             connection.execute("BEGIN IMMEDIATE")
             try:
                 row = connection.execute(
-                    "SELECT state, result_json FROM workflow_effects WHERE effect_key = ?", (effect_key,)
+                    "SELECT state, result_json, reconciled, attempt FROM workflow_effects WHERE effect_key = ?",
+                    (effect_key,),
                 ).fetchone()
                 if row is None:
                     raise EffectJournalError("cannot confirm an effect that was not prepared")
+                if int(row["attempt"]) != attempt:
+                    raise EffectOutcomeUnknown(
+                        "stale effect attempt cannot confirm a newer attempt"
+                    )
                 if row["state"] == "confirmed":
                     if row["result_json"] != encoded:
                         raise EffectIdentityConflict("confirmed effect cannot be overwritten with a different result")
                     connection.execute("COMMIT")
                     return
-                if row["state"] != "pending":
-                    raise EffectOutcomeUnknown("uncertain effect requires reconciliation before confirmation")
-                connection.execute(
-                    "UPDATE workflow_effects SET state='confirmed', result_json=?, updated_at=? WHERE effect_key=? AND state='pending'",
-                    (encoded, now, effect_key),
+                if row["state"] != "pending" or bool(row["reconciled"]):
+                    raise EffectOutcomeUnknown(
+                        "effect requires a fresh prepared attempt before confirmation"
+                    )
+                cursor = connection.execute(
+                    """UPDATE workflow_effects
+                    SET state='confirmed', result_json=?, updated_at=?
+                    WHERE effect_key=? AND state='pending' AND reconciled=0 AND attempt=?""",
+                    (encoded, now, effect_key, attempt),
                 )
+                if cursor.rowcount != 1:
+                    raise EffectOutcomeUnknown("effect attempt changed before confirmation")
                 connection.execute("COMMIT")
             except Exception:
                 if connection.in_transaction:
                     connection.execute("ROLLBACK")
                 raise
 
-    def mark_uncertain(self, effect_key: str) -> None:
+    def mark_uncertain(self, effect_key: str, *, attempt: int) -> None:
+        """Mark uncertainty only for the attempt that observed the ambiguous outcome."""
+        attempt = _validate_attempt(attempt)
         with closing(_connect(self.database)) as connection:
             connection.execute("BEGIN IMMEDIATE")
             try:
                 row = connection.execute(
-                    "SELECT state FROM workflow_effects WHERE effect_key = ?", (effect_key,)
+                    "SELECT state, attempt FROM workflow_effects WHERE effect_key = ?",
+                    (effect_key,),
                 ).fetchone()
                 if row is None:
                     raise EffectJournalError("cannot mark an effect that was not prepared")
+                if int(row["attempt"]) != attempt:
+                    raise EffectOutcomeUnknown(
+                        "stale effect attempt cannot change a newer attempt"
+                    )
                 if row["state"] == "confirmed":
                     connection.execute("COMMIT")
                     return
-                connection.execute(
-                    "UPDATE workflow_effects SET state='uncertain', updated_at=? WHERE effect_key=? AND state IN ('pending', 'uncertain')",
-                    (_now(), effect_key),
+                cursor = connection.execute(
+                    """UPDATE workflow_effects
+                    SET state='uncertain', reconciled=0, updated_at=?
+                    WHERE effect_key=? AND state IN ('pending', 'uncertain') AND attempt=?""",
+                    (_now(), effect_key, attempt),
                 )
+                if cursor.rowcount != 1:
+                    raise EffectOutcomeUnknown("effect attempt changed before uncertainty was recorded")
                 connection.execute("COMMIT")
             except Exception:
                 if connection.in_transaction:
                     connection.execute("ROLLBACK")
                 raise
 
-    def reconcile(self, effect_key: str, *, confirmed: bool, result: Mapping[str, Any] | None = None) -> None:
-        """Record a verified downstream lookup; never infer success from a timeout."""
+    def reconcile(
+        self, effect_key: str, *, attempt: int, confirmed: bool,
+        result: Mapping[str, Any] | None = None,
+    ) -> None:
+        """Record a verified downstream lookup for one exact attempt."""
+        attempt = _validate_attempt(attempt)
         if confirmed:
-            if result is None:
+            if not isinstance(result, Mapping):
                 raise ValueError("a verified result mapping is required when confirmed=True")
             encoded = _canonical(result)
             target = "confirmed"
@@ -197,24 +314,36 @@ class EffectJournal:
             connection.execute("BEGIN IMMEDIATE")
             try:
                 row = connection.execute(
-                    "SELECT state FROM workflow_effects WHERE effect_key = ?", (effect_key,)
+                    "SELECT state, attempt FROM workflow_effects WHERE effect_key = ?",
+                    (effect_key,),
                 ).fetchone()
                 if row is None:
                     raise EffectJournalError("cannot reconcile an effect that was not prepared")
+                if int(row["attempt"]) != attempt:
+                    raise EffectOutcomeUnknown(
+                        "stale reconciliation cannot change a newer effect attempt"
+                    )
                 if row["state"] == "confirmed":
                     if target != "confirmed":
                         raise EffectJournalError("confirmed effects cannot be reverted to pending")
                     existing = connection.execute(
-                        "SELECT result_json FROM workflow_effects WHERE effect_key = ?", (effect_key,)
+                        "SELECT result_json FROM workflow_effects WHERE effect_key = ?",
+                        (effect_key,),
                     ).fetchone()
                     if existing["result_json"] != encoded:
-                        raise EffectIdentityConflict("confirmed effect reconciliation cannot overwrite its recorded result")
+                        raise EffectIdentityConflict(
+                            "confirmed effect reconciliation cannot overwrite its recorded result"
+                        )
                     connection.execute("COMMIT")
                     return
-                connection.execute(
-                    "UPDATE workflow_effects SET state=?, result_json=?, updated_at=? WHERE effect_key=?",
-                    (target, encoded, _now(), effect_key),
+                cursor = connection.execute(
+                    """UPDATE workflow_effects
+                    SET state=?, result_json=?, reconciled=?, updated_at=?
+                    WHERE effect_key=? AND attempt=? AND state IN ('pending', 'uncertain')""",
+                    (target, encoded, 0 if confirmed else 1, _now(), effect_key, attempt),
                 )
+                if cursor.rowcount != 1:
+                    raise EffectOutcomeUnknown("effect attempt changed during reconciliation")
                 connection.execute("COMMIT")
             except Exception:
                 if connection.in_transaction:
@@ -229,7 +358,10 @@ class EffectJournal:
         if row is None:
             return None
         item = dict(row)
-        item["result"] = json.loads(item.pop("result_json")) if item.get("result_json") else None
+        stored_result = item.pop("result_json")
+        item["result"] = _decode_result_json(
+            stored_result, confirmed=item["state"] == "confirmed"
+        )
         return item
 
 
@@ -238,10 +370,11 @@ def execute_idempotent_effect(
     effect_name: str, request: Mapping[str, Any],
     perform: Callable[[str], Mapping[str, Any]],
 ) -> Mapping[str, Any]:
-    """Run a side effect once locally and pass the stable key to the provider.
+    """Run one fenced attempt and pass the stable key to the provider.
 
     The provider must deduplicate on effect_key to close the crash-after-effect
-    window. If the call raises, the outcome is treated as uncertain, not replayed.
+    window. Attempt fencing prevents a stale worker from changing the local journal
+    after a reconciled retry, but cannot cancel an already in-flight provider call.
     """
     prepared = journal.prepare(
         effect_key=effect_key, workflow_id=workflow_id, run_id=run_id,
@@ -255,8 +388,13 @@ def execute_idempotent_effect(
             raise TypeError("effect provider must return a mapping")
         # Validate serializability before confirming.
         _canonical(result)
-        journal.confirm(effect_key, result)
+        journal.confirm(effect_key, result, attempt=prepared.attempt)
         return result
     except Exception:
-        journal.mark_uncertain(effect_key)
+        try:
+            journal.mark_uncertain(effect_key, attempt=prepared.attempt)
+        except EffectOutcomeUnknown:
+            # A newer, reconciled attempt owns the row; a stale worker must not
+            # downgrade it while propagating its original provider/confirmation error.
+            pass
         raise

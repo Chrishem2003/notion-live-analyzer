@@ -31,6 +31,13 @@ def load_workflow_password(secrets: Mapping[str, Any] | None = None,
     value = secret_store.get("WORKFLOW_EXECUTION_PASSWORD")
     if not isinstance(value, str) or not value.strip():
         value = environment.get("WORKFLOW_EXECUTION_PASSWORD")
+    if isinstance(value, str):
+        try:
+            value.encode("utf-8")
+        except UnicodeEncodeError as exc:
+            raise WorkflowAccessConfigurationError(
+                "WORKFLOW_EXECUTION_PASSWORD must contain valid Unicode scalar values"
+            ) from exc
     if (
         not isinstance(value, str)
         or not value.strip()
@@ -48,7 +55,12 @@ def verify_workflow_password(candidate: str, expected: str) -> bool:
         return False
     if not candidate or not expected:
         return False
-    return hmac.compare_digest(candidate.encode("utf-8"), expected.encode("utf-8"))
+    try:
+        candidate_bytes = candidate.encode("utf-8")
+        expected_bytes = expected.encode("utf-8")
+    except UnicodeEncodeError:
+        return False
+    return hmac.compare_digest(candidate_bytes, expected_bytes)
 
 
 def is_workflow_session_valid(authenticated: bool, authenticated_at: Any,
@@ -62,8 +74,11 @@ def is_workflow_session_valid(authenticated: bool, authenticated_at: Any,
         return False
     if isinstance(ttl_seconds, bool) or not isinstance(ttl_seconds, int) or ttl_seconds < 1:
         return False
-    issued_at = float(authenticated_at)
-    current_time = float(now)
+    try:
+        issued_at = float(authenticated_at)
+        current_time = float(now)
+    except (OverflowError, ValueError):
+        return False
     if not math.isfinite(issued_at) or not math.isfinite(current_time):
         return False
     age = current_time - issued_at

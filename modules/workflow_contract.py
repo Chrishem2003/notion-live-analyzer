@@ -31,7 +31,14 @@ class WorkflowContractError(ValueError):
 def _require_text(value: Any, field: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise WorkflowContractError(f"{field} must be a non-empty string")
-    return value.strip()
+    normalized = value.strip()
+    try:
+        normalized.encode("utf-8")
+    except UnicodeEncodeError as exc:
+        raise WorkflowContractError(
+            f"{field} must contain valid Unicode scalar values"
+        ) from exc
+    return normalized
 
 
 def _validate_timestamp(value: str) -> str:

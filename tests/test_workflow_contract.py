@@ -70,6 +70,34 @@ class WorkflowContractTests(unittest.TestCase):
         self.assertEqual(first, idempotency_key("w1", "r1", "analysis.completed", "a" * 64))
         self.assertNotEqual(first, idempotency_key("w1", "r2", "analysis.completed", "a" * 64))
 
+    def test_event_identity_and_evidence_refs_reject_unpaired_surrogates(self):
+        invalid_fields = (
+            "event_id",
+            "idempotency_key",
+            "workflow_id",
+            "run_id",
+            "event_type",
+        )
+        for field in invalid_fields:
+            with self.subTest(field=field):
+                with self.assertRaisesRegex(
+                    WorkflowContractError, "valid Unicode scalar values"
+                ):
+                    WorkflowEvent.from_mapping(valid_event(**{field: "bad\ud800"}))
+
+        with self.assertRaisesRegex(
+            WorkflowContractError, "valid Unicode scalar values"
+        ):
+            WorkflowEvent.from_mapping(
+                valid_event(evidence_refs=["https://example.invalid/\ud800"])
+            )
+
+    def test_idempotency_key_rejects_unpaired_surrogate_as_contract_error(self):
+        with self.assertRaisesRegex(
+            WorkflowContractError, "valid Unicode scalar values"
+        ):
+            idempotency_key("project-\ud800", "run-1", "analysis.completed", "a" * 64)
+
     def test_terminal_status_cannot_be_rewritten(self):
         with self.assertRaisesRegex(WorkflowContractError, "terminal status"):
             validate_status_transition("succeeded", "failed")

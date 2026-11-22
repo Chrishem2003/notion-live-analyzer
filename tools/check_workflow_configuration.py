@@ -1,5 +1,6 @@
 """Non-mutating configuration preflight for the workflow execution console."""
 from __future__ import annotations
+import json
 import os
 import sys
 from modules.workflow_access import WorkflowAccessConfigurationError, load_workflow_password
@@ -21,7 +22,7 @@ def main() -> int:
         print("[FAIL] Payload encryption key missing or invalid.")
         failures += 1
     path = os.environ.get("WORKFLOW_RUNTIME_DB", ".streamlit/workflow_runtime.sqlite3")
-    print(f"[INFO] Runtime database path configured: {path}")
+    print(f"[INFO] Runtime database path configured: {json.dumps(path, ensure_ascii=True)}")
     print("[INFO] This preflight does not test staging delivery, identity, authorization, or recovery.")
     return 1 if failures else 0
 

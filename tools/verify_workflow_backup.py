@@ -13,9 +13,25 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from modules.workflow_store import IdempotencyConflict, _decode_stored_event
+
 
 class BackupVerificationError(RuntimeError):
     """Raised when a backup fails structural or SQLite integrity checks."""
+
+
+def _sqlite_type_affinity(declared_type: Any) -> str:
+    """Return SQLite's declared-type affinity using its documented precedence."""
+    value = str(declared_type or "").upper()
+    if "INT" in value:
+        return "INTEGER"
+    if any(token in value for token in ("CHAR", "CLOB", "TEXT")):
+        return "TEXT"
+    if value == "" or "BLOB" in value:
+        return "BLOB"
+    if any(token in value for token in ("REAL", "FLOA", "DOUB")):
+        return "REAL"
+    return "NUMERIC"
 
 
 def verify_workflow_backup(path: str | Path) -> dict[str, Any]:
@@ -52,13 +68,207 @@ def verify_workflow_backup(path: str | Path) -> dict[str, Any]:
         event_columns = {
             row["name"] for row in connection.execute("PRAGMA table_info(workflow_events)").fetchall()
         }
-        if not {"run_id", "input_json", "result_json", "error_message"}.issubset(run_columns):
-            raise BackupVerificationError("workflow_runs schema is incomplete")
-        if not {"event_id", "idempotency_key", "workflow_id", "run_id", "status"}.issubset(event_columns):
+        required_run_columns = {
+            "run_id", "workflow_id", "task_type", "status", "input_json",
+            "result_json", "error_message", "attempt", "max_attempts",
+            "created_at", "updated_at", "claimed_at",
+            "synthetic_only_confirmed", "result_integrity",
+        }
+        if not required_run_columns.issubset(run_columns):
+            raise BackupVerificationError(
+                "workflow_runs schema is incomplete or missing required integrity fields"
+            )
+
+        run_schema = connection.execute("PRAGMA table_info(workflow_runs)").fetchall()
+        run_info = {row["name"]: row for row in run_schema}
+        if (
+            run_info["run_id"]["pk"] != 1
+            or sum(int(row["pk"]) for row in run_schema) != 1
+            or str(run_info["run_id"]["type"]).upper() != "TEXT"
+        ):
+            raise BackupVerificationError(
+                "workflow_runs run_id must remain a TEXT primary key"
+            )
+
+        run_affinities = {
+            "run_id": "TEXT", "workflow_id": "TEXT", "task_type": "TEXT",
+            "status": "TEXT", "input_json": "TEXT", "result_json": "TEXT",
+            "error_message": "TEXT", "attempt": "INTEGER", "max_attempts": "INTEGER",
+            "created_at": "TEXT", "updated_at": "TEXT", "claimed_at": "TEXT",
+            "synthetic_only_confirmed": "INTEGER", "result_integrity": "TEXT",
+        }
+        for column, expected_affinity in run_affinities.items():
+            if _sqlite_type_affinity(run_info[column]["type"]) != expected_affinity:
+                raise BackupVerificationError(
+                    f"workflow_runs column {column} has invalid SQLite affinity"
+                )
+        required_run_not_null = {
+            "workflow_id", "task_type", "status", "input_json", "attempt",
+            "max_attempts", "created_at", "updated_at",
+            "synthetic_only_confirmed", "result_integrity",
+        }
+        if any(run_info[column]["notnull"] != 1 for column in required_run_not_null):
+            raise BackupVerificationError(
+                "workflow_runs required columns must remain NOT NULL"
+            )
+        nullable_run_columns = {"result_json", "error_message", "claimed_at"}
+        if any(run_info[column]["notnull"] != 0 for column in nullable_run_columns):
+            raise BackupVerificationError(
+                "workflow_runs optional columns must remain nullable"
+            )
+
+        invalid_integrity_count = int(connection.execute(
+            """
+            SELECT COUNT(*) FROM workflow_runs
+            WHERE result_integrity IS NULL
+               OR result_integrity NOT IN ('not_applicable', 'verified', 'legacy_unverified')
+            """
+        ).fetchone()[0])
+        if invalid_integrity_count:
+            raise BackupVerificationError(
+                "backup contains invalid workflow result-integrity markers"
+            )
+        result_integrity_counts = {
+            row["result_integrity"]: int(row["count"])
+            for row in connection.execute(
+                """
+                SELECT result_integrity, COUNT(*) AS count
+                FROM workflow_runs GROUP BY result_integrity
+                """
+            ).fetchall()
+        }
+
+        # Mirror the runtime's row-level contract without decrypting payloads.
+        # Historical rows retain the additive legacy_unverified marker; it is
+        # accepted where the runtime can safely classify the row on read.
+        invalid_run_state_count = int(connection.execute(
+            """
+            SELECT COUNT(*) FROM workflow_runs
+            WHERE run_id IS NULL OR typeof(run_id) != 'text' OR TRIM(run_id) = ''
+               OR status NOT IN ('queued', 'running', 'succeeded', 'failed')
+               OR input_json IS NULL
+               OR typeof(input_json) != 'text'
+               OR TRIM(input_json, char(9) || char(10) || char(11) || char(12) || char(13) || ' ') = ''
+               OR typeof(attempt) != 'integer'
+               OR typeof(max_attempts) != 'integer'
+               OR max_attempts < 1 OR max_attempts > 10
+               OR attempt < 0 OR attempt > max_attempts
+               OR typeof(synthetic_only_confirmed) != 'integer'
+               OR synthetic_only_confirmed NOT IN (0, 1)
+               OR (status = 'running' AND (
+                    claimed_at IS NULL OR typeof(claimed_at) != 'text' OR TRIM(claimed_at) = ''
+               ))
+               OR (status != 'running' AND claimed_at IS NOT NULL)
+               OR (status = 'succeeded' AND (
+                    (result_json IS NULL AND result_integrity != 'legacy_unverified')
+                    OR (result_json IS NOT NULL AND (
+                        typeof(result_json) != 'text'
+                        OR TRIM(result_json, char(9) || char(10) || char(11) || char(12) || char(13) || ' ') = ''
+                        OR result_integrity = 'not_applicable'
+                    ))
+                    OR error_message IS NOT NULL
+               ))
+               OR (status != 'succeeded' AND (
+                    result_json IS NOT NULL OR result_integrity = 'verified'
+               ))
+               OR (error_message IS NOT NULL AND (
+                    typeof(error_message) != 'text'
+                    OR TRIM(error_message, char(9) || char(10) || char(11) || char(12) || char(13) || ' ') = ''
+               ))
+               OR (status = 'failed' AND error_message IS NULL)
+            """
+        ).fetchone()[0])
+        if invalid_run_state_count:
+            raise BackupVerificationError(
+                "backup contains inconsistent workflow run state or result-integrity metadata"
+            )
+
+        required_event_columns = {
+            "sequence", "event_id", "idempotency_key", "workflow_id", "run_id",
+            "event_type", "stage", "status", "occurred_at", "payload_digest",
+            "event_json", "stored_at",
+        }
+        if not required_event_columns.issubset(event_columns):
             raise BackupVerificationError("workflow_events schema is incomplete")
 
+        event_schema = connection.execute("PRAGMA table_info(workflow_events)").fetchall()
+        event_info = {row["name"]: row for row in event_schema}
+        if (
+            event_info["sequence"]["pk"] != 1
+            or sum(int(row["pk"]) for row in event_schema) != 1
+        ):
+            raise BackupVerificationError(
+                "workflow_events sequence must remain the primary key"
+            )
+        if str(event_info["sequence"]["type"]).upper() != "INTEGER":
+            raise BackupVerificationError(
+                "workflow_events sequence must be declared INTEGER"
+            )
+        event_affinities = {
+            "sequence": "INTEGER", "event_id": "TEXT", "idempotency_key": "TEXT",
+            "workflow_id": "TEXT", "run_id": "TEXT", "event_type": "TEXT",
+            "stage": "TEXT", "status": "TEXT", "occurred_at": "TEXT",
+            "payload_digest": "TEXT", "event_json": "TEXT", "stored_at": "TEXT",
+        }
+        for column, expected_affinity in event_affinities.items():
+            if _sqlite_type_affinity(event_info[column]["type"]) != expected_affinity:
+                raise BackupVerificationError(
+                    f"workflow_events column {column} has invalid SQLite affinity"
+                )
+        required_event_not_null = required_event_columns - {"sequence"}
+        if any(event_info[column]["notnull"] != 1 for column in required_event_not_null):
+            raise BackupVerificationError(
+                "workflow_events required columns must remain NOT NULL"
+            )
+
+        unique_identity_columns: set[str] = set()
+        for index in connection.execute("PRAGMA index_list(workflow_events)").fetchall():
+            is_unique = int(index["unique"]) == 1
+            is_partial = int(index["partial"]) == 1 if "partial" in index.keys() else False
+            if not is_unique or is_partial:
+                continue
+            index_name = str(index["name"]).replace('"', '""')
+            indexed_columns = connection.execute(
+                f'PRAGMA index_info("{index_name}")'
+            ).fetchall()
+            names = [row["name"] for row in indexed_columns]
+            if len(names) == 1 and names[0] in {"event_id", "idempotency_key"}:
+                unique_identity_columns.add(names[0])
+        if unique_identity_columns != {"event_id", "idempotency_key"}:
+            raise BackupVerificationError(
+                "workflow_events is missing required unique identity indexes"
+            )
+
+        event_rows = connection.execute(
+            "SELECT * FROM workflow_events ORDER BY sequence"
+        ).fetchall()
+        for event_row in event_rows:
+            if (
+                type(event_row["sequence"]) is not int
+                or event_row["sequence"] < 1
+                or not isinstance(event_row["stored_at"], str)
+                or not event_row["stored_at"].strip()
+            ):
+                raise BackupVerificationError("backup contains invalid workflow event metadata")
+            try:
+                decoded_event = _decode_stored_event(event_row)
+            except IdempotencyConflict as exc:
+                raise BackupVerificationError(
+                    "backup contains invalid workflow event records"
+                ) from exc
+            canonical_event_json = json.dumps(
+                decoded_event.to_dict(),
+                sort_keys=True,
+                separators=(",", ":"),
+                ensure_ascii=False,
+            )
+            if event_row["event_json"] != canonical_event_json:
+                raise BackupVerificationError(
+                    "backup contains non-canonical workflow event JSON"
+                )
+
         run_count = int(connection.execute("SELECT COUNT(*) FROM workflow_runs").fetchone()[0])
-        event_count = int(connection.execute("SELECT COUNT(*) FROM workflow_events").fetchone()[0])
+        event_count = len(event_rows)
         encrypted_counts: dict[str, int] = {}
         for column in ("input_json", "result_json", "error_message"):
             encrypted_counts[column] = int(connection.execute(
@@ -70,10 +280,14 @@ def verify_workflow_backup(path: str | Path) -> dict[str, Any]:
             "sqlite_integrity": "ok",
             "workflow_runs": run_count,
             "workflow_events": event_count,
+            "result_integrity_counts": result_integrity_counts,
             "encrypted_payload_field_counts": encrypted_counts,
             "verification_scope": [
                 "read-only SQLite integrity check",
                 "required workflow table and column checks",
+                "workflow run status, payload storage classes, non-empty required fields, attempt, claim, attestation, and result-integrity consistency",
+                "workflow event contract, canonical JSON, and indexed-column consistency",
+                "event sequence primary key and unique idempotency constraints",
                 "record counts and versioned-encryption prefix counts",
             ],
             "limitations": [
@@ -102,7 +316,9 @@ def main() -> int:
     except BackupVerificationError as exc:
         print(json.dumps({"verified": False, "error": str(exc)}, sort_keys=True), file=sys.stderr)
         return 2
-    print(json.dumps(result, sort_keys=True, indent=2))
+    # CLI reports may be copied into tickets or logs; do not disclose host paths.
+    cli_report = {key: value for key, value in result.items() if key != "backup_path"}
+    print(json.dumps(cli_report, sort_keys=True, indent=2))
     return 0
 
 
