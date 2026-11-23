@@ -155,7 +155,7 @@ def test_smoke_does_not_automatically_retry_request_timeout():
             raise requests.Timeout("synthetic timeout")
 
     session = TimeoutSession([])
-    with pytest.raises(SmokeTestError, match="reuse the same --run-id"):
+    with pytest.raises(SmokeTestError, match="same --run-id"):
         _invoke(session)
     assert len(session.calls) == 1
 
