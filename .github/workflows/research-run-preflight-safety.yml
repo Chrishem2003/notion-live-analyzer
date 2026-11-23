@@ -21,6 +21,8 @@ on:
       - "modules/research_run_idempotency.py"
       - "tests/test_research_run_preflight.py"
       - "tests/test_research_run_idempotency.py"
+      - "scripts/research_run_staging_smoke.py"
+      - "tests/test_research_run_staging_smoke.py"
       - "docs/research-run-writeback.md"
       - ".github/workflows/research-run-preflight-safety.yml"
   workflow_dispatch:
@@ -46,14 +48,14 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install pytest requests
 
-      - name: Run preflight and idempotency regression tests
+      - name: Run preflight, idempotency and staging smoke regression tests
         run: |
           python -m pytest -q --confcutdir=tests \
             tests/test_research_run_preflight.py \
             tests/test_research_run_idempotency.py \
             tests/test_research_run_staging_smoke.py
 
-      - name: Compile preflight and idempotency modules
+      - name: Compile preflight, idempotency and staging smoke modules
         run: |
           python -m compileall -q \
             scripts/research_run_preflight.py \
