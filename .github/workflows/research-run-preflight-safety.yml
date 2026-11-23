@@ -9,6 +9,8 @@ on:
       - "modules/research_run_idempotency.py"
       - "tests/test_research_run_preflight.py"
       - "tests/test_research_run_idempotency.py"
+      - "scripts/research_run_staging_smoke.py"
+      - "tests/test_research_run_staging_smoke.py"
       - "docs/research-run-writeback.md"
       - ".github/workflows/research-run-preflight-safety.yml"
   pull_request:
@@ -48,10 +50,12 @@ jobs:
         run: |
           python -m pytest -q --confcutdir=tests \
             tests/test_research_run_preflight.py \
-            tests/test_research_run_idempotency.py
+            tests/test_research_run_idempotency.py \
+            tests/test_research_run_staging_smoke.py
 
       - name: Compile preflight and idempotency modules
         run: |
           python -m compileall -q \
             scripts/research_run_preflight.py \
-            modules/research_run_idempotency.py
+            modules/research_run_idempotency.py \
+            scripts/research_run_staging_smoke.py
