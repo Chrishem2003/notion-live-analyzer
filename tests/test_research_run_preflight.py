@@ -134,6 +134,10 @@ def test_preflight_checks_all_sources_and_relation_edges(tmp_path):
     assert len(session.calls) == 9
     assert all(call[1]["Notion-Version"] == "2025-09-03" for call in session.calls)
     assert Path(env["RESEARCH_RUN_IDEMPOTENCY_DB"]).exists()
+    assert result["ledger_path_configured"] is True
+    assert "idempotency_database" not in result
+    assert str(Path(env["RESEARCH_RUN_IDEMPOTENCY_DB"])) not in repr(result)
+    assert str(Path(env["RESEARCH_RUN_IDEMPOTENCY_DB"]).parent) not in repr(result)
 
 
 def test_preflight_fails_closed_on_cross_workspace_relation(tmp_path):
@@ -296,3 +300,32 @@ def test_preflight_requires_writable_and_searchable_parent_before_notion_request
     assert observed == [(str(database_path.parent), os.W_OK | os.X_OK)]
     assert session.calls == []
     assert not database_path.exists()
+
+
+
+@pytest.mark.skipif(os.name != "posix", reason="requires POSIX symlink support")
+def test_preflight_revalidates_ledger_parent_after_remote_schema_checks(tmp_path):
+    real_parent = tmp_path / "persistent"
+    replacement_parent = tmp_path / "replacement"
+    moved_parent = tmp_path / "persistent-moved"
+    real_parent.mkdir()
+    replacement_parent.mkdir()
+    env = env_for(tmp_path)
+    env["RESEARCH_RUN_IDEMPOTENCY_DB"] = str(real_parent / "runs.sqlite3")
+
+    class ReplacingSession(Session):
+        def get(self, url, headers, timeout):
+            response = super().get(url, headers, timeout)
+            if len(self.calls) == len(SOURCE_KEYS):
+                real_parent.rename(moved_parent)
+                real_parent.symlink_to(replacement_parent, target_is_directory=True)
+            return response
+
+    session = ReplacingSession(valid_schemas())
+
+    with pytest.raises(PreflightError, match="symlinks and special paths"):
+        run_preflight(env, session)
+
+    assert len(session.calls) == len(SOURCE_KEYS)
+    assert not (moved_parent / "runs.sqlite3").exists()
+    assert not (replacement_parent / "runs.sqlite3").exists()
