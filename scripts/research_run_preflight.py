@@ -267,6 +267,11 @@ def run_preflight(
 
     validate_relation_graph(schemas, env)
 
+    # Re-check after the remote schema round trips: the parent may have changed
+    # while Notion was being queried. This narrows, but does not eliminate, the
+    # namespace race; the parent must remain owner-controlled.
+    _validate_ledger_path(db_path)
+
     # Initialize/open the ledger to prove that the configured path is writable.
     from modules.research_run_idempotency import RunIdempotencyLedger
     RunIdempotencyLedger(str(db_path))
@@ -275,7 +280,7 @@ def run_preflight(
         "status": "ready_for_synthetic_staging",
         "data_sources_checked": len(source_keys),
         "relation_edges_checked": len(RELATIONS),
-        "idempotency_database": str(db_path),
+        "ledger_path_configured": True,
         "research_records_written": 0,
         "ledger_storage": "ephemeral_synthetic_staging_only" if is_ephemeral else "configured_persistent_path_not_independently_verified",
         "note": "This check does not prove API deployment reachability or multi-worker shared-storage semantics; never use an ephemeral ledger for real research.",
