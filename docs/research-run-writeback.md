@@ -168,3 +168,12 @@ This note supersedes the older free-tier paragraph above that says the blueprint
 ### Parent directory access requirement
 
 The preflight requires the existing ledger parent directory to be both writable and searchable (os.W_OK | os.X_OK) before any Notion schema request. Regression tests cover a symlink in an ancestor component and a parent that fails the combined access check; both must fail before HTTP calls or ledger creation.
+
+
+### Preflight path revalidation and diagnostic-output minimization
+
+After all nine Notion data-source schemas and the 23 relation edges are checked, the preflight revalidates the configured ledger parent and existing ledger file immediately before opening SQLite. This catches a parent symlink or special-path substitution that occurs during the remote schema requests. It narrows the time-of-check/time-of-use window but is not an atomic directory-handle guarantee; the parent must remain owner-controlled and managed-host ACL/mount acceptance is still required.
+
+Successful preflight output no longer prints the absolute idempotency database path. It reports only that a path was configured and the storage classification. Treat filesystem paths and mount layout as operational metadata; do not put them in shared logs or public diagnostics.
+
+Synthetic regression coverage replaces the ledger parent with a symlink during the ninth mocked schema request and confirms the final revalidation rejects it before SQLite creates a file in either the moved or replacement directory. A separate assertion verifies the successful result contains neither the absolute ledger path nor its parent.
