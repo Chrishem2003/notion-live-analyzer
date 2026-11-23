@@ -177,3 +177,10 @@ After all nine Notion data-source schemas and the 23 relation edges are checked,
 Successful preflight output no longer prints the absolute idempotency database path. It reports only that a path was configured and the storage classification. Treat filesystem paths and mount layout as operational metadata; do not put them in shared logs or public diagnostics.
 
 Synthetic regression coverage replaces the ledger parent with a symlink during the ninth mocked schema request and confirms the final revalidation rejects it before SQLite creates a file in either the moved or replacement directory. A separate assertion verifies the successful result contains neither the absolute ledger path nor its parent.
+
+
+### Synthetic staging smoke-runner failure-path contract
+
+The offline test suite for `scripts/research_run_staging_smoke.py` now exercises both the successful three-call sequence and fail-closed behavior: non-200 initial response, mismatched run ID, non-synthetic classification, retry returning a different page, changed-payload response other than HTTP 409, malformed JSON, request timeout without automatic retry, and the explicit `RESEARCH_RUN_SMOKE_CONFIRM_SYNTHETIC=true` execution gate. Fixtures use an in-memory fake HTTP session; no network request or Notion record is created by these tests.
+
+The focused preflight workflow includes the smoke-runner test module and compiles the runner. This verifies the acceptance harness contract only; it does not substitute for the owner-authorized live synthetic staging acceptance described above.
