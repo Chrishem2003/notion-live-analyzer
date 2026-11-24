@@ -63,6 +63,7 @@ def test_smoke_checks_create_retry_and_changed_payload_conflict():
     assert conflict_payload["run_id"] == first_payload["run_id"]
     assert conflict_payload["analysis_method"] != first_payload["analysis_method"]
     assert all(call[1]["headers"]["X-API-Key"] == "test-key" for call in session.calls)
+    assert all(call[1]["allow_redirects"] is False for call in session.calls)
     assert first_payload["input_sample_page_ids"] == []
     assert first_payload["input_data_record_page_ids"] == []
     assert first_payload["source_evidence_page_ids"] == []
@@ -163,3 +164,35 @@ def test_smoke_does_not_automatically_retry_request_timeout():
 def test_cli_requires_explicit_synthetic_confirmation_before_execution(monkeypatch):
     monkeypatch.delenv("RESEARCH_RUN_SMOKE_CONFIRM_SYNTHETIC", raising=False)
     assert main(["--execute", "--run-id", "smoke-run-001"]) == 2
+
+
+
+@pytest.mark.parametrize(
+    "base_url, message",
+    [
+        ("https://user:secret@staging.example.org", "embedded credentials"),
+        ("https://staging.example.org?token=synthetic", "query string or fragment"),
+        ("https://staging.example.org#section", "query string or fragment"),
+        ("https://staging.example.org:invalid", "invalid port"),
+    ],
+)
+def test_smoke_rejects_unsafe_base_url_without_sending_requests(base_url, message):
+    session = Session([])
+    with pytest.raises(SmokeTestError, match=message):
+        run_smoke(
+            base_url=base_url,
+            api_key="test-key",
+            project_page_id="project-page",
+            protocol_page_id="protocol-page",
+            run_id="smoke-run-001",
+            session=session,
+        )
+    assert session.calls == []
+
+
+def test_smoke_rejects_redirect_without_forwarding_api_key():
+    session = Session([Response(307, {"location": "https://other.example.net/collect"})])
+    with pytest.raises(SmokeTestError, match="redirect rejected"):
+        _invoke(session)
+    assert len(session.calls) == 1
+    assert session.calls[0][1]["allow_redirects"] is False
