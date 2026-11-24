@@ -191,3 +191,9 @@ The focused preflight workflow includes the smoke-runner test module and compile
 The staging smoke runner treats its configured API URL as an explicit trust boundary. It requires an absolute HTTPS URL, rejects embedded URL credentials, query strings, fragments and malformed ports, and sends every request with automatic redirects disabled. Any 3xx response fails closed before a second request is made. This prevents the runner's custom `X-API-Key` header from being forwarded by an HTTP client to a redirect destination.
 
 The offline contract tests cover credential-bearing URLs, query/fragment URLs, invalid ports, redirect rejection, and the `allow_redirects=false` request option on the normal three-call synthetic sequence. These tests use a fake session and do not contact staging. They do not prove DNS ownership, TLS certificate policy, network egress restrictions, or the actual deployed API endpoint; those remain part of owner-authorized staging acceptance.
+
+### Service API-key authentication contract
+
+The research-run route uses a dependency-free service API-key verifier. An unset server key fails closed as service-unavailable; a missing or mismatched client key is unauthorized; an exact match is checked with `hmac.compare_digest`. Unsupported string encodings are treated as an invalid key rather than an unhandled comparison error. The FastAPI dependency maps these verifier outcomes to the existing HTTP 503 and 401 responses.
+
+Focused synthetic tests exercise an unconfigured server key, missing/empty client key, wrong key, non-ASCII input, and the constant-time comparison call. They do not require live credentials or call Notion. Host/Origin allowlisting and trusted-proxy forwarded-header policy remain intentionally unconfigured until the owner supplies the approved hostnames and proxy topology; do not infer or trust forwarded headers from a request.
