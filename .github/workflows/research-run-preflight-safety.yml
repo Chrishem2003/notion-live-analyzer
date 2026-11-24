@@ -59,7 +59,7 @@ jobs:
           python -m pytest -q --confcutdir=tests \
             tests/test_research_run_preflight.py \
             tests/test_research_run_idempotency.py \
-            tests/test_research_run_staging_smoke.py
+            tests/test_research_run_staging_smoke.py \
             tests/test_service_api_auth.py
 
       - name: Compile preflight, idempotency and staging smoke modules
@@ -67,6 +67,6 @@ jobs:
           python -m compileall -q \
             scripts/research_run_preflight.py \
             modules/research_run_idempotency.py \
-            scripts/research_run_staging_smoke.py
+            scripts/research_run_staging_smoke.py \
             api_server.py \
             modules/service_api_auth.py
