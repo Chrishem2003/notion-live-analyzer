@@ -28,6 +28,12 @@ from typing import Optional
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, WebSocket, WebSocketDisconnect, status
 from pydantic import BaseModel, Field, validator
 
+from modules.service_api_auth import (
+    APIKeyNotConfiguredError,
+    InvalidAPIKeyError,
+    verify_service_api_key,
+)
+
 from celery_app import celery_app
 from celery.result import AsyncResult
 from chat_auth import verify_chat_token, ChatAuthError
@@ -68,14 +74,18 @@ app.include_router(shared_ai_router)
 
 
 def require_api_key(x_api_key: Optional[str] = Header(None)):
-    if not API_KEY:
+    try:
+        return verify_service_api_key(API_KEY, x_api_key)
+    except APIKeyNotConfiguredError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="PLATFORM_API_KEY is not configured on the server — API is disabled until it is set.",
-        )
-    if not x_api_key or not hmac.compare_digest(x_api_key, API_KEY):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or missing X-API-Key header.")
-    return True
+        ) from exc
+    except InvalidAPIKeyError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or missing X-API-Key header.",
+        ) from exc
 
 
 class ResearchRunWriteRequest(BaseModel):
