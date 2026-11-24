@@ -45,7 +45,7 @@ def build_payload(run_id: str, project_page_id: str, protocol_page_id: str) -> D
 
 def _post(session: Any, endpoint: str, api_key: str, payload: Dict[str, Any]):
     try:
-        return session.post(
+        response = session.post(
             endpoint,
             json=payload,
             headers={
@@ -54,7 +54,13 @@ def _post(session: Any, endpoint: str, api_key: str, payload: Dict[str, Any]):
                 "Content-Type": "application/json",
             },
             timeout=90,
+            allow_redirects=False,
         )
+        if 300 <= response.status_code < 400:
+            raise SmokeTestError(
+                "API redirect rejected; refusing to forward the service API key to another location."
+            )
+        return response
     except requests.RequestException as exc:
         raise SmokeTestError(
             f"API request failed ({type(exc).__name__}). Re-run only with the same --run-id to reconcile safely."
@@ -81,8 +87,16 @@ def run_smoke(
     session: Optional[Any] = None,
 ) -> Dict[str, Any]:
     parsed = urlparse(base_url.strip())
-    if parsed.scheme != "https" or not parsed.netloc:
+    if parsed.scheme != "https" or not parsed.hostname:
         raise SmokeTestError("The staging API URL must be an absolute HTTPS URL.")
+    if parsed.username is not None or parsed.password is not None:
+        raise SmokeTestError("The staging API URL must not contain embedded credentials.")
+    if parsed.query or parsed.fragment:
+        raise SmokeTestError("The staging API URL must not contain a query string or fragment.")
+    try:
+        parsed.port
+    except ValueError as exc:
+        raise SmokeTestError("The staging API URL has an invalid port.") from exc
     if not api_key.strip():
         raise SmokeTestError("PLATFORM_API_KEY is missing.")
     payload = build_payload(run_id, project_page_id, protocol_page_id)
