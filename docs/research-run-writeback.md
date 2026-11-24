@@ -184,3 +184,10 @@ Synthetic regression coverage replaces the ledger parent with a symlink during t
 The offline test suite for `scripts/research_run_staging_smoke.py` now exercises both the successful three-call sequence and fail-closed behavior: non-200 initial response, mismatched run ID, non-synthetic classification, retry returning a different page, changed-payload response other than HTTP 409, malformed JSON, request timeout without automatic retry, and the explicit `RESEARCH_RUN_SMOKE_CONFIRM_SYNTHETIC=true` execution gate. Fixtures use an in-memory fake HTTP session; no network request or Notion record is created by these tests.
 
 The focused preflight workflow includes the smoke-runner test module and compiles the runner. This verifies the acceptance harness contract only; it does not substitute for the owner-authorized live synthetic staging acceptance described above.
+
+
+### Synthetic smoke-runner transport boundary
+
+The staging smoke runner treats its configured API URL as an explicit trust boundary. It requires an absolute HTTPS URL, rejects embedded URL credentials, query strings, fragments and malformed ports, and sends every request with automatic redirects disabled. Any 3xx response fails closed before a second request is made. This prevents the runner's custom `X-API-Key` header from being forwarded by an HTTP client to a redirect destination.
+
+The offline contract tests cover credential-bearing URLs, query/fragment URLs, invalid ports, redirect rejection, and the `allow_redirects=false` request option on the normal three-call synthetic sequence. These tests use a fake session and do not contact staging. They do not prove DNS ownership, TLS certificate policy, network egress restrictions, or the actual deployed API endpoint; those remain part of owner-authorized staging acceptance.
