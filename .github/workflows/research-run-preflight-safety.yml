@@ -6,6 +6,9 @@ on:
       - feat/research-run-preflight-path-hardening-20261122
     paths:
       - "scripts/research_run_preflight.py"
+      - "api_server.py"
+      - "modules/service_api_auth.py"
+      - "tests/test_service_api_auth.py"
       - "modules/research_run_idempotency.py"
       - "tests/test_research_run_preflight.py"
       - "tests/test_research_run_idempotency.py"
@@ -18,6 +21,9 @@ on:
       - feat/shared-ai-gateway-rebase-oct25
     paths:
       - "scripts/research_run_preflight.py"
+      - "api_server.py"
+      - "modules/service_api_auth.py"
+      - "tests/test_service_api_auth.py"
       - "modules/research_run_idempotency.py"
       - "tests/test_research_run_preflight.py"
       - "tests/test_research_run_idempotency.py"
@@ -54,6 +60,7 @@ jobs:
             tests/test_research_run_preflight.py \
             tests/test_research_run_idempotency.py \
             tests/test_research_run_staging_smoke.py
+            tests/test_service_api_auth.py
 
       - name: Compile preflight, idempotency and staging smoke modules
         run: |
@@ -61,3 +68,5 @@ jobs:
             scripts/research_run_preflight.py \
             modules/research_run_idempotency.py \
             scripts/research_run_staging_smoke.py
+            api_server.py \
+            modules/service_api_auth.py
