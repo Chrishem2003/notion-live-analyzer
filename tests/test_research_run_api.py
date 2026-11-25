@@ -29,6 +29,9 @@ def api(monkeypatch, tmp_path):
         "NOTION_LITERATURE_DATA_SOURCE_ID": "private-literature",
         "RESEARCH_RUN_IDEMPOTENCY_DB": str(tmp_path / "runs.sqlite3"),
         "RESEARCH_RUN_ALLOW_EPHEMERAL_LEDGER": "true",
+        # Enable the endpoint path only in this isolated fixture; every test that
+        # reaches persistence mocks the adapter/ledger or fails before external I/O.
+        "RESEARCH_RUN_WRITEBACK_ENABLED": "true",
     }
     for key, value in required.items():
         monkeypatch.setenv(key, value)
