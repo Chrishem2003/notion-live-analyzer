@@ -402,3 +402,33 @@ def test_endpoint_rejects_protocol_not_linked_to_selected_project(api, monkeypat
     )
     assert response.status_code == 422
     assert "Protocol → Project" in response.json()["detail"]
+
+def test_endpoint_rejects_wrong_api_key_without_echoing_credentials(api):
+    _, client, _ = api
+    supplied_key = "wrong-synthetic-key-never-echo"
+    response = client.post(
+        "/api/v1/research-runs",
+        headers={"X-API-Key": supplied_key},
+        json=request_payload(),
+    )
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Invalid or missing X-API-Key header."
+    assert supplied_key not in response.text
+    assert "test-platform-key" not in response.text
+
+
+def test_endpoint_fails_closed_when_server_api_key_is_unconfigured(api, monkeypatch):
+    api_server, client, _ = api
+    monkeypatch.setattr(api_server, "API_KEY", None)
+
+    response = client.post(
+        "/api/v1/research-runs",
+        headers={"X-API-Key": "test-platform-key"},
+        json=request_payload(),
+    )
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == (
+        "PLATFORM_API_KEY is not configured on the server — API is disabled until it is set."
+    )
+    assert "test-platform-key" not in response.text
