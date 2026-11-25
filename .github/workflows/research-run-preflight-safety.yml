@@ -26,6 +26,8 @@ on:
       - "api_server.py"
       - "modules/service_api_auth.py"
       - "tests/test_service_api_auth.py"
+      - "tests/test_research_run_api.py"
+      - "requirements-api.txt"
       - "modules/research_run_idempotency.py"
       - "tests/test_research_run_preflight.py"
       - "tests/test_research_run_idempotency.py"
