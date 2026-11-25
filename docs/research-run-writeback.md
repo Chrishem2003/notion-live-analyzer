@@ -197,3 +197,14 @@ The offline contract tests cover credential-bearing URLs, query/fragment URLs, i
 The research-run route uses a dependency-free service API-key verifier. An unset server key fails closed as service-unavailable; a missing or mismatched client key is unauthorized; an exact match is checked with `hmac.compare_digest`. Unsupported string encodings are treated as an invalid key rather than an unhandled comparison error. The FastAPI dependency maps these verifier outcomes to the existing HTTP 503 and 401 responses.
 
 Focused synthetic tests exercise an unconfigured server key, missing/empty client key, wrong key, non-ASCII input, and the constant-time comparison call. They do not require live credentials or call Notion. Host/Origin allowlisting and trusted-proxy forwarded-header policy remain intentionally unconfigured until the owner supplies the approved hostnames and proxy topology; do not infer or trust forwarded headers from a request.
+
+## API route authentication contract — 2026-11-25
+
+The focused safety workflow now has a separate `api-auth-contract` job that installs the dedicated API runtime dependencies from `requirements-api.txt` and runs the actual FastAPI research-run endpoint contract suite. This is separate from the dependency-light verifier tests so route-level HTTP behavior is tested without importing the full API into the minimal preflight job.
+
+The endpoint suite includes explicit negative-path checks for:
+- missing `X-API-Key` (HTTP 401);
+- incorrect synthetic `X-API-Key` (HTTP 401, and neither the supplied nor configured test key is echoed);
+- unconfigured server `PLATFORM_API_KEY` (HTTP 503, and the supplied synthetic key is not echoed).
+
+The tests keep write-back disabled, use synthetic keys and fixture-only configuration, and do not make live Notion requests. They verify the route's FastAPI dependency mapping; they do not verify the deployed proxy/Host policy, live secret configuration, DNS/TLS ownership, or staging authentication. Host/Origin and forwarded-header policy remains blocked until the owner supplies the approved hostnames and proxy topology.
