@@ -9,6 +9,8 @@ on:
       - "api_server.py"
       - "modules/service_api_auth.py"
       - "tests/test_service_api_auth.py"
+      - "tests/test_research_run_api.py"
+      - "requirements-api.txt"
       - "modules/research_run_idempotency.py"
       - "tests/test_research_run_preflight.py"
       - "tests/test_research_run_idempotency.py"
@@ -70,3 +72,28 @@ jobs:
             scripts/research_run_staging_smoke.py \
             api_server.py \
             modules/service_api_auth.py
+
+  api-auth-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install API runtime and test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-api.txt pytest
+
+      - name: Run research-run API authentication and safety contract tests
+        run: |
+          python -m pytest -q --confcutdir=tests tests/test_research_run_api.py
+
+      - name: Compile API and authentication contracts
+        run: |
+          python -m compileall -q api_server.py modules/service_api_auth.py tests/test_research_run_api.py
