@@ -207,4 +207,7 @@ The endpoint suite includes explicit negative-path checks for:
 - incorrect synthetic `X-API-Key` (HTTP 401, and neither the supplied nor configured test key is echoed);
 - unconfigured server `PLATFORM_API_KEY` (HTTP 503, and the supplied synthetic key is not echoed).
 
-The tests keep write-back disabled, use synthetic keys and fixture-only configuration, and do not make live Notion requests. They verify the route's FastAPI dependency mapping; they do not verify the deployed proxy/Host policy, live secret configuration, DNS/TLS ownership, or staging authentication. Host/Origin and forwarded-header policy remains blocked until the owner supplies the approved hostnames and proxy topology.
+The tests use synthetic keys and fixture-only configuration. The pytest fixture enables `RESEARCH_RUN_WRITEBACK_ENABLED=true` only to reach the endpoint logic; every test that reaches persistence replaces the adapter/ledger with fakes, while failure-path tests stop before external I/O. No live Notion requests or real credentials are used. They verify the route's FastAPI dependency mapping; they do not verify the deployed proxy/Host policy, live secret configuration, DNS/TLS ownership, or staging authentication. Host/Origin and forwarded-header policy remains blocked until the owner supplies the approved hostnames and proxy topology.
+
+
+The first API-contract workflow run exposed that the shared test fixture did not set `RESEARCH_RUN_WRITEBACK_ENABLED`, so several pre-existing endpoint tests stopped at the safe-mode gate before exercising their intended validation paths. The fixture now enables that flag only for the isolated test process; persistence-reaching tests use fake adapters/ledgers. This is a test-fixture correction, not a deployment/environment change.
