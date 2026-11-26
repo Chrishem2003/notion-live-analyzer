@@ -12,7 +12,8 @@ from typing import Optional
 from uuid import UUID
 
 import requests
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
+from modules.http_header_contracts import require_single_raw_header
 from pydantic import BaseModel, Field, validator
 
 from platform_jobs.repository import JobConflict, JobStoreUnavailable, SupabaseJobRepository
@@ -35,12 +36,21 @@ def _quota_limit() -> int:
     return value
 
 
-def _verified_user(authorization: Optional[str] = Header(default=None)) -> dict[str, str]:
+def _verified_user(
+    request: Request,
+    authorization: Optional[str] = Header(default=None),
+) -> dict[str, str]:
     if not _enabled():
         raise HTTPException(status_code=503, detail="Per-user job API is disabled.")
-    if not authorization or not authorization.startswith("Bearer "):
+    raw_authorization = require_single_raw_header(
+        request,
+        "Authorization",
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Missing bearer token.",
+    )
+    if raw_authorization != authorization or not raw_authorization.startswith("Bearer "):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing bearer token.")
-    token = authorization[7:].strip()
+    token = raw_authorization[7:].strip()
     base_url = os.environ.get("SUPABASE_URL", "").strip().rstrip("/")
     public_key = (os.environ.get("SUPABASE_PUBLISHABLE_KEY") or os.environ.get("SUPABASE_ANON_KEY") or "").strip()
     if not base_url.startswith("https://") or not public_key:
@@ -99,10 +109,19 @@ class UserJobCreateRequest(BaseModel):
 
 @router.post("", status_code=202)
 def create_user_job(
+    request: Request,
     payload: UserJobCreateRequest,
     idempotency_key: str = Header(..., alias="Idempotency-Key", min_length=1, max_length=200),
     user: dict[str, str] = Depends(_verified_user),
 ):
+    raw_idempotency_key = require_single_raw_header(
+        request,
+        "Idempotency-Key",
+        status_code=400,
+        detail="Exactly one Idempotency-Key header is required.",
+    )
+    if raw_idempotency_key != idempotency_key:
+        raise HTTPException(status_code=400, detail="Exactly one Idempotency-Key header is required.")
     if payload.job_type != "intelligence.solve":
         raise HTTPException(status_code=422, detail="Unsupported job type.")
     if not re.fullmatch(r"[A-Za-z0-9._:-]{1,200}", idempotency_key):
