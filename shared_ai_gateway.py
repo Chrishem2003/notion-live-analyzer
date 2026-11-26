@@ -153,8 +153,11 @@ def require_user(authorization: Optional[str] = Header(default=None)) -> str:
             f"{base_url}/auth/v1/user",
             headers={"apikey": publishable_key, "Authorization": f"Bearer {token}"},
             timeout=5.0,
+            allow_redirects=False,
         )
     except requests.RequestException:
+        raise HTTPException(status_code=503, detail="User identity service is temporarily unavailable.")
+    if 300 <= response.status_code < 400:
         raise HTTPException(status_code=503, detail="User identity service is temporarily unavailable.")
     if response.status_code in (401, 403):
         raise HTTPException(status_code=401, detail="User token is invalid or expired.")
@@ -228,7 +231,10 @@ def _consume_rate_limit(actor: str) -> None:
                 },
                 json={"p_actor_hash": actor_hash, "p_limit": limit},
                 timeout=5.0,
+                allow_redirects=False,
             )
+            if 300 <= response.status_code < 400:
+                raise ValueError("Supabase rate-limit RPC returned an unexpected redirect.")
             if response.status_code != 200:
                 raise ValueError("Supabase rate-limit RPC rejected the request.")
             raw_count = response.json()
