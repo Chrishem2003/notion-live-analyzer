@@ -33,6 +33,7 @@ from modules.service_api_auth import (
     InvalidAPIKeyError,
     verify_service_api_key,
 )
+from modules.http_header_contracts import require_single_raw_header
 
 from celery_app import celery_app
 from celery.result import AsyncResult
@@ -423,8 +424,21 @@ def verify_github_signature(raw_body: bytes, signature_header: Optional[str]) ->
 
 @app.post("/api/v1/webhooks/github")
 async def github_webhook(request: Request, x_hub_signature_256: Optional[str] = Header(None)):
+    raw_signature = require_single_raw_header(
+        request,
+        "X-Hub-Signature-256",
+        status_code=401,
+        detail="Invalid webhook signature.",
+    )
+    if raw_signature != x_hub_signature_256:
+        raise HTTPException(status_code=401, detail="Invalid webhook signature.")
+
+    event_values = request.headers.getlist("X-GitHub-Event")
+    if len(event_values) > 1:
+        raise HTTPException(status_code=400, detail="Ambiguous GitHub event header.")
+
     raw_body = await read_limited_webhook_body(request)
-    if not verify_github_signature(raw_body, x_hub_signature_256):
+    if not verify_github_signature(raw_body, raw_signature):
         raise HTTPException(status_code=401, detail="Invalid webhook signature.")
 
     try:
@@ -433,7 +447,7 @@ async def github_webhook(request: Request, x_hub_signature_256: Optional[str] = 
         raise HTTPException(status_code=400, detail="Webhook payload must be valid JSON.")
     if not isinstance(payload, dict):
         raise HTTPException(status_code=400, detail="Webhook payload must be a JSON object.")
-    event_type = request.headers.get("X-GitHub-Event", "unknown")
+    event_type = event_values[0] if event_values else "unknown"
 
     # Real routing example: a push event to a papers/ or data/ directory
     # triggers a RAG ingestion job instead of just being logged and discarded.
