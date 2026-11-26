@@ -10,6 +10,20 @@ on:
       - "modules/service_api_auth.py"
       - "tests/test_service_api_auth.py"
       - "tests/test_research_run_api.py"
+      - "tests/test_credentialed_http_redirects.py"
+      - "modules/research_run_adapter.py"
+      - "modules/research_run_client.py"
+      - "platform_jobs/repository.py"
+      - "platform_jobs/user_api.py"
+      - "nema_agora/supabase_repository.py"
+      - "shared_ai_gateway.py"
+      - "tests/test_credentialed_http_redirects.py"
+      - "modules/research_run_adapter.py"
+      - "modules/research_run_client.py"
+      - "platform_jobs/repository.py"
+      - "platform_jobs/user_api.py"
+      - "nema_agora/supabase_repository.py"
+      - "shared_ai_gateway.py"
       - "requirements-api.txt"
       - "modules/research_run_idempotency.py"
       - "tests/test_research_run_preflight.py"
@@ -94,8 +108,8 @@ jobs:
 
       - name: Run research-run API authentication and safety contract tests
         run: |
-          python -m pytest -q --confcutdir=tests tests/test_research_run_api.py
+          python -m pytest -q --confcutdir=tests tests/test_research_run_api.py tests/test_credentialed_http_redirects.py
 
       - name: Compile API and authentication contracts
         run: |
-          python -m compileall -q api_server.py modules/service_api_auth.py tests/test_research_run_api.py
+          python -m compileall -q api_server.py modules/service_api_auth.py tests/test_research_run_api.py scripts/research_run_preflight.py modules/research_run_adapter.py modules/research_run_client.py platform_jobs/repository.py platform_jobs/user_api.py nema_agora/supabase_repository.py shared_ai_gateway.py tests/test_credentialed_http_redirects.py
