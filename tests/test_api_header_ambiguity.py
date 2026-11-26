@@ -208,3 +208,37 @@ def test_websocket_routes_reject_duplicate_token_query_values(api_client, monkey
 
     assert disconnect is not None, "WebSocket should close before accepting an ambiguous token."
     assert disconnect.code == 4401
+
+
+
+@pytest.mark.parametrize(
+    ("query", "expected_detail"),
+    [
+        (
+            "email=alice%40example.invalid&email=bob%40example.invalid",
+            "Exactly one email query parameter is required.",
+        ),
+        (
+            "email=alice%40example.invalid&ttl_seconds=60&ttl_seconds=900",
+            "At most one ttl_seconds query parameter is allowed.",
+        ),
+    ],
+)
+def test_legacy_chat_token_issuer_rejects_duplicate_query_fields(api_client, monkeypatch, query, expected_detail):
+    _, client = api_client
+    monkeypatch.setenv("SHARED_AI_LEGACY_EMAIL_TOKEN_ISSUER_ENABLED", "true")
+    import chat_auth
+
+    def unexpected_token_issue(*args, **kwargs):
+        pytest.fail("Token issuance must not run when identity/TTL query fields are duplicated.")
+
+    monkeypatch.setattr(chat_auth, "issue_chat_token", unexpected_token_issue)
+    response = client.post(
+        "/api/v1/chat/token?" + query,
+        headers={"X-API-Key": "synthetic-platform-key"},
+    )
+
+    assert response.status_code == 400, response.text
+    assert response.json()["detail"] == expected_detail
+    assert "alice@example.invalid" not in response.text
+    assert "bob@example.invalid" not in response.text
