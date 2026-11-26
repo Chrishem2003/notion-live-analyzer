@@ -261,3 +261,12 @@ All three WebSocket routes now inspect `websocket.query_params.getlist("token")`
 Three route-level TestClient WebSocket cases use repeated identical synthetic tokens and patch token verification to fail if called. They verify that ambiguous tokens are rejected before authentication or any chat/document/meeting backend is touched.
 
 This does not remove the existing query-token design or prevent tokens from appearing in URL/access logs; it only rejects repeated query fields. A future transport review should assess moving WebSocket authentication to a short-lived, single-use handshake ticket or another owner-approved mechanism. No real token or live WebSocket session was used.
+
+
+## Legacy chat-token issuer query ambiguity — 2026-11-26
+
+The remaining identity-bearing query audit found that the service-key-protected legacy chat-token issuer accepted scalar `email` and `ttl_seconds` query parameters without checking for repeated values. Although the issuer is disabled by default, a controlled environment that explicitly enables it should not rely on ambiguous query selection.
+
+The route now requires exactly one `email` query value and allows at most one `ttl_seconds` value before checking the legacy-issuer enable flag. Duplicate identity/TTL fields return HTTP 400 without invoking token issuance. Two synthetic route-level tests patch `chat_auth.issue_chat_token` to fail if called, proving the rejection occurs first.
+
+This does not change the default disabled state, issue any real token, or prove Host/proxy/ingress behavior. The legacy email issuer still cannot independently establish which human is authenticated; keep it disabled until a separate approved identity migration.
