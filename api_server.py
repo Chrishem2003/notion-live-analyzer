@@ -73,7 +73,18 @@ from shared_ai_gateway import router as shared_ai_router
 app.include_router(shared_ai_router)
 
 
-def require_api_key(x_api_key: Optional[str] = Header(None)):
+def require_api_key(
+    request: Request,
+    x_api_key: Optional[str] = Header(None),
+):
+    # Multiple X-API-Key fields are ambiguous across proxies and HTTP stacks.
+    # Reject them before comparing so different intermediaries cannot choose
+    # different credentials for the same request.
+    if len(request.headers.getlist("x-api-key")) != 1:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or missing X-API-Key header.",
+        )
     try:
         return verify_service_api_key(API_KEY, x_api_key)
     except APIKeyNotConfiguredError as exc:
