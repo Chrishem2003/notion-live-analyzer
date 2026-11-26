@@ -19,7 +19,8 @@ import requests
 import redis
 from typing import Any, Literal, Optional
 
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, Header, HTTPException, Request
+from modules.http_header_contracts import require_single_raw_header
 from pydantic import BaseModel, Field, constr
 
 from chat_auth import ChatAuthError, verify_chat_token
@@ -125,8 +126,21 @@ class AutomationDraft(BaseModel):
 class AutomationDraftRequest(BaseModel):
     description: constr(strip_whitespace=True, min_length=1, max_length=8000)
 
-def require_user(authorization: Optional[str] = Header(default=None)) -> str:
-    """Authenticate a short-lived signed token and return its verified actor."""
+def require_user(
+    authorization: Optional[str] = Header(default=None),
+    request: Optional[Request] = None,
+) -> str:
+    """Authenticate one raw bearer header and return its verified actor."""
+    if request is not None:
+        raw_authorization = require_single_raw_header(
+            request,
+            "Authorization",
+            status_code=401,
+            detail="A valid user bearer token is required.",
+        )
+        if raw_authorization != authorization:
+            raise HTTPException(status_code=401, detail="A valid user bearer token is required.")
+        authorization = raw_authorization
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="A valid user bearer token is required.")
     token = authorization[7:].strip()
@@ -305,8 +319,12 @@ def _generate(product: str, task: str, input_text: str, actor: str, *, system_ov
     }
 
 @router.post("/api/v1/ai/respond")
-def respond(payload: AIRespondRequest, authorization: Optional[str] = Header(default=None)):
-    actor = require_user(authorization)
+def respond(
+    payload: AIRespondRequest,
+    request: Request,
+    authorization: Optional[str] = Header(default=None),
+):
+    actor = require_user(authorization, request)
     _ensure_enabled(actor)
     try:
         result = _generate(payload.product, payload.task, payload.input, actor)
@@ -333,8 +351,12 @@ def _parse_json_object(text: str) -> dict[str, Any]:
     return value
 
 @router.post("/api/v1/automations/draft")
-def draft_automation(payload: AutomationDraftRequest, authorization: Optional[str] = Header(default=None)):
-    actor = require_user(authorization)
+def draft_automation(
+    payload: AutomationDraftRequest,
+    request: Request,
+    authorization: Optional[str] = Header(default=None),
+):
+    actor = require_user(authorization, request)
     _ensure_enabled(actor)
     system = (
         _PRODUCT_SYSTEMS["auto_studio"]
