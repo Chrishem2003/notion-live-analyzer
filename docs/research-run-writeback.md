@@ -250,3 +250,14 @@ A follow-up read-only audit of `api_server.py` found two additional inbound GitH
 Two route-level tests use a synthetic webhook secret and body: duplicate identical valid signature fields must return HTTP 401; duplicate event fields must return HTTP 400. No GitHub webhook, Celery task, RAG ingestion, or external request is executed by these tests.
 
 This is application-side duplicate-field handling only. It does not establish upstream proxy normalization, GitHub delivery authentication in the deployed environment, webhook replay protection, or DNS/TLS/Host policy. Keep production integrations and research-run write-back unchanged.
+
+
+## WebSocket token query ambiguity protection — 2026-11-26
+
+The remaining API-boundary audit found that chat, collaborative-document, and meeting WebSockets authenticate with a `token` query parameter. FastAPI's scalar parameter can select one value when a URL contains repeated `token` fields.
+
+All three WebSocket routes now inspect `websocket.query_params.getlist("token")` before token verification and close with application code 4401 unless exactly one query value is present and it matches the parsed parameter.
+
+Three route-level TestClient WebSocket cases use repeated identical synthetic tokens and patch token verification to fail if called. They verify that ambiguous tokens are rejected before authentication or any chat/document/meeting backend is touched.
+
+This does not remove the existing query-token design or prevent tokens from appearing in URL/access logs; it only rejects repeated query fields. A future transport review should assess moving WebSocket authentication to a short-lived, single-use handshake ticket or another owner-approved mechanism. No real token or live WebSocket session was used.
