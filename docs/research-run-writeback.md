@@ -222,3 +222,19 @@ The isolated hardening candidate disables redirects for Notion schema preflight;
 A new synthetic fake-session regression module covers all eight client paths and asserts `allow_redirects=False`, one request only, and safe rejection of HTTP 302. Tests do not contact Notion, Supabase, AI providers, or deployed services. This is transport-contract evidence only; DNS ownership, TLS validation, egress policy, and live service identity remain separate gates.
 
 The route inventory confirmed: NEMA exposes read-only case GETs; Sovereign Intelligence exposes provider listing and a governed solve POST behind the platform service key; platform-jobs exposes service-owned enqueue/status routes plus an opt-in Supabase-user-scoped API; shared AI exposes bearer-authenticated response/draft routes and uses Redis or a server-side Supabase RPC for rate limiting. The user-scoped API is not mounted unless `USER_JOB_API_ENABLED` is explicitly enabled. Service-key routes are not end-user identity and must remain server-side.
+
+
+## Raw request-header ambiguity protection — 2026-11-26
+
+The API boundary now rejects repeated raw authentication and idempotency header fields before any protected operation:
+
+- Core research-run, durable service-job, NEMA case, and Sovereign Intelligence service-key guards require exactly one raw `X-API-Key` field. The core research-run guard already enforced this; the shared service-router guards now use the same contract.
+- Shared AI and opt-in per-user job routes require exactly one raw `Authorization` field before bearer-token verification.
+- Service-owned and per-user job creation require exactly one raw `Idempotency-Key` field. Duplicate values are rejected with HTTP 400 before repository construction; a missing required key retains FastAPI's existing required-header validation behavior.
+- Authentication duplicates fail closed with HTTP 401. Header values are never included in error details.
+
+The shared helper reads `Request.headers.getlist()`, so it detects repeated fields that reach the ASGI application. An upstream proxy that combines repeated fields into one value must enforce equivalent duplicate-header rejection at ingress; this code does not prove proxy behavior.
+
+Route-level regression tests use synthetic duplicate fields and fake/disabled external dependencies. They cover the core API, platform jobs, Sovereign Intelligence, NEMA, shared AI, per-user jobs, and both job-creation idempotency boundaries. No real credential, Supabase request, Notion request, AI-provider call, repository write, or research record is used.
+
+This is an application-boundary contract only. It does not establish the owner-approved Host/Origin policy, trusted-proxy configuration, DNS/TLS identity, ingress normalization behavior, or deployed runtime configuration. Keep research-run write-back disabled and Production HOLD.
