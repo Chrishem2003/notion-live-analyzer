@@ -9,6 +9,7 @@ import importlib
 
 import pytest
 from fastapi.testclient import TestClient
+from starlette.websockets import WebSocketDisconnect
 
 
 @pytest.fixture
@@ -172,3 +173,38 @@ def test_github_webhook_rejects_ambiguous_event_fields(api_client):
 
     assert response.status_code == 400, response.text
     assert response.json()["detail"] == "Ambiguous GitHub event header."
+
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/ws/chat/synthetic-room",
+        "/ws/docs/synthetic-document",
+        "/ws/meet/synthetic-room",
+    ],
+)
+def test_websocket_routes_reject_duplicate_token_query_values(api_client, monkeypatch, path):
+    api_server, client = api_client
+
+    def unexpected_token_verification(token):
+        pytest.fail("Token verification must not run when the token query parameter is duplicated.")
+
+    monkeypatch.setattr(api_server, "verify_chat_token", unexpected_token_verification)
+    url = (
+        path
+        + "?token=synthetic-websocket-token"
+        + "&token=synthetic-websocket-token"
+    )
+    disconnect = None
+    try:
+        with client.websocket_connect(url) as websocket:
+            try:
+                websocket.receive_text()
+            except WebSocketDisconnect as exc:
+                disconnect = exc
+    except WebSocketDisconnect as exc:
+        disconnect = exc
+
+    assert disconnect is not None, "WebSocket should close before accepting an ambiguous token."
+    assert disconnect.code == 4401
