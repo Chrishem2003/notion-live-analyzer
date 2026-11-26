@@ -34,8 +34,8 @@ class Session:
         self.schemas = schemas
         self.calls = []
 
-    def get(self, url, headers, timeout):
-        self.calls.append((url, headers, timeout))
+    def get(self, url, headers, timeout, **kwargs):
+        self.calls.append((url, headers, timeout, kwargs))
         source_id = url.rsplit("/", 1)[-1]
         return Response(200, self.schemas[source_id])
 
@@ -314,8 +314,8 @@ def test_preflight_revalidates_ledger_parent_after_remote_schema_checks(tmp_path
     env["RESEARCH_RUN_IDEMPOTENCY_DB"] = str(real_parent / "runs.sqlite3")
 
     class ReplacingSession(Session):
-        def get(self, url, headers, timeout):
-            response = super().get(url, headers, timeout)
+        def get(self, url, headers, timeout, **kwargs):
+            response = super().get(url, headers, timeout, **kwargs)
             if len(self.calls) == len(SOURCE_KEYS):
                 real_parent.rename(moved_parent)
                 real_parent.symlink_to(replacement_parent, target_is_directory=True)
