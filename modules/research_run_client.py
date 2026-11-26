@@ -74,6 +74,7 @@ class ResearchRunClient:
                     "Content-Type": "application/json",
                 },
                 timeout=self.timeout,
+                allow_redirects=False,
             )
         except (requests.Timeout, requests.ConnectionError) as exc:
             raise ResearchRunClientError(
