@@ -3,6 +3,8 @@
 All values are synthetic. Duplicate-header rejection must happen before any
 repository, Supabase, Notion, AI-provider, or other external operation.
 """
+import hashlib
+import hmac
 import importlib
 
 import pytest
@@ -17,6 +19,7 @@ def api_client(monkeypatch):
     monkeypatch.setenv("SUPABASE_URL", "")
     monkeypatch.setenv("SUPABASE_PUBLISHABLE_KEY", "")
     monkeypatch.setenv("SUPABASE_ANON_KEY", "")
+    monkeypatch.setenv("GITHUB_WEBHOOK_SECRET", "synthetic-webhook-secret")
 
     import api_server
 
@@ -128,3 +131,44 @@ def test_user_job_rejects_duplicate_idempotency_fields_before_repository(api_cli
     assert response.status_code == 400, response.text
     assert response.json()["detail"] == "Exactly one Idempotency-Key header is required."
     assert "synthetic-user-job-key" not in response.text
+
+
+
+def _synthetic_github_signature(body: bytes) -> str:
+    digest = hmac.new(
+        b"synthetic-webhook-secret",
+        body,
+        hashlib.sha256,
+    ).hexdigest()
+    return "sha256=" + digest
+
+
+def test_github_webhook_rejects_duplicate_signature_fields(api_client):
+    _, client = api_client
+    body = b'{"action":"ping"}'
+    signature = _synthetic_github_signature(body)
+    headers = [
+        ("X-Hub-Signature-256", signature),
+        ("X-Hub-Signature-256", signature),
+        ("X-GitHub-Event", "ping"),
+    ]
+
+    response = client.post("/api/v1/webhooks/github", content=body, headers=headers)
+
+    assert response.status_code == 401, response.text
+    assert signature not in response.text
+
+
+def test_github_webhook_rejects_ambiguous_event_fields(api_client):
+    _, client = api_client
+    body = b'{"action":"ping"}'
+    headers = [
+        ("X-Hub-Signature-256", _synthetic_github_signature(body)),
+        ("X-GitHub-Event", "ping"),
+        ("X-GitHub-Event", "push"),
+    ]
+
+    response = client.post("/api/v1/webhooks/github", content=body, headers=headers)
+
+    assert response.status_code == 400, response.text
+    assert response.json()["detail"] == "Ambiguous GitHub event header."
