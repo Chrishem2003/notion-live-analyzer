@@ -238,3 +238,15 @@ The shared helper reads `Request.headers.getlist()`, so it detects repeated fiel
 Route-level regression tests use synthetic duplicate fields and fake/disabled external dependencies. They cover the core API, platform jobs, Sovereign Intelligence, NEMA, shared AI, per-user jobs, and both job-creation idempotency boundaries. No real credential, Supabase request, Notion request, AI-provider call, repository write, or research record is used.
 
 This is an application-boundary contract only. It does not establish the owner-approved Host/Origin policy, trusted-proxy configuration, DNS/TLS identity, ingress normalization behavior, or deployed runtime configuration. Keep research-run write-back disabled and Production HOLD.
+
+
+## Webhook header ambiguity protection — 2026-11-26
+
+A follow-up read-only audit of `api_server.py` found two additional inbound GitHub webhook headers whose repeated raw fields could create ambiguous request interpretation:
+
+- `X-Hub-Signature-256` now requires exactly one raw field and is compared against the parsed FastAPI header before HMAC verification.
+- `X-GitHub-Event` may be absent (preserving the existing `unknown` behavior) or appear exactly once. Multiple event fields are rejected with HTTP 400 before payload routing.
+
+Two route-level tests use a synthetic webhook secret and body: duplicate identical valid signature fields must return HTTP 401; duplicate event fields must return HTTP 400. No GitHub webhook, Celery task, RAG ingestion, or external request is executed by these tests.
+
+This is application-side duplicate-field handling only. It does not establish upstream proxy normalization, GitHub delivery authentication in the deployed environment, webhook replay protection, or DNS/TLS/Host policy. Keep production integrations and research-run write-back unchanged.
