@@ -50,7 +50,10 @@ def _verified_user(authorization: Optional[str] = Header(default=None)) -> dict[
             f"{base_url}/auth/v1/user",
             headers={"apikey": public_key, "Authorization": f"Bearer {token}"},
             timeout=5,
+            allow_redirects=False,
         )
+        if 300 <= response.status_code < 400:
+            raise HTTPException(status_code=503, detail="Authentication verification is temporarily unavailable.")
         if response.status_code == 429 or response.status_code >= 500:
             raise HTTPException(status_code=503, detail="Authentication verification is temporarily unavailable.")
         if response.status_code != 200:
