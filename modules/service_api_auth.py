@@ -19,9 +19,9 @@ class InvalidAPIKeyError(RuntimeError):
 
 def verify_service_api_key(expected_key: Optional[str], provided_key: Optional[str]) -> bool:
     """Verify an exact API-key match using a constant-time comparison."""
-    if not expected_key:
+    if not isinstance(expected_key, str) or not expected_key.strip():
         raise APIKeyNotConfiguredError("The server API key is not configured.")
-    if not provided_key:
+    if not isinstance(provided_key, str) or not provided_key.strip():
         raise InvalidAPIKeyError("The API key is missing or invalid.")
     try:
         matches = hmac.compare_digest(provided_key, expected_key)
