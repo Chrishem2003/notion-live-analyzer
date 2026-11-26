@@ -254,6 +254,7 @@ def run_preflight(
                 f"{NOTION_API_URL}/data_sources/{source_id}",
                 headers=headers,
                 timeout=15,
+                allow_redirects=False,
             )
         except requests.RequestException as exc:
             raise PreflightError(f"Notion schema check failed for {key} ({type(exc).__name__}).") from exc
