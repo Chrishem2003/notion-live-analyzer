@@ -11,7 +11,8 @@ import os
 from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
+from modules.http_header_contracts import require_single_raw_header
 from pydantic import BaseModel, Field, validator
 
 from platform_jobs.repository import JobConflict, JobStoreUnavailable, SupabaseJobRepository
@@ -19,11 +20,20 @@ from platform_jobs.repository import JobConflict, JobStoreUnavailable, SupabaseJ
 router = APIRouter(prefix="/api/v1/jobs", tags=["durable-jobs"])
 
 
-def _require_service_key(x_api_key: Optional[str] = Header(default=None)) -> bool:
+def _require_service_key(
+    request: Request,
+    x_api_key: Optional[str] = Header(default=None),
+) -> bool:
+    raw_key = require_single_raw_header(
+        request,
+        "X-API-Key",
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid or missing API key.",
+    )
     configured = os.environ.get("PLATFORM_API_KEY", "").strip()
     if not configured:
         raise HTTPException(status_code=503, detail="Job API is not configured.")
-    if not x_api_key or not hmac.compare_digest(x_api_key, configured):
+    if not raw_key or raw_key != x_api_key or not hmac.compare_digest(raw_key, configured):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or missing API key.")
     return True
 
@@ -44,7 +54,19 @@ class JobCreateRequest(BaseModel):
 
 
 @router.post("", status_code=202, dependencies=[Depends(_require_service_key)])
-def create_job(payload: JobCreateRequest, idempotency_key: str = Header(..., alias="Idempotency-Key", min_length=1, max_length=200)):
+def create_job(
+    request: Request,
+    payload: JobCreateRequest,
+    idempotency_key: str = Header(..., alias="Idempotency-Key", min_length=1, max_length=200),
+):
+    raw_idempotency_key = require_single_raw_header(
+        request,
+        "Idempotency-Key",
+        status_code=400,
+        detail="Exactly one Idempotency-Key header is required.",
+    )
+    if raw_idempotency_key != idempotency_key:
+        raise HTTPException(status_code=400, detail="Exactly one Idempotency-Key header is required.")
     if payload.job_type != "intelligence.solve":
         raise HTTPException(status_code=422, detail="Unsupported job type.")
     prompt = payload.prompt.strip()
