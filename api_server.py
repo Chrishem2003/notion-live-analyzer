@@ -583,6 +583,7 @@ async def chat_websocket(websocket: WebSocket, room_id: str, token: str):
 
 @app.post("/api/v1/chat/token")
 def issue_chat_token_endpoint(
+    request: Request,
     email: str,
     ttl_seconds: int = Query(default=300, ge=60, le=900),
     _auth: bool = Depends(require_api_key),
@@ -591,6 +592,15 @@ def issue_chat_token_endpoint(
     Issue a short-lived HMAC token for a trusted, already-authenticated
     server-side caller. The platform API key must never reach the browser.
     """
+    # Reject repeated identity/TTL query fields before considering the legacy
+    # issuer flag. The service key does not make ambiguous query interpretation safe.
+    email_values = request.query_params.getlist("email")
+    ttl_values = request.query_params.getlist("ttl_seconds")
+    if len(email_values) != 1:
+        raise HTTPException(status_code=400, detail="Exactly one email query parameter is required.")
+    if len(ttl_values) > 1:
+        raise HTTPException(status_code=400, detail="At most one ttl_seconds query parameter is allowed.")
+
     # This legacy issuer accepts an email supplied by a trusted server, but
     # cannot independently prove which human is signed in. Keep it disabled
     # unless a controlled migration/staging environment explicitly opts in.
