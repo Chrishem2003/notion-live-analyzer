@@ -77,7 +77,7 @@ The Render blueprint now declares a separate `notion-live-analyzer-api` service,
 
 Set `PLATFORM_API_KEY` to the same high-entropy value on both the Streamlit and API services. Set `NOTION_TOKEN` and all nine private data-source IDs only in the API service's Render dashboard. These values are marked `sync: false` in the Blueprint and are intentionally absent from Git. The API integration token should have access only to the required private sources.
 
-The API endpoint is protected by `X-API-Key`; keep the key server-side. Do not expose it in browser code or paste it into Streamlit inputs.
+The API endpoint is protected by `X-API-Key`; keep the key server-side. Authentication rejects missing, mismatched, whitespace-only, or duplicate `X-API-Key` headers; a blank/whitespace-only server key fails closed. Nonblank keys are compared exactly without trimming. Do not expose the key in browser code or paste it into Streamlit inputs.
 
 ## Required Streamlit environment
 
