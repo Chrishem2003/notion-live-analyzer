@@ -435,3 +435,17 @@ def test_endpoint_fails_closed_when_server_api_key_is_unconfigured(api, monkeypa
         "PLATFORM_API_KEY is not configured on the server — API is disabled until it is set."
     )
     assert "test-platform-key" not in response.text
+
+def test_endpoint_rejects_duplicate_api_key_headers(api):
+    _, client, _ = api
+    first_key = "test-platform-key"
+    second_key = "conflicting-synthetic-key"
+    response = client.post(
+        "/api/v1/research-runs",
+        headers=[("X-API-Key", first_key), ("x-api-key", second_key)],
+        json=request_payload(),
+    )
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Invalid or missing X-API-Key header."
+    assert first_key not in response.text
+    assert second_key not in response.text
