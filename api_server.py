@@ -496,6 +496,15 @@ def get_realtime_chat() -> RealtimeChat:
     return RealtimeChat(_redis_client)
 
 
+async def require_single_websocket_token(websocket: WebSocket, token: str) -> bool:
+    """Reject missing/duplicated token query fields before token verification."""
+    values = websocket.query_params.getlist("token")
+    if len(values) != 1 or values[0] != token:
+        await websocket.close(code=4401, reason="Invalid or ambiguous token.")
+        return False
+    return True
+
+
 @app.websocket("/ws/chat/{room_id}")
 async def chat_websocket(websocket: WebSocket, room_id: str, token: str):
     """
@@ -509,6 +518,8 @@ async def chat_websocket(websocket: WebSocket, room_id: str, token: str):
     application code in the 4000-4999 range reserved for app-level closes)
     rather than accepting the connection and silently ignoring messages.
     """
+    if not await require_single_websocket_token(websocket, token):
+        return
     try:
         user_email = verify_chat_token(token)
     except ChatAuthError as e:
@@ -626,6 +637,8 @@ async def docs_websocket(websocket: WebSocket, doc_id: str, token: str):
     exchange incremental update messages: {"type": "update", "update":
     "<base64>"}.
     """
+    if not await require_single_websocket_token(websocket, token):
+        return
     try:
         user_email = verify_chat_token(token)
     except ChatAuthError as e:
@@ -692,6 +705,8 @@ async def meet_websocket(websocket: WebSocket, room_id: str, token: str):
     Server -> client: the above relayed messages, plus "peer-joined" /
     "peer-left" broadcasts for room awareness.
     """
+    if not await require_single_websocket_token(websocket, token):
+        return
     try:
         user_email = verify_chat_token(token)
     except ChatAuthError as e:
