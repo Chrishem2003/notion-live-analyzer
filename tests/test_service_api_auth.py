@@ -10,13 +10,13 @@ from modules.service_api_auth import (
 )
 
 
-@pytest.mark.parametrize("expected_key", [None, ""])
+@pytest.mark.parametrize("expected_key", [None, "", " \\t "])
 def test_service_api_key_guard_fails_closed_when_server_key_is_unconfigured(expected_key):
     with pytest.raises(APIKeyNotConfiguredError):
         verify_service_api_key(expected_key, "provided-client-key")
 
 
-@pytest.mark.parametrize("provided_key", [None, ""])
+@pytest.mark.parametrize("provided_key", [None, "", " \\t "])
 def test_service_api_key_guard_rejects_missing_client_key(provided_key):
     with pytest.raises(InvalidAPIKeyError):
         verify_service_api_key("configured-server-key", provided_key)
