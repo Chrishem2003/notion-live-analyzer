@@ -211,3 +211,14 @@ The tests use synthetic keys and fixture-only configuration. The pytest fixture 
 
 
 The first API-contract workflow run exposed that the shared test fixture did not set `RESEARCH_RUN_WRITEBACK_ENABLED`, so several pre-existing endpoint tests stopped at the safe-mode gate before exercising their intended validation paths. The fixture now enables that flag only for the isolated test process; persistence-reaching tests use fake adapters/ledgers. This is a test-fixture correction, not a deployment/environment change.
+
+
+## Credential-bearing HTTP redirect protection — 2026-11-26
+
+A read-only route/client inventory found server-side HTTP calls that attach bearer, API-key, publishable-key, or Supabase service-role headers while leaving Requests' redirect behavior at its default. A redirect can move a credential-bearing request to an unintended endpoint; custom headers such as `apikey` or `X-API-Key` are not guaranteed to be stripped by the HTTP library.
+
+The isolated hardening candidate disables redirects for Notion schema preflight; Notion Analysis Run query/read/create; the research-run API client; Supabase durable platform-job and NEMA repositories; Supabase user-token verification in per-user jobs and shared AI; and the shared-AI Supabase rate-limit RPC. Unexpected 3xx responses fail closed. No redirect target is contacted. Host allowlists, DNS/TLS trust, proxy configuration, credentials, environment values, and provider selection are unchanged.
+
+A new synthetic fake-session regression module covers all eight client paths and asserts `allow_redirects=False`, one request only, and safe rejection of HTTP 302. Tests do not contact Notion, Supabase, AI providers, or deployed services. This is transport-contract evidence only; DNS ownership, TLS validation, egress policy, and live service identity remain separate gates.
+
+The route inventory confirmed: NEMA exposes read-only case GETs; Sovereign Intelligence exposes provider listing and a governed solve POST behind the platform service key; platform-jobs exposes service-owned enqueue/status routes plus an opt-in Supabase-user-scoped API; shared AI exposes bearer-authenticated response/draft routes and uses Redis or a server-side Supabase RPC for rate limiting. The user-scoped API is not mounted unless `USER_JOB_API_ENABLED` is explicitly enabled. Service-key routes are not end-user identity and must remain server-side.
