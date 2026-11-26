@@ -58,7 +58,11 @@ class SupabaseReadOnlyNemaRepository:
                 f"{self._base_url}/rest/v1/{table}",
                 params=params,
                 timeout=self._timeout,
+                allow_redirects=False,
             )
+            if 300 <= response.status_code < 400:
+                logger.error("NEMA storage read failed: table=%s failure=unexpected_redirect", table)
+                raise NemaStorageUnavailableError("NEMA remote storage rejected an unexpected redirect.")
             response.raise_for_status()
             payload = response.json()
         except requests.HTTPError as exc:
