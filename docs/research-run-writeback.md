@@ -270,3 +270,65 @@ The remaining identity-bearing query audit found that the service-key-protected 
 The route now requires exactly one `email` query value and allows at most one `ttl_seconds` value before checking the legacy-issuer enable flag. Duplicate identity/TTL fields return HTTP 400 without invoking token issuance. Two synthetic route-level tests patch `chat_auth.issue_chat_token` to fail if called, proving the rejection occurs first.
 
 This does not change the default disabled state, issue any real token, or prove Host/proxy/ingress behavior. The legacy email issuer still cannot independently establish which human is authenticated; keep it disabled until a separate approved identity migration.
+
+
+
+## Batch 166 — dormant legacy API entrypoint inventory and deployment-manifest guard (2026-11-27)
+
+**Status:** implementation committed; static manifest contract must pass exact-head CI. No runtime or deployment claim is made.
+
+### Read-only inventory and findings
+
+The complete Git tree for the feature branch was read, then the active checked-in Render/Docker startup chain and the remaining standalone FastAPI modules were inspected.
+
+- The checked-in Render Streamlit service selects `Dockerfile`, whose command starts `streamlit run app.py`.
+- The checked-in Render API service selects `Dockerfile.api` and `scripts/start_research_run_api.sh`; the script starts `uvicorn api_server:app`.
+- The API startup script runs the research-run preflight only when `RESEARCH_RUN_WRITEBACK_ENABLED=true`; otherwise it prints that write-back is disabled and starts the API without enabling research-run writes.
+- The checked-in Render manifest explicitly sets `RESEARCH_RUN_WRITEBACK_ENABLED=false` and `RESEARCH_RUN_ALLOW_EPHEMERAL_LEDGER=false`.
+- The deployed API entrypoint includes the previously audited NEMA, Sovereign Intelligence, platform-jobs, per-user jobs, and shared-AI routers. This inventory does not prove live deployment state.
+
+Two separate legacy ASGI modules are present but are not selected by the checked-in Render/Docker startup configuration:
+
+1. `fastapi_app.py` declares a standalone Multi-Problem Solver FastAPI application. Its task dispatch, task listing/status, agent-run, and RAG index/query routes have no authentication dependency in the inspected source. It also configures wildcard CORS with credentials enabled. If launched independently, those routes require a separate authentication, authorization, CORS, and data-classification review.
+2. `api_gateway.py` and the byte-identical `modules/api_gateway.py` expose `/logs` and `/sessions` without an authentication dependency and return local system-log/session records. They are not selected as Render/Docker startup entrypoints in the checked-in manifest.
+
+These are **dormant/unverified legacy entrypoints**, not proven unreachable. The checked-in deployment configuration is not evidence about other manually configured services, local launches, or external hosting. Neither module was modified or launched in this batch.
+
+### Implementation
+
+Added `tests/test_deployment_entrypoint_guard.py` with three static configuration regression tests:
+
+- The Render manifest selects only the reviewed Streamlit and research-run API service entrypoints.
+- The Streamlit Docker image starts `app.py`, not either legacy ASGI module.
+- The API Docker image uses the guarded startup script, which starts `api_server:app`, and the checked-in write-back/ephemeral-ledger flags remain false.
+
+Updated `.github/workflows/research-run-preflight-safety.yml` to include the new test in the preflight-safety job and to trigger on changes to the deployment manifest, Dockerfiles, startup script, test, and runbook.
+
+This is a **static deployment-manifest guard**. It does not exercise a live Render container, prove that dashboard settings match the manifest, or establish that the legacy modules cannot be launched through another service definition.
+
+### Changed items and source read-back
+
+- `tests/test_deployment_entrypoint_guard.py` — created; initial blob `7b2640d9e661b3d90654dad6dfbddd7a110862ea`
+- `.github/workflows/research-run-preflight-safety.yml` — updated to run the guard and watch deployment-entrypoint paths; commit `9ee89a2cccf6c295f6cd33ccbdcbd46dbff9787c`, blob `6c20c7c0f240ec101f1e51045a51951326766fcb`
+- `docs/research-run-writeback.md` — this additive audit record
+
+The original source files `fastapi_app.py`, `api_gateway.py`, and `modules/api_gateway.py` were left unchanged. No secrets, environment values, credentials, services, permissions, or deployment settings were changed.
+
+### Functional verification and limits
+
+Exact-head CI is pending at the time this record is written. The three tests must pass in the preflight-safety job, and the compile step must pass, before this batch is marked accepted. A static test passing will prove only that the checked-in manifest/Docker commands retain the expected entrypoints; it will not prove live runtime exposure or security.
+
+### Blockers
+
+- Owner decision is required before either legacy API is hardened for a supported deployment or formally retired from use. Do not launch either module in a public environment meanwhile.
+- Owner-approved Host/Origin and reverse-proxy topology is still required before ingress trust policy changes.
+- Owner-authorized read-only access to the staging runtime is still required for service identity, ACL, mount, persistence, restart, and synthetic restore acceptance.
+- Authenticated live Notion synthetic create/read-back/replay, shared outbox, cross-host execution, tenant isolation/RLS, worker leases, HMAC custody, backup ownership/retention, and independent scientific QC/reproducibility/ethics approvals remain outstanding.
+
+### Rollback
+
+On the isolated feature branch, revert the Batch 166 workflow update commit `9ee89a2c` and then the new test-file commit `3ac59348`. The runbook append can be reverted as its own later commit. No production rollback is required; no deployment occurred.
+
+### Next exact action
+
+Obtain an owner decision for the two dormant legacy API entrypoints: either authorize a separately scoped hardening design with explicit authentication/authorization and CORS requirements, or confirm they are not supported deployment targets and authorize a retirement plan. Until that decision, keep them unlaunched. In parallel, obtain owner-approved Host/proxy topology and owner-authorized read-only staging runtime access. Keep research-run write-back disabled and Production HOLD.
