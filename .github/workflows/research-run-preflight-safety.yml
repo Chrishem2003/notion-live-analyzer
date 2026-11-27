@@ -38,6 +38,11 @@ on:
       - "nema_agora/api.py"
       - "tests/test_api_header_ambiguity.py"
       - "docs/research-run-writeback.md"
+      - "render.yaml"
+      - "Dockerfile"
+      - "Dockerfile.api"
+      - "scripts/start_research_run_api.sh"
+      - "tests/test_deployment_entrypoint_guard.py"
       - ".github/workflows/research-run-preflight-safety.yml"
   pull_request:
     branches:
@@ -62,6 +67,11 @@ on:
       - "nema_agora/api.py"
       - "tests/test_api_header_ambiguity.py"
       - "docs/research-run-writeback.md"
+      - "render.yaml"
+      - "Dockerfile"
+      - "Dockerfile.api"
+      - "scripts/start_research_run_api.sh"
+      - "tests/test_deployment_entrypoint_guard.py"
       - ".github/workflows/research-run-preflight-safety.yml"
   workflow_dispatch:
 
@@ -92,7 +102,8 @@ jobs:
             tests/test_research_run_preflight.py \
             tests/test_research_run_idempotency.py \
             tests/test_research_run_staging_smoke.py \
-            tests/test_service_api_auth.py
+            tests/test_service_api_auth.py \
+            tests/test_deployment_entrypoint_guard.py
 
       - name: Compile preflight, idempotency and staging smoke modules
         run: |
@@ -101,7 +112,8 @@ jobs:
             modules/research_run_idempotency.py \
             scripts/research_run_staging_smoke.py \
             api_server.py \
-            modules/service_api_auth.py
+            modules/service_api_auth.py \
+            tests/test_deployment_entrypoint_guard.py
 
   api-auth-contract:
     runs-on: ubuntu-latest
