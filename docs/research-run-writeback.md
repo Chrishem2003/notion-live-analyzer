@@ -332,3 +332,42 @@ On the isolated feature branch, revert the Batch 166 workflow update commit `9ee
 ### Next exact action
 
 Obtain an owner decision for the two dormant legacy API entrypoints: either authorize a separately scoped hardening design with explicit authentication/authorization and CORS requirements, or confirm they are not supported deployment targets and authorize a retirement plan. Until that decision, keep them unlaunched. In parallel, obtain owner-approved Host/proxy topology and owner-authorized read-only staging runtime access. Keep research-run write-back disabled and Production HOLD.
+
+
+## Batch 167 — Ollama private-gateway duplicate Authorization rejection (2026-11-27)
+
+**Status:** implemented; exact-head CI pending. The gateway is not part of the checked-in Render startup chain; this is an isolated service-boundary hardening change, not a deployment.
+
+### Finding
+The separate `ollama_gateway.py` FastAPI service already requires a configured bearer secret of at least 32 characters and compares it with `hmac.compare_digest`. Its four proxy routes accepted a scalar parsed `Authorization` header without checking raw header cardinality. Repeated raw fields could therefore be interpreted inconsistently by an intermediary or ASGI stack.
+
+### Implementation
+- Reused `modules/http_header_contracts.require_single_raw_header` in the gateway authorization path.
+- All four protected routes (`/api/tags`, `/api/chat`, `/api/generate`, `/api/embeddings`) now require exactly one raw `Authorization` field and require it to match the parsed header before token comparison.
+- Missing/duplicate/mismatched headers fail with generic HTTP 401; no header value is logged or echoed.
+- Existing direct verifier tests remain compatible. The token minimum length and constant-time comparison are unchanged.
+- Added route-level synthetic tests for duplicate identical bearer fields on all four endpoints, proving the upstream proxy is not called, plus a single-header success-path test using a fake proxy response.
+- Updated the API-auth CI path filters, pytest command and compile step to include the gateway and its test.
+
+### Safety and verification scope
+Tests use a synthetic 48-character token and a monkeypatched proxy. They do not contact Ollama, use a real token, change provider configuration, expose the gateway, or alter any service environment. The gateway remains a separate/manual service; the checked-in Render manifest does not select it. This batch does not prove TLS tunnel, DNS, upstream Ollama binding, network policy, or deployed runtime configuration.
+
+### Changed items
+- `ollama_gateway.py` — duplicate raw-header guard added to all four protected routes.
+- `tests/test_ollama_gateway_auth.py` — four duplicate-header route cases and one single-header fake-proxy success case added.
+- `.github/workflows/research-run-preflight-safety.yml` — gateway test added to API-auth job and path filters.
+- `docs/research-run-writeback.md` — this audit record.
+
+### Functional verification
+Exact-head API-auth CI is pending. Do not mark this batch accepted until the API-auth job reports all gateway and existing API tests passed, the compile step succeeds, and the final source files are fetched back.
+
+### Blockers
+- The gateway is not selected by the current Render blueprint. Any separate public deployment still needs owner-approved host/proxy topology, TLS tunnel validation, network egress controls, and runtime identity/storage review.
+- The legacy `fastapi_app.py` and `api_gateway.py` entrypoints still require an owner decision for scoped hardening versus retirement.
+- Actual staging ACLs/mount/persistence, hosted restart, deployed restore, live Notion synthetic acceptance, shared outbox, cross-host execution, tenant/RLS, worker leases, HMAC custody, backup ownership/retention, and independent scientific QC/reproducibility/ethics remain outstanding.
+
+### Rollback
+On the isolated feature branch, revert the workflow commit created for this batch, then the test-file update commit `c1143fcd`, then the gateway implementation commit `0a319a2e`. No production rollback is required; no deployment occurred.
+
+### Next exact action
+Verify exact-head CI and read back all changed files. Then continue the read-only inventory of remaining separately launchable webhook/service examples, without launching them. Keep research-run write-back disabled and Production HOLD.
