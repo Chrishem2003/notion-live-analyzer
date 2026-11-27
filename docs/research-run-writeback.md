@@ -336,7 +336,7 @@ Obtain an owner decision for the two dormant legacy API entrypoints: either auth
 
 ## Batch 167 — Ollama private-gateway duplicate Authorization rejection (2026-11-27)
 
-**Status:** implemented; exact-head CI pending. The gateway is not part of the checked-in Render startup chain; this is an isolated service-boundary hardening change, not a deployment.
+**Status: accepted in exact-head push and PR CI; isolated code only; not deployed.** The gateway is not part of the checked-in Render startup chain.
 
 ### Finding
 The separate `ollama_gateway.py` FastAPI service already requires a configured bearer secret of at least 32 characters and compares it with `hmac.compare_digest`. Its four proxy routes accepted a scalar parsed `Authorization` header without checking raw header cardinality. Repeated raw fields could therefore be interpreted inconsistently by an intermediary or ASGI stack.
@@ -359,7 +359,7 @@ Tests use a synthetic 48-character token and a monkeypatched proxy. They do not 
 - `docs/research-run-writeback.md` — this audit record.
 
 ### Functional verification
-**Final exact-head PR CI accepted:** run [46002368178](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/46002368178), head `69e0ba150fe7bbc404254593472c861ec545e6d9`: API-auth-contract passed 53 tests; preflight-safety passed 47 tests; both had zero failures/skips and successful compile steps. Job records, steps, and raw logs were inspected. The API-auth suite includes the five new gateway route cases and the three existing verifier tests.
+**Final exact-head verification:** head `0d1347127346112a91bcab2035bc14a9c3c0905a`. PR run [46002713930](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/46002713930) and push run [46002705283](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/46002705283) both passed: API-auth-contract 53 tests; preflight-safety 47 tests; zero failures/skips; both compile steps passed. Job records, steps, and raw logs were inspected. The API-auth suite includes the five new gateway route cases and the three existing verifier tests.
 
 ### Additional read-only sidecar finding
 
@@ -371,7 +371,7 @@ The separate `webhook_server_example.py` and `modules/webhook_server_example.py`
 - Actual staging ACLs/mount/persistence, hosted restart, deployed restore, live Notion synthetic acceptance, shared outbox, cross-host execution, tenant/RLS, worker leases, HMAC custody, backup ownership/retention, and independent scientific QC/reproducibility/ethics remain outstanding.
 
 ### Rollback
-On the isolated feature branch, revert the workflow commit created for this batch, then the test-file update commit `c1143fcd`, then the gateway implementation commit `0a319a2e`. No production rollback is required; no deployment occurred.
+Close PR #118 or revert the Batch 167 documentation follow-ups, workflow commit `ce69c78c`, test-file update commit `c1143fcd`, and gateway implementation commit `0a319a2e` in reverse order. No production rollback is required; no deployment occurred.
 
 ### Next exact action
-Verify exact-head CI and read back all changed files. Then continue the read-only inventory of remaining separately launchable webhook/service examples, without launching them. Keep research-run write-back disabled and Production HOLD.
+The targeted read-only inventory of API/server/gateway/router candidate modules in the 1,061-Python-file tree is complete for this pass. The remaining identified sidecar is the unverified Stripe webhook sample; the dormant FastAPI apps remain unlaunched. Obtain owner decisions for dormant legacy API hardening versus retirement and for the Stripe webhook sample; obtain owner-approved Host/proxy topology and owner-authorized read-only staging runtime access. Keep research-run write-back disabled and Production HOLD.
