@@ -316,7 +316,7 @@ The original source files `fastapi_app.py`, `api_gateway.py`, and `modules/api_g
 
 ### Functional verification and limits
 
-Exact-head CI is pending at the time this record is written. The three tests must pass in the preflight-safety job, and the compile step must pass, before this batch is marked accepted. A static test passing will prove only that the checked-in manifest/Docker commands retain the expected entrypoints; it will not prove live runtime exposure or security.
+**Final exact-head CI accepted:** PR run [46001070422](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/46001070422), merge commit `2e754a9afc321df4c5b` with head `9273e4b39045e488f1a7835ef57beb94b6a41ad4`: preflight-safety passed 47 tests (including all three new deployment-entrypoint guard tests), API-auth-contract passed 45 tests, both with zero failures/skips and successful compilation. Both job records, steps, and raw logs were inspected. This confirms only the checked-in static deployment configuration; it does not prove live runtime exposure or security.
 
 ### Blockers
 
