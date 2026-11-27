@@ -14,6 +14,8 @@ import httpx
 from fastapi import FastAPI, Header, HTTPException, Request, status
 from fastapi.responses import Response
 
+from modules.http_header_contracts import require_single_raw_header
+
 app = FastAPI(title="Ollama Private Gateway", docs_url=None, redoc_url=None)
 UPSTREAM = os.environ.get("OLLAMA_UPSTREAM_URL", "http://127.0.0.1:11434").rstrip("/")
 MAX_BODY_BYTES = 1_000_000
@@ -29,7 +31,21 @@ def _configured_token() -> str:
     return token
 
 
-def _authorize(authorization: str | None) -> None:
+def _authorize(authorization: str | None, request: Request | None = None) -> None:
+    if request is not None:
+        raw_authorization = require_single_raw_header(
+            request,
+            "Authorization",
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing or invalid gateway credentials.",
+        )
+        if raw_authorization != authorization:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Missing or invalid gateway credentials.",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
     expected = f"Bearer {_configured_token()}"
     if not authorization or not hmac.compare_digest(authorization, expected):
         raise HTTPException(
@@ -70,23 +86,23 @@ async def health() -> dict[str, str]:
 
 @app.get("/api/tags")
 async def tags(request: Request, authorization: str | None = Header(default=None)) -> Response:
-    _authorize(authorization)
+    _authorize(authorization, request)
     return await _proxy("GET", "/api/tags", request)
 
 
 @app.post("/api/chat")
 async def chat(request: Request, authorization: str | None = Header(default=None)) -> Response:
-    _authorize(authorization)
+    _authorize(authorization, request)
     return await _proxy("POST", "/api/chat", request)
 
 
 @app.post("/api/generate")
 async def generate(request: Request, authorization: str | None = Header(default=None)) -> Response:
-    _authorize(authorization)
+    _authorize(authorization, request)
     return await _proxy("POST", "/api/generate", request)
 
 
 @app.post("/api/embeddings")
 async def embeddings(request: Request, authorization: str | None = Header(default=None)) -> Response:
-    _authorize(authorization)
+    _authorize(authorization, request)
     return await _proxy("POST", "/api/embeddings", request)
