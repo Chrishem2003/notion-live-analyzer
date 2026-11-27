@@ -359,7 +359,11 @@ Tests use a synthetic 48-character token and a monkeypatched proxy. They do not 
 - `docs/research-run-writeback.md` — this audit record.
 
 ### Functional verification
-Exact-head API-auth CI is pending. Do not mark this batch accepted until the API-auth job reports all gateway and existing API tests passed, the compile step succeeds, and the final source files are fetched back.
+**Final exact-head PR CI accepted:** run [46002368178](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/46002368178), head `69e0ba150fe7bbc404254593472c861ec545e6d9`: API-auth-contract passed 53 tests; preflight-safety passed 47 tests; both had zero failures/skips and successful compile steps. Job records, steps, and raw logs were inspected. The API-auth suite includes the five new gateway route cases and the three existing verifier tests.
+
+### Additional read-only sidecar finding
+
+The separate `webhook_server_example.py` and `modules/webhook_server_example.py` Flask sample is also not selected by the checked-in Render/Docker startup chain. It calls `billing_stripe.handle_webhook_event`, but the inspected `modules/billing_stripe.py` exposes `verify_webhook` and does not define `handle_webhook_event`. Therefore the sample is not functionally verified and would return an error through its broad exception handler if launched as written. It was not launched or modified. Do not use it for payment-state changes until the owner approves a proper webhook design and functional Stripe-signature/event tests.
 
 ### Blockers
 - The gateway is not selected by the current Render blueprint. Any separate public deployment still needs owner-approved host/proxy topology, TLS tunnel validation, network egress controls, and runtime identity/storage review.
