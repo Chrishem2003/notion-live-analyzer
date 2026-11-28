@@ -1,7 +1,9 @@
 # Runtime dependencies for the dedicated FastAPI service.
+# Pydantic v2 is required by the API model validators and serialization contract.
 # Keep this separate from the Streamlit/scientific-computing stack to reduce
 # image size, cold-start work, and unnecessary packages in the API container.
 fastapi>=0.110
+pydantic>=2.7,<3
 uvicorn[standard]>=0.29
 requests>=2.32
 httpx>=0.27
