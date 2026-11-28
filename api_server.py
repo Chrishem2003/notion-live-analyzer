@@ -26,7 +26,7 @@ import os
 from typing import Optional
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, WebSocket, WebSocketDisconnect, status
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 from modules.service_api_auth import (
     APIKeyNotConfiguredError,
@@ -115,7 +115,8 @@ class ResearchRunWriteRequest(BaseModel):
     manifest_hash: str = Field("", max_length=256)
     parameters_json: str = Field("", max_length=10000)
 
-    @validator("parameters_json")
+    @field_validator("parameters_json")
+    @classmethod
     def parameters_json_must_be_object(cls, value: str) -> str:
         """Reject malformed/non-object parameters before any external side effect."""
         if not value.strip():
@@ -188,7 +189,7 @@ def write_research_run(
             ),
         )
 
-    expected_manifest_hash = build_run_manifest_hash(payload.dict())
+    expected_manifest_hash = build_run_manifest_hash(payload.model_dump())
     if payload.manifest_hash and payload.manifest_hash != expected_manifest_hash:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,

@@ -14,7 +14,7 @@ from uuid import UUID
 import requests
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
 from modules.http_header_contracts import require_single_raw_header
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from platform_jobs.repository import JobConflict, JobStoreUnavailable, SupabaseJobRepository
 
@@ -97,17 +97,17 @@ class UserJobCreateRequest(BaseModel):
     strategy: str = Field(default="direct", min_length=1, max_length=80)
     max_attempts: int = Field(default=3, ge=1, le=5)
 
-    class Config:
-        # Reject attempted ownership/role injection rather than silently ignoring it.
-        extra = "forbid"
+    model_config = ConfigDict(extra="forbid")
 
-    @validator("prompt")
+    @field_validator("prompt")
+    @classmethod
     def prompt_must_not_be_blank(cls, value: str) -> str:
         if not value.strip():
             raise ValueError("Prompt cannot be blank.")
         return value
 
-    @validator("provider", "model", "strategy")
+    @field_validator("provider", "model", "strategy")
+    @classmethod
     def optional_routing_values_must_not_be_blank(cls, value):
         if value is not None and not value.strip():
             raise ValueError("Provider, model, and strategy values cannot be blank.")

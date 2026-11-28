@@ -13,7 +13,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from modules.http_header_contracts import require_single_raw_header
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 from platform_jobs.repository import JobConflict, JobStoreUnavailable, SupabaseJobRepository
 
@@ -46,7 +46,8 @@ class JobCreateRequest(BaseModel):
     strategy: str = Field(default="direct", min_length=1, max_length=80)
     max_attempts: int = Field(default=3, ge=1, le=5)
 
-    @validator("prompt")
+    @field_validator("prompt")
+    @classmethod
     def prompt_must_not_be_blank(cls, value: str) -> str:
         if not value.strip():
             raise ValueError("Prompt cannot be blank.")

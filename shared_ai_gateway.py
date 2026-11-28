@@ -115,13 +115,13 @@ class WorkflowStep(BaseModel):
 class AutomationDraft(BaseModel):
     title: constr(strip_whitespace=True, min_length=1, max_length=200)
     trigger: constr(strip_whitespace=True, min_length=1, max_length=500)
-    steps: list[WorkflowStep] = Field(..., min_items=1, max_items=40)
-    error_handling: list[str] = Field(default_factory=list, max_items=20)
-    permissions_required: list[str] = Field(default_factory=list, max_items=30)
+    steps: list[WorkflowStep] = Field(..., min_length=1, max_length=40)
+    error_handling: list[str] = Field(default_factory=list, max_length=20)
+    permissions_required: list[str] = Field(default_factory=list, max_length=30)
     approval_required: bool = True
     risk_level: Literal["low", "medium", "high"]
-    test_plan: list[str] = Field(default_factory=list, max_items=20)
-    assumptions: list[str] = Field(default_factory=list, max_items=20)
+    test_plan: list[str] = Field(default_factory=list, max_length=20)
+    assumptions: list[str] = Field(default_factory=list, max_length=20)
 
 class AutomationDraftRequest(BaseModel):
     description: constr(strip_whitespace=True, min_length=1, max_length=8000)
@@ -370,7 +370,7 @@ def draft_automation(
     try:
         result = _generate("auto_studio", "draft_automation", payload.description, actor, system_override=system)
         draft_data = _parse_json_object(result["output"])
-        draft = AutomationDraft.parse_obj(draft_data)
+        draft = AutomationDraft.model_validate(draft_data)
     except HTTPException as exc:
         _audit_event("automation.draft", actor, "auto_studio", "draft_automation", f"error_{exc.status_code}")
         raise
@@ -386,7 +386,7 @@ def draft_automation(
         "actor": actor,
         "provider": result["provider"],
         "model": result["model"],
-        "draft": draft.dict(),
+        "draft": draft.model_dump(),
         "status": "draft_only",
         "executed": False,
     }
