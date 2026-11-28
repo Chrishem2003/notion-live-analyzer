@@ -11,20 +11,30 @@ import sqlite3
 from pathlib import Path
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
+from modules.http_header_contracts import require_single_raw_header
 
 router = APIRouter(prefix="/api/v1/nema/cases", tags=["NEMA-AGORA"])
 
 
-def _require_nema_api_key(x_api_key: Optional[str] = Header(default=None)) -> bool:
-    """Authenticate service-to-service calls without trusting caller-supplied actor names."""
+def _require_nema_api_key(
+    request: Request,
+    x_api_key: Optional[str] = Header(default=None),
+) -> bool:
+    """Authenticate one raw service-key field without trusting caller-supplied actor names."""
+    raw_key = require_single_raw_header(
+        request,
+        "X-API-Key",
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid or missing API key.",
+    )
     configured = os.environ.get("PLATFORM_API_KEY", "")
     if not configured.strip():
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="NEMA case API is unavailable because platform authentication is not configured.",
         )
-    if not x_api_key or not hmac.compare_digest(x_api_key, configured):
+    if not raw_key or raw_key != x_api_key or not hmac.compare_digest(raw_key, configured):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or missing API key.")
     return True
 

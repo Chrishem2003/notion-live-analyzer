@@ -11,22 +11,30 @@ import os
 from functools import lru_cache
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
+from modules.http_header_contracts import require_single_raw_header
 from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/api/v1/intelligence", tags=["sovereign-intelligence"])
 
 
 def require_intelligence_api_key(
+    request: Request,
     x_api_key: Optional[str] = Header(default=None),
 ) -> bool:
+    raw_key = require_single_raw_header(
+        request,
+        "X-API-Key",
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid or missing X-API-Key header.",
+    )
     configured_key = os.environ.get("PLATFORM_API_KEY", "").strip()
     if not configured_key:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Intelligence API is disabled until PLATFORM_API_KEY is configured.",
         )
-    if not x_api_key or not hmac.compare_digest(x_api_key, configured_key):
+    if not raw_key or raw_key != x_api_key or not hmac.compare_digest(raw_key, configured_key):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or missing X-API-Key header.",

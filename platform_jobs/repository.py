@@ -52,7 +52,11 @@ class SupabaseJobRepository:
 
     def _request(self, method: str, path: str, **kwargs: Any) -> Any:
         try:
+            # Service-role credentials must never follow a redirect to another origin.
+            kwargs["allow_redirects"] = False
             response = self.session.request(method, f"{self.base_url}/rest/v1/{path}", timeout=self.timeout, **kwargs)
+            if 300 <= response.status_code < 400:
+                raise JobStoreUnavailable("Durable job storage rejected an unexpected redirect.")
             response.raise_for_status()
             if response.status_code == 204 or not response.content:
                 return None

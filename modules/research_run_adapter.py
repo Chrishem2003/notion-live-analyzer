@@ -68,6 +68,8 @@ class ResearchRunAdapter:
     def _read_request(self, method: str, url: str, **kwargs):
         """Retry bounded, read-only Notion requests without retrying page creation."""
         request = getattr(self.session, method)
+        # Never forward the Notion bearer token through an HTTP redirect.
+        kwargs["allow_redirects"] = False
         for attempt in range(self._MAX_READ_ATTEMPTS):
             try:
                 response = request(url, **kwargs)
@@ -312,7 +314,7 @@ class ResearchRunAdapter:
                     "type": "data_source_id",
                     "data_source_id": self.data_source_id,
                 }, "properties": props},
-                headers=self.headers, timeout=self.timeout,
+                headers=self.headers, timeout=self.timeout, allow_redirects=False,
             )
         except (requests.Timeout, requests.ConnectionError) as exc:
             try:

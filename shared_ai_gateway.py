@@ -19,7 +19,8 @@ import requests
 import redis
 from typing import Any, Literal, Optional
 
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, Header, HTTPException, Request
+from modules.http_header_contracts import require_single_raw_header
 from pydantic import BaseModel, Field, constr
 
 from chat_auth import ChatAuthError, verify_chat_token
@@ -125,8 +126,21 @@ class AutomationDraft(BaseModel):
 class AutomationDraftRequest(BaseModel):
     description: constr(strip_whitespace=True, min_length=1, max_length=8000)
 
-def require_user(authorization: Optional[str] = Header(default=None)) -> str:
-    """Authenticate a short-lived signed token and return its verified actor."""
+def require_user(
+    authorization: Optional[str] = Header(default=None),
+    request: Optional[Request] = None,
+) -> str:
+    """Authenticate one raw bearer header and return its verified actor."""
+    if request is not None:
+        raw_authorization = require_single_raw_header(
+            request,
+            "Authorization",
+            status_code=401,
+            detail="A valid user bearer token is required.",
+        )
+        if raw_authorization != authorization:
+            raise HTTPException(status_code=401, detail="A valid user bearer token is required.")
+        authorization = raw_authorization
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="A valid user bearer token is required.")
     token = authorization[7:].strip()
@@ -153,8 +167,11 @@ def require_user(authorization: Optional[str] = Header(default=None)) -> str:
             f"{base_url}/auth/v1/user",
             headers={"apikey": publishable_key, "Authorization": f"Bearer {token}"},
             timeout=5.0,
+            allow_redirects=False,
         )
     except requests.RequestException:
+        raise HTTPException(status_code=503, detail="User identity service is temporarily unavailable.")
+    if 300 <= response.status_code < 400:
         raise HTTPException(status_code=503, detail="User identity service is temporarily unavailable.")
     if response.status_code in (401, 403):
         raise HTTPException(status_code=401, detail="User token is invalid or expired.")
@@ -228,7 +245,10 @@ def _consume_rate_limit(actor: str) -> None:
                 },
                 json={"p_actor_hash": actor_hash, "p_limit": limit},
                 timeout=5.0,
+                allow_redirects=False,
             )
+            if 300 <= response.status_code < 400:
+                raise ValueError("Supabase rate-limit RPC returned an unexpected redirect.")
             if response.status_code != 200:
                 raise ValueError("Supabase rate-limit RPC rejected the request.")
             raw_count = response.json()
@@ -299,8 +319,12 @@ def _generate(product: str, task: str, input_text: str, actor: str, *, system_ov
     }
 
 @router.post("/api/v1/ai/respond")
-def respond(payload: AIRespondRequest, authorization: Optional[str] = Header(default=None)):
-    actor = require_user(authorization)
+def respond(
+    payload: AIRespondRequest,
+    request: Request,
+    authorization: Optional[str] = Header(default=None),
+):
+    actor = require_user(authorization, request)
     _ensure_enabled(actor)
     try:
         result = _generate(payload.product, payload.task, payload.input, actor)
@@ -327,8 +351,12 @@ def _parse_json_object(text: str) -> dict[str, Any]:
     return value
 
 @router.post("/api/v1/automations/draft")
-def draft_automation(payload: AutomationDraftRequest, authorization: Optional[str] = Header(default=None)):
-    actor = require_user(authorization)
+def draft_automation(
+    payload: AutomationDraftRequest,
+    request: Request,
+    authorization: Optional[str] = Header(default=None),
+):
+    actor = require_user(authorization, request)
     _ensure_enabled(actor)
     system = (
         _PRODUCT_SYSTEMS["auto_studio"]

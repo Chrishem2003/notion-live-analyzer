@@ -28,6 +28,13 @@ from typing import Optional
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, WebSocket, WebSocketDisconnect, status
 from pydantic import BaseModel, Field, validator
 
+from modules.service_api_auth import (
+    APIKeyNotConfiguredError,
+    InvalidAPIKeyError,
+    verify_service_api_key,
+)
+from modules.http_header_contracts import require_single_raw_header
+
 from celery_app import celery_app
 from celery.result import AsyncResult
 from chat_auth import verify_chat_token, ChatAuthError
@@ -67,15 +74,30 @@ from shared_ai_gateway import router as shared_ai_router
 app.include_router(shared_ai_router)
 
 
-def require_api_key(x_api_key: Optional[str] = Header(None)):
-    if not API_KEY:
+def require_api_key(
+    request: Request,
+    x_api_key: Optional[str] = Header(None),
+):
+    # Multiple X-API-Key fields are ambiguous across proxies and HTTP stacks.
+    # Reject them before comparing so different intermediaries cannot choose
+    # different credentials for the same request.
+    if len(request.headers.getlist("x-api-key")) != 1:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or missing X-API-Key header.",
+        )
+    try:
+        return verify_service_api_key(API_KEY, x_api_key)
+    except APIKeyNotConfiguredError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="PLATFORM_API_KEY is not configured on the server — API is disabled until it is set.",
-        )
-    if not x_api_key or not hmac.compare_digest(x_api_key, API_KEY):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or missing X-API-Key header.")
-    return True
+        ) from exc
+    except InvalidAPIKeyError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or missing X-API-Key header.",
+        ) from exc
 
 
 class ResearchRunWriteRequest(BaseModel):
@@ -402,8 +424,21 @@ def verify_github_signature(raw_body: bytes, signature_header: Optional[str]) ->
 
 @app.post("/api/v1/webhooks/github")
 async def github_webhook(request: Request, x_hub_signature_256: Optional[str] = Header(None)):
+    raw_signature = require_single_raw_header(
+        request,
+        "X-Hub-Signature-256",
+        status_code=401,
+        detail="Invalid webhook signature.",
+    )
+    if raw_signature != x_hub_signature_256:
+        raise HTTPException(status_code=401, detail="Invalid webhook signature.")
+
+    event_values = request.headers.getlist("X-GitHub-Event")
+    if len(event_values) > 1:
+        raise HTTPException(status_code=400, detail="Ambiguous GitHub event header.")
+
     raw_body = await read_limited_webhook_body(request)
-    if not verify_github_signature(raw_body, x_hub_signature_256):
+    if not verify_github_signature(raw_body, raw_signature):
         raise HTTPException(status_code=401, detail="Invalid webhook signature.")
 
     try:
@@ -412,7 +447,7 @@ async def github_webhook(request: Request, x_hub_signature_256: Optional[str] = 
         raise HTTPException(status_code=400, detail="Webhook payload must be valid JSON.")
     if not isinstance(payload, dict):
         raise HTTPException(status_code=400, detail="Webhook payload must be a JSON object.")
-    event_type = request.headers.get("X-GitHub-Event", "unknown")
+    event_type = event_values[0] if event_values else "unknown"
 
     # Real routing example: a push event to a papers/ or data/ directory
     # triggers a RAG ingestion job instead of just being logged and discarded.
@@ -461,6 +496,15 @@ def get_realtime_chat() -> RealtimeChat:
     return RealtimeChat(_redis_client)
 
 
+async def require_single_websocket_token(websocket: WebSocket, token: str) -> bool:
+    """Reject missing/duplicated token query fields before token verification."""
+    values = websocket.query_params.getlist("token")
+    if len(values) != 1 or values[0] != token:
+        await websocket.close(code=4401, reason="Invalid or ambiguous token.")
+        return False
+    return True
+
+
 @app.websocket("/ws/chat/{room_id}")
 async def chat_websocket(websocket: WebSocket, room_id: str, token: str):
     """
@@ -474,6 +518,8 @@ async def chat_websocket(websocket: WebSocket, room_id: str, token: str):
     application code in the 4000-4999 range reserved for app-level closes)
     rather than accepting the connection and silently ignoring messages.
     """
+    if not await require_single_websocket_token(websocket, token):
+        return
     try:
         user_email = verify_chat_token(token)
     except ChatAuthError as e:
@@ -537,6 +583,7 @@ async def chat_websocket(websocket: WebSocket, room_id: str, token: str):
 
 @app.post("/api/v1/chat/token")
 def issue_chat_token_endpoint(
+    request: Request,
     email: str,
     ttl_seconds: int = Query(default=300, ge=60, le=900),
     _auth: bool = Depends(require_api_key),
@@ -545,6 +592,15 @@ def issue_chat_token_endpoint(
     Issue a short-lived HMAC token for a trusted, already-authenticated
     server-side caller. The platform API key must never reach the browser.
     """
+    # Reject repeated identity/TTL query fields before considering the legacy
+    # issuer flag. The service key does not make ambiguous query interpretation safe.
+    email_values = request.query_params.getlist("email")
+    ttl_values = request.query_params.getlist("ttl_seconds")
+    if len(email_values) != 1:
+        raise HTTPException(status_code=400, detail="Exactly one email query parameter is required.")
+    if len(ttl_values) > 1:
+        raise HTTPException(status_code=400, detail="At most one ttl_seconds query parameter is allowed.")
+
     # This legacy issuer accepts an email supplied by a trusted server, but
     # cannot independently prove which human is signed in. Keep it disabled
     # unless a controlled migration/staging environment explicitly opts in.
@@ -591,6 +647,8 @@ async def docs_websocket(websocket: WebSocket, doc_id: str, token: str):
     exchange incremental update messages: {"type": "update", "update":
     "<base64>"}.
     """
+    if not await require_single_websocket_token(websocket, token):
+        return
     try:
         user_email = verify_chat_token(token)
     except ChatAuthError as e:
@@ -657,6 +715,8 @@ async def meet_websocket(websocket: WebSocket, room_id: str, token: str):
     Server -> client: the above relayed messages, plus "peer-joined" /
     "peer-left" broadcasts for room awareness.
     """
+    if not await require_single_websocket_token(websocket, token):
+        return
     try:
         user_email = verify_chat_token(token)
     except ChatAuthError as e:

@@ -1,4 +1,5 @@
 """Tests for deployment preflight; all Notion HTTP calls are mocked."""
+import os
 from pathlib import Path
 
 import pytest
@@ -33,8 +34,8 @@ class Session:
         self.schemas = schemas
         self.calls = []
 
-    def get(self, url, headers, timeout):
-        self.calls.append((url, headers, timeout))
+    def get(self, url, headers, timeout, **kwargs):
+        self.calls.append((url, headers, timeout, kwargs))
         source_id = url.rsplit("/", 1)[-1]
         return Response(200, self.schemas[source_id])
 
@@ -133,6 +134,10 @@ def test_preflight_checks_all_sources_and_relation_edges(tmp_path):
     assert len(session.calls) == 9
     assert all(call[1]["Notion-Version"] == "2025-09-03" for call in session.calls)
     assert Path(env["RESEARCH_RUN_IDEMPOTENCY_DB"]).exists()
+    assert result["ledger_path_configured"] is True
+    assert "idempotency_database" not in result
+    assert str(Path(env["RESEARCH_RUN_IDEMPOTENCY_DB"])) not in repr(result)
+    assert str(Path(env["RESEARCH_RUN_IDEMPOTENCY_DB"]).parent) not in repr(result)
 
 
 def test_preflight_fails_closed_on_cross_workspace_relation(tmp_path):
@@ -173,3 +178,154 @@ def test_preflight_rejects_ephemeral_ledger_without_staging_override(tmp_path):
     env["RESEARCH_RUN_ALLOW_EPHEMERAL_LEDGER"] = "false"
     with pytest.raises(PreflightError, match="ephemeral"):
         run_preflight(env, Session(valid_schemas()))
+
+
+@pytest.mark.skipif(os.name != "posix", reason="requires POSIX symlink support")
+def test_preflight_rejects_symlinked_ledger_parent_before_notion_requests(tmp_path):
+    real_parent = tmp_path / "real-parent"
+    real_parent.mkdir()
+    parent_alias = tmp_path / "parent-alias"
+    parent_alias.symlink_to(real_parent, target_is_directory=True)
+    env = env_for(tmp_path)
+    env["RESEARCH_RUN_IDEMPOTENCY_DB"] = str(parent_alias / "runs.sqlite3")
+    session = Session(valid_schemas())
+
+    with pytest.raises(PreflightError, match="symlinks and special paths"):
+        run_preflight(env, session)
+
+    assert session.calls == []
+    assert not (real_parent / "runs.sqlite3").exists()
+
+
+@pytest.mark.skipif(os.name != "posix", reason="requires POSIX symlink support")
+def test_preflight_rejects_symlinked_ledger_file_without_touching_target(tmp_path):
+    parent = tmp_path / "persistent"
+    parent.mkdir()
+    protected_target = tmp_path / "protected-ledger.sqlite3"
+    protected_target.write_bytes(b"synthetic-target-must-remain-unchanged")
+    ledger_alias = parent / "runs.sqlite3"
+    ledger_alias.symlink_to(protected_target)
+    env = env_for(tmp_path)
+    env["RESEARCH_RUN_IDEMPOTENCY_DB"] = str(ledger_alias)
+    session = Session(valid_schemas())
+
+    with pytest.raises(PreflightError, match="regular file"):
+        run_preflight(env, session)
+
+    assert session.calls == []
+    assert protected_target.read_bytes() == b"synthetic-target-must-remain-unchanged"
+
+
+@pytest.mark.skipif(os.name != "posix", reason="requires POSIX hard-link support")
+def test_preflight_rejects_hardlinked_ledger_file_without_touching_target(tmp_path):
+    parent = tmp_path / "persistent"
+    parent.mkdir()
+    protected_target = tmp_path / "protected-ledger.sqlite3"
+    protected_target.write_bytes(b"synthetic-hardlink-target-must-remain-unchanged")
+    ledger_alias = parent / "runs.sqlite3"
+    os.link(protected_target, ledger_alias)
+    env = env_for(tmp_path)
+    env["RESEARCH_RUN_IDEMPOTENCY_DB"] = str(ledger_alias)
+    session = Session(valid_schemas())
+
+    with pytest.raises(PreflightError, match="must not be hard-linked"):
+        run_preflight(env, session)
+
+    assert session.calls == []
+    assert protected_target.read_bytes() == b"synthetic-hardlink-target-must-remain-unchanged"
+    assert protected_target.stat().st_ino == ledger_alias.stat().st_ino
+
+
+def test_preflight_normalizes_path_before_ephemeral_storage_check(tmp_path):
+    env = env_for(tmp_path)
+    env["RESEARCH_RUN_IDEMPOTENCY_DB"] = "/tmp/../tmp/research-run-ledger.sqlite3"
+    env["RESEARCH_RUN_ALLOW_EPHEMERAL_LEDGER"] = "false"
+    session = Session(valid_schemas())
+
+    with pytest.raises(PreflightError, match="ephemeral"):
+        run_preflight(env, session)
+
+    assert session.calls == []
+
+
+def test_preflight_rejects_directory_at_ledger_file_path(tmp_path):
+    env = env_for(tmp_path)
+    ledger_path = Path(env["RESEARCH_RUN_IDEMPOTENCY_DB"])
+    ledger_path.parent.mkdir(parents=True)
+    ledger_path.mkdir()
+    session = Session(valid_schemas())
+
+    with pytest.raises(PreflightError, match="regular file"):
+        run_preflight(env, session)
+
+    assert session.calls == []
+
+
+@pytest.mark.skipif(os.name != "posix", reason="requires POSIX symlink support")
+def test_preflight_rejects_symlinked_ancestor_before_notion_requests(tmp_path):
+    real_parent = tmp_path / "real-ancestor"
+    nested_parent = real_parent / "persistent"
+    nested_parent.mkdir(parents=True)
+    ancestor_alias = tmp_path / "ancestor-alias"
+    ancestor_alias.symlink_to(real_parent, target_is_directory=True)
+    env = env_for(tmp_path)
+    env["RESEARCH_RUN_IDEMPOTENCY_DB"] = str(ancestor_alias / "persistent" / "runs.sqlite3")
+    session = Session(valid_schemas())
+
+    with pytest.raises(PreflightError, match="symlinks and special paths"):
+        run_preflight(env, session)
+
+    assert session.calls == []
+    assert not (nested_parent / "runs.sqlite3").exists()
+
+
+def test_preflight_requires_writable_and_searchable_parent_before_notion_requests(
+    tmp_path, monkeypatch
+):
+    env = env_for(tmp_path)
+    database_path = Path(env["RESEARCH_RUN_IDEMPOTENCY_DB"])
+    database_path.parent.mkdir(parents=True)
+    session = Session(valid_schemas())
+    observed = []
+
+    def deny_directory_search(path, mode):
+        observed.append((str(path), mode))
+        return False
+
+    monkeypatch.setattr("scripts.research_run_preflight.os.access", deny_directory_search)
+
+    with pytest.raises(PreflightError, match="writable and searchable"):
+        run_preflight(env, session)
+
+    assert observed == [(str(database_path.parent), os.W_OK | os.X_OK)]
+    assert session.calls == []
+    assert not database_path.exists()
+
+
+
+@pytest.mark.skipif(os.name != "posix", reason="requires POSIX symlink support")
+def test_preflight_revalidates_ledger_parent_after_remote_schema_checks(tmp_path):
+    real_parent = tmp_path / "persistent"
+    replacement_parent = tmp_path / "replacement"
+    moved_parent = tmp_path / "persistent-moved"
+    real_parent.mkdir()
+    replacement_parent.mkdir()
+    env = env_for(tmp_path)
+    env["RESEARCH_RUN_IDEMPOTENCY_DB"] = str(real_parent / "runs.sqlite3")
+
+    class ReplacingSession(Session):
+        def get(self, url, headers, timeout, **kwargs):
+            response = super().get(url, headers, timeout, **kwargs)
+            if len(self.calls) == len(SOURCE_KEYS):
+                real_parent.rename(moved_parent)
+                real_parent.symlink_to(replacement_parent, target_is_directory=True)
+            return response
+
+    session = ReplacingSession(valid_schemas())
+
+    with pytest.raises(PreflightError, match="symlinks and special paths"):
+        run_preflight(env, session)
+
+    assert len(session.calls) == len(SOURCE_KEYS)
+    assert not (moved_parent / "runs.sqlite3").exists()
+    assert not (replacement_parent / "runs.sqlite3").exists()
