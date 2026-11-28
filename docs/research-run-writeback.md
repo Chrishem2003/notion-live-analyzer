@@ -375,3 +375,56 @@ Close PR #118 or revert the Batch 167 documentation follow-ups, workflow commit 
 
 ### Next exact action
 The targeted read-only inventory of API/server/gateway/router candidate modules in the 1,061-Python-file tree is complete for this pass. The remaining identified sidecar is the unverified Stripe webhook sample; the dormant FastAPI apps remain unlaunched. Obtain owner decisions for dormant legacy API hardening versus retirement and for the Stripe webhook sample; obtain owner-approved Host/proxy topology and owner-authorized read-only staging runtime access. Keep research-run write-back disabled and Production HOLD.
+
+
+## Batch 168 — Pydantic v2 API model compatibility and deprecation gate (2026-11-28)
+
+**Status: implemented; exact-head pull-request CI passed on the synchronized stacked branch; not deployed.**
+
+### Read-first finding
+
+The latest PR #118 candidate added `-W error::pydantic.warnings.PydanticDeprecatedSince20` to the API contract test command. Its exact-head run [46146528453](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/46146528453) failed during test collection because `platform_jobs/user_api.py` still declared a Pydantic v1 `@validator("prompt")`. The preflight-safety job passed. The failure was a real compatibility blocker, not a functional endpoint failure.
+
+The existing stacked PR #119 already contained the Pydantic v2 migration and synthetic model-contract suite, but its base was three commits behind the latest PR #118 head. A read-only comparison confirmed the only changes on the newer base were the strict-warning workflow update. The PR #119 workflow includes the same warning gate and the Pydantic contract tests in the main API-auth job.
+
+### Implementation and branch synchronization
+
+- Replaced Pydantic v1 `@validator` with `@field_validator` in `api_server.py`, `platform_jobs/api.py`, and `platform_jobs/user_api.py`.
+- Replaced class-based extra-field configuration with `ConfigDict(extra="forbid")` in the per-user job request model.
+- Replaced deprecated `BaseModel.dict()` / `parse_obj()` calls with `model_dump()` / `model_validate()`.
+- Replaced deprecated list `min_items` / `max_items` constraints with `min_length` / `max_length` in `shared_ai_gateway.py`.
+- Declared `pydantic>=2.7,<3` in the dedicated API runtime requirements.
+- Added synthetic contract tests for JSON-object validation, legacy empty-value compatibility, blank prompt/routing rejection, forbidden tenant-field injection, default serialization, and list-size boundaries.
+- Synchronized stacked PR #119 with the current PR #118 base using a two-parent merge commit on the isolated Pydantic branch only. Merge commit: `fb0b9cdc14836a6eee7832b3dd35ef3a2288a1d7`; parents: previous Pydantic branch head `5a39f0d283f5b808c57767d880ee892dfde13e5d` and current PR #118 head `c9a7ef08c0bd43b4980d8a4eda12efc73c299b6a`. This was a branch synchronization, not a pull-request merge.
+
+### Functional verification
+
+- PR #118 strict-warning failure: [run 46146528453](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/46146528453). API-auth contract failed at collection on the remaining Pydantic v1 validator; preflight-safety passed.
+- PR #119 push verification before sync: [run 46146526638](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/46146526638). API-auth contract and preflight-safety jobs passed; compilation passed.
+- Synchronized PR #119 exact-head pull-request verification: [run 46147338863](https://github.com/Chrishem2003/notion-live-analyzer/actions/runs/46147338863). Both API-auth-contract and preflight-safety jobs passed; both compile steps passed. The strict Pydantic deprecation warning is now an error in the API test command; the final API log contains no PydanticDeprecatedSince20 warning. Existing Starlette/httpx and HTTP status constant deprecation warnings remain visible and are outside this Pydantic v2 batch.
+- All seven changed files were fetched back from merge commit `fb0b9cdc14836a6eee7832b3dd35ef3a2288a1d7`; blob IDs are recorded below.
+
+### Changed files and final read-back blobs
+
+- `api_server.py` — `3f8896938197947f268d27ac257c05a076ae5dbc`
+- `platform_jobs/api.py` — `9bc00a9047aaf674f98a0b5fea4fe3711916dda8`
+- `platform_jobs/user_api.py` — `1e38ed81264ed18f40119fac9124643e6276d5de`
+- `shared_ai_gateway.py` — `790f935061b2b0f13b394a95788686f7858acf7f`
+- `requirements-api.txt` — `23aed4de56f08eacd2599c475fb9cd6492c9ba34`
+- `tests/test_pydantic_v2_contracts.py` — `d8c1acabc0ddaf2cdbb72d4268d924e89ab51472`
+- `.github/workflows/research-run-preflight-safety.yml` — `97dd6c85555d35f2e27a2744ba3d7a1cf1ff368a`
+
+### Blockers and residual risks
+
+- PR #119 remains draft/open/unmerged. It is now mergeable and targets isolated PR #118, not the staging auto-deployment branch. No human review is recorded. Do not merge it without owner review.
+- PR #118's own head `c9a7ef08` remains at the strict-warning failure; the passing result is on stacked PR #119's synchronized head. PR #119 must be reviewed and integrated into PR #118 before that branch can claim the Pydantic gate is clear.
+- The strict warning gate is scoped to `PydanticDeprecatedSince20`; Starlette deprecation warnings remain. This batch does not claim a full FastAPI/Starlette deprecation cleanup.
+- No deployed runtime, Notion, Supabase, AI provider, job repository, credential, production database, Render setting, merge to staging, or deployment was touched.
+
+### Rollback
+
+Close PR #119, or revert the Pydantic migration commits on its isolated branch in reverse order; retain the base-sync merge only if the branch is still needed for review. No production rollback is required.
+
+### Next exact action
+
+Obtain human review of PR #119, then integrate it into PR #118 only after approval and rerun the strict-warning API and preflight suites at the resulting PR #118 head. Keep research-run write-back disabled and Production HOLD.
