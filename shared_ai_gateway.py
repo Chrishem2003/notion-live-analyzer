@@ -370,7 +370,7 @@ def draft_automation(
     try:
         result = _generate("auto_studio", "draft_automation", payload.description, actor, system_override=system)
         draft_data = _parse_json_object(result["output"])
-        draft = AutomationDraft.parse_obj(draft_data)
+        draft = AutomationDraft.model_validate(draft_data)
     except HTTPException as exc:
         _audit_event("automation.draft", actor, "auto_studio", "draft_automation", f"error_{exc.status_code}")
         raise
@@ -386,7 +386,7 @@ def draft_automation(
         "actor": actor,
         "provider": result["provider"],
         "model": result["model"],
-        "draft": draft.dict(),
+        "draft": draft.model_dump(),
         "status": "draft_only",
         "executed": False,
     }
