@@ -37,6 +37,8 @@ on:
       - "sovereign_intelligence/api/service_router.py"
       - "nema_agora/api.py"
       - "tests/test_api_header_ambiguity.py"
+      - "tests/test_pydantic_v2_contracts.py"
+      - "tests/test_shared_ai_gateway.py"
       - "docs/research-run-writeback.md"
       - "render.yaml"
       - "Dockerfile"
@@ -71,6 +73,8 @@ on:
       - "sovereign_intelligence/api/service_router.py"
       - "nema_agora/api.py"
       - "tests/test_api_header_ambiguity.py"
+      - "tests/test_pydantic_v2_contracts.py"
+      - "tests/test_shared_ai_gateway.py"
       - "docs/research-run-writeback.md"
       - "render.yaml"
       - "Dockerfile"
@@ -140,6 +144,16 @@ jobs:
       - name: Run research-run API authentication and safety contract tests
         run: |
           python -m pytest -q --confcutdir=tests tests/test_research_run_api.py tests/test_credentialed_http_redirects.py tests/test_api_header_ambiguity.py tests/test_ollama_gateway_auth.py
+
+      - name: Run Pydantic v2 model contracts (stacked PR only)
+        if: github.event_name == 'pull_request'
+        run: |
+          python -m pytest -q --confcutdir=tests tests/test_shared_ai_gateway.py tests/test_pydantic_v2_contracts.py
+
+      - name: Compile Pydantic v2 model contracts (stacked PR only)
+        if: github.event_name == 'pull_request'
+        run: |
+          python -m compileall -q api_server.py platform_jobs/api.py platform_jobs/user_api.py shared_ai_gateway.py tests/test_shared_ai_gateway.py tests/test_pydantic_v2_contracts.py
 
       - name: Compile API and authentication contracts
         run: |
