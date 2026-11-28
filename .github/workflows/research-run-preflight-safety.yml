@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feat/research-run-preflight-path-hardening-20261122
+      - feat/pydantic-v2-api-contracts-20261128
     paths:
       - "scripts/research_run_preflight.py"
       - "api_server.py"
