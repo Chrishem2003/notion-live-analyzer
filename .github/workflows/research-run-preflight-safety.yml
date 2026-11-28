@@ -51,6 +51,7 @@ on:
   pull_request:
     branches:
       - feat/shared-ai-gateway-rebase-oct25
+      - feat/research-run-preflight-path-hardening-20261122
     paths:
       - "scripts/research_run_preflight.py"
       - "api_server.py"
